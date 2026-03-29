@@ -1,6 +1,6 @@
-import Link from 'next/link'
 import { Suspense } from 'react'
 import { createServerSupabaseClient } from '@/lib/supabase'
+import Navbar from '@/components/Navbar'
 import Filtros from './FiltroTipo'
 import SelectorOrden from './SelectorOrden'
 import ListadoConBuscador from './ListadoConBuscador'
@@ -33,34 +33,27 @@ export default async function PropiedadesPage({
   const { data: propiedades } = await query
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-50">
-      {/* Nav */}
-      <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-5 md:px-12">
-        <Link href="/" className="text-lg font-bold tracking-widest text-zinc-50">
-          PROPIA
-        </Link>
-        <Link href="/login" className="text-sm text-zinc-400 transition-colors hover:text-zinc-50">
-          Ingresar
-        </Link>
-      </header>
+    <div className="flex min-h-full flex-1 flex-col bg-slate-50">
+      <Navbar />
 
-      <main className="flex flex-1 flex-col px-6 py-10 md:px-12">
+      <main className="flex flex-1 flex-col px-6 pt-24 pb-12 md:px-10">
         <div className="mx-auto w-full max-w-5xl flex flex-col gap-6">
 
-          {/* Título y orden */}
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold text-zinc-50">Propiedades disponibles</h1>
+            <h1 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+              Propiedades disponibles
+            </h1>
             <Suspense>
               <SelectorOrden />
             </Suspense>
           </div>
 
-          {/* Filtros de tipo y precio */}
-          <Suspense>
-            <Filtros />
-          </Suspense>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <Suspense>
+              <Filtros />
+            </Suspense>
+          </div>
 
-          {/* Buscador + grilla (client) */}
           <ListadoConBuscador
             propiedades={propiedades ?? []}
             hayFiltros={!!(tipo || precio || ciudad)}

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase'
+import Navbar from '@/components/Navbar'
 import InboxMensajes, { type RespuestaType } from './InboxMensajes'
 
 export default async function MensajesPage() {
@@ -11,7 +11,6 @@ export default async function MensajesPage() {
     redirect('/login')
   }
 
-  // Propiedades del dueño
   const { data: propiedades } = await supabase
     .from('properties')
     .select('id')
@@ -19,7 +18,6 @@ export default async function MensajesPage() {
 
   const propertyIds = propiedades?.map((p) => p.id) ?? []
 
-  // Mensajes de esas propiedades
   const { data: rawMensajes } = propertyIds.length > 0
     ? await supabase
         .from('mensajes')
@@ -47,7 +45,6 @@ export default async function MensajesPage() {
     }
   })
 
-  // Respuestas de todos los hilos del dueño
   const mensajeIds = mensajes.map((m) => m.id)
 
   const { data: rawRespuestas } = mensajeIds.length > 0
@@ -65,20 +62,17 @@ export default async function MensajesPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-zinc-950 text-zinc-50">
-      <header className="shrink-0 flex items-center justify-between border-b border-zinc-800 px-6 py-5 md:px-12">
-        <Link href="/dashboard" className="text-lg font-bold tracking-widest text-zinc-50">
-          PROPIA
-        </Link>
-        <span className="text-sm text-zinc-400">{session.user.email}</span>
-      </header>
+    <div className="flex h-screen flex-col overflow-hidden bg-slate-50">
+      <Navbar />
 
-      <InboxMensajes
-        mensajes={mensajes}
-        respuestasPorMensaje={respuestasPorMensaje}
-        ownerEmail={session.user.email ?? ''}
-        propertyIds={propertyIds}
-      />
+      <div className="flex flex-1 overflow-hidden pt-16">
+        <InboxMensajes
+          mensajes={mensajes}
+          respuestasPorMensaje={respuestasPorMensaje}
+          ownerEmail={session.user.email ?? ''}
+          propertyIds={propertyIds}
+        />
+      </div>
     </div>
   )
 }

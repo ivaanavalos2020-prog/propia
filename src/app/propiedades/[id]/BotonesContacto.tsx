@@ -29,14 +29,14 @@ export default function BotonesContacto({ propertyId, userEmail }: Props) {
       <button
         type="button"
         onClick={abrirComoVisita}
-        className="flex w-full items-center justify-center rounded-xl bg-green-500 py-4 text-base font-bold text-white transition-colors hover:bg-green-600"
+        className="flex w-full items-center justify-center rounded-xl bg-blue-600 py-4 text-base font-bold text-white transition-colors hover:bg-blue-700"
       >
         Quiero esta propiedad
       </button>
       <button
         type="button"
         onClick={abrirComoContacto}
-        className="flex w-full items-center justify-center rounded-xl border border-zinc-700 py-4 text-base font-semibold text-zinc-50 transition-colors hover:border-zinc-500 hover:bg-zinc-900"
+        className="flex w-full items-center justify-center rounded-xl border border-slate-200 py-4 text-base font-semibold text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
       >
         Contactar al dueño
       </button>

@@ -11,6 +11,8 @@ interface Props {
   mensajeInicial?: string
 }
 
+const inputCls = 'rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50'
+
 export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail, mensajeInicial = '' }: Props) {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState(userEmail ?? '')
@@ -19,7 +21,6 @@ export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail
   const [enviado, setEnviado] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Sincronizar cuando cambia mensajeInicial (al abrir con distinto contexto)
   useEffect(() => {
     if (abierto) {
       setMensaje(mensajeInicial)
@@ -67,16 +68,16 @@ export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) cerrar() }}
     >
-      <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-zinc-50">Contactar al dueño</h2>
+          <h2 className="text-lg font-bold text-slate-900">Contactar al dueño</h2>
           <button
             type="button"
             onClick={cerrar}
-            className="text-zinc-500 transition-colors hover:text-zinc-50"
+            className="text-slate-400 transition-colors hover:text-slate-900"
             aria-label="Cerrar"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -87,17 +88,17 @@ export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail
 
         {enviado ? (
           <div className="flex flex-col items-center gap-4 py-4 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-950">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <p className="text-base font-semibold text-zinc-50">Tu consulta fue enviada.</p>
-            <p className="text-sm text-zinc-400">El dueño se contactará con vos pronto.</p>
+            <p className="text-base font-semibold text-slate-900">Tu consulta fue enviada.</p>
+            <p className="text-sm text-slate-500">El dueño se contactará con vos pronto.</p>
             <button
               type="button"
               onClick={cerrar}
-              className="mt-2 rounded-lg bg-zinc-50 px-6 py-2.5 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-80"
+              className="mt-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
             >
               Cerrar
             </button>
@@ -105,7 +106,7 @@ export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="contacto-nombre" className="text-sm font-medium text-zinc-400">
+              <label htmlFor="contacto-nombre" className="text-sm font-medium text-slate-700">
                 Tu nombre
               </label>
               <input
@@ -116,12 +117,12 @@ export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail
                 placeholder="Nombre y apellido"
                 required
                 disabled={enviando}
-                className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+                className={inputCls}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="contacto-email" className="text-sm font-medium text-zinc-400">
+              <label htmlFor="contacto-email" className="text-sm font-medium text-slate-700">
                 Tu email
               </label>
               <input
@@ -132,12 +133,12 @@ export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail
                 placeholder="tu@email.com"
                 required
                 disabled={enviando}
-                className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+                className={inputCls}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="contacto-mensaje" className="text-sm font-medium text-zinc-400">
+              <label htmlFor="contacto-mensaje" className="text-sm font-medium text-slate-700">
                 Mensaje
               </label>
               <textarea
@@ -148,12 +149,12 @@ export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail
                 rows={4}
                 required
                 disabled={enviando}
-                className="resize-none rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+                className={`resize-none ${inputCls}`}
               />
             </div>
 
             {error && (
-              <p className="rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-400">
+              <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                 {error}
               </p>
             )}
@@ -161,7 +162,7 @@ export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail
             <button
               type="submit"
               disabled={enviando}
-              className="mt-1 rounded-lg bg-zinc-50 py-3 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-80 disabled:opacity-40"
+              className="mt-1 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-40"
             >
               {enviando ? 'Enviando...' : 'Enviar mensaje'}
             </button>

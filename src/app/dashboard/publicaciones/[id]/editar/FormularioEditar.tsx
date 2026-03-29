@@ -15,6 +15,8 @@ interface Props {
 
 type Estado = 'idle' | 'guardando' | 'error'
 
+const inputCls = 'rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50'
+
 function BotonSiNo({
   valor,
   seleccionado,
@@ -31,8 +33,8 @@ function BotonSiNo({
       onClick={() => onChange(valor)}
       className={`flex-1 rounded-lg border py-2.5 text-sm font-medium transition-colors ${
         activo
-          ? 'border-zinc-50 bg-zinc-50 text-zinc-950'
-          : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-50'
+          ? 'border-blue-600 bg-blue-50 text-blue-600'
+          : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'
       }`}
     >
       {valor ? 'Sí' : 'No'}
@@ -87,7 +89,7 @@ export default function FormularioEditar({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="precio" className="text-sm font-medium text-zinc-400">
+        <label htmlFor="precio" className="text-sm font-medium text-slate-700">
           Precio mensual (USD)
         </label>
         <input
@@ -98,12 +100,12 @@ export default function FormularioEditar({
           min={0}
           required
           disabled={estado === 'guardando'}
-          className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+          className={inputCls}
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="descripcion" className="text-sm font-medium text-zinc-400">
+        <label htmlFor="descripcion" className="text-sm font-medium text-slate-700">
           Descripción
         </label>
         <textarea
@@ -113,12 +115,12 @@ export default function FormularioEditar({
           rows={4}
           disabled={estado === 'guardando'}
           placeholder="Describí la propiedad..."
-          className="resize-none rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+          className={`resize-none ${inputCls}`}
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-zinc-400">¿Incluye expensas?</label>
+        <label className="text-sm font-medium text-slate-700">¿Incluye expensas?</label>
         <div className="flex gap-3">
           <BotonSiNo valor={true} seleccionado={incluyeExpensas} onChange={setIncluyeExpensas} />
           <BotonSiNo valor={false} seleccionado={incluyeExpensas} onChange={setIncluyeExpensas} />
@@ -126,7 +128,7 @@ export default function FormularioEditar({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-zinc-400">¿Acepta mascotas?</label>
+        <label className="text-sm font-medium text-slate-700">¿Acepta mascotas?</label>
         <div className="flex gap-3">
           <BotonSiNo valor={true} seleccionado={aceptaMascotas} onChange={setAceptaMascotas} />
           <BotonSiNo valor={false} seleccionado={aceptaMascotas} onChange={setAceptaMascotas} />
@@ -134,7 +136,7 @@ export default function FormularioEditar({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-zinc-400">¿Acepta niños?</label>
+        <label className="text-sm font-medium text-slate-700">¿Acepta niños?</label>
         <div className="flex gap-3">
           <BotonSiNo valor={true} seleccionado={aceptaNinos} onChange={setAceptaNinos} />
           <BotonSiNo valor={false} seleccionado={aceptaNinos} onChange={setAceptaNinos} />
@@ -142,7 +144,7 @@ export default function FormularioEditar({
       </div>
 
       {error && (
-        <p className="rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-400">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {error}
         </p>
       )}
@@ -152,14 +154,14 @@ export default function FormularioEditar({
           type="button"
           onClick={() => router.push('/dashboard')}
           disabled={estado === 'guardando'}
-          className="flex-1 rounded-lg border border-zinc-700 py-3 text-sm font-medium text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-50 disabled:opacity-40"
+          className="flex-1 rounded-lg border border-slate-200 bg-white py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={estado === 'guardando'}
-          className="flex-1 rounded-lg bg-zinc-50 py-3 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-80 disabled:opacity-40"
+          className="flex-1 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-40"
         >
           {estado === 'guardando' ? 'Guardando...' : 'Guardar cambios'}
         </button>

@@ -141,6 +141,8 @@ const INICIAL: FormData = {
   aceptaNinos: null,
 }
 
+const inputCls = 'rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50'
+
 function BotonSiNo({
   valor,
   seleccionado,
@@ -157,8 +159,8 @@ function BotonSiNo({
       onClick={() => onChange(valor)}
       className={`flex-1 rounded-lg border py-2.5 text-sm font-medium transition-colors ${
         activo
-          ? 'border-zinc-50 bg-zinc-50 text-zinc-950'
-          : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-50'
+          ? 'border-blue-600 bg-blue-50 text-blue-600'
+          : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'
       }`}
     >
       {valor ? 'Sí' : 'No'}
@@ -218,7 +220,6 @@ export default function PublicarPage() {
       return
     }
 
-    // Subir fotos en el orden de las categorías
     const photoUrls: string[] = []
     for (const cat of CATEGORIAS) {
       const archivo = fotos[cat.id]
@@ -265,11 +266,14 @@ export default function PublicarPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-50">
-      {/* Nav */}
-      <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-5 md:px-12">
-        <span className="text-lg font-bold tracking-widest text-zinc-50">PROPIA</span>
-        <Link href="/dashboard" className="text-sm text-zinc-400 transition-colors hover:text-zinc-50">
+    <div className="flex min-h-full flex-1 flex-col bg-slate-50">
+      {/* Header simple */}
+      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
+        <Link href="/" className="flex flex-col leading-none">
+          <span className="text-base font-bold tracking-widest text-slate-900">PROPIA</span>
+          <span className="text-[9px] font-semibold uppercase tracking-widest text-blue-600">Sin intermediarios</span>
+        </Link>
+        <Link href="/dashboard" className="text-sm text-slate-500 transition-colors hover:text-slate-900">
           Cancelar
         </Link>
       </header>
@@ -283,12 +287,12 @@ export default function PublicarPage() {
               <div key={nombre} className="flex flex-1 flex-col gap-1.5">
                 <div
                   className={`h-1 rounded-full transition-colors ${
-                    i <= paso ? 'bg-zinc-50' : 'bg-zinc-800'
+                    i <= paso ? 'bg-blue-600' : 'bg-slate-200'
                   }`}
                 />
                 <span
-                  className={`text-xs transition-colors ${
-                    i === paso ? 'text-zinc-50' : 'text-zinc-600'
+                  className={`text-xs font-medium transition-colors ${
+                    i === paso ? 'text-blue-600' : 'text-slate-400'
                   }`}
                 >
                   {nombre}
@@ -297,273 +301,220 @@ export default function PublicarPage() {
             ))}
           </div>
 
-          {/* Paso 1 — Tipo */}
-          {paso === 0 && (
-            <div className="flex flex-col gap-6">
-              <h2 className="text-xl font-semibold">¿Qué tipo de propiedad querés publicar?</h2>
-              <div className="grid grid-cols-2 gap-3">
-                {TIPOS.map(({ value, label, emoji }) => {
-                  const activo = form.tipo === value
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => set('tipo', value)}
-                      className={`flex flex-col items-center gap-2 rounded-xl border px-4 py-6 text-sm font-medium transition-colors ${
-                        activo
-                          ? 'border-zinc-50 bg-zinc-900 text-zinc-50'
-                          : 'border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-50'
-                      }`}
-                    >
-                      <span className="text-3xl">{emoji}</span>
-                      {label}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
 
-          {/* Paso 2 — Ubicación y precio */}
-          {paso === 1 && (
-            <div className="flex flex-col gap-6">
-              <h2 className="text-xl font-semibold">Ubicación y precio</h2>
-
-              {/* Calle y número */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-400">
-                  Calle y número <span className="text-zinc-600">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.calle}
-                  onChange={(e) => set('calle', e.target.value)}
-                  placeholder="Ej: Av. Corrientes 1234"
-                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Localidad / barrio */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-400">Localidad o barrio</label>
-                <input
-                  type="text"
-                  value={form.barrio}
-                  onChange={(e) => set('barrio', e.target.value)}
-                  placeholder="Ej: Palermo, San Telmo, Rosario Centro"
-                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Provincia */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-400">
-                  Provincia <span className="text-zinc-600">*</span>
-                </label>
-                <select
-                  value={form.provincia}
-                  onChange={(e) => set('provincia', e.target.value)}
-                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 focus:border-zinc-500 focus:outline-none"
-                >
-                  <option value="" disabled>Seleccioná una provincia</option>
-                  {PROVINCIAS.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Referencias (opcional) */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-400">
-                  Referencias <span className="text-zinc-600 font-normal">(opcional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.referencias}
-                  onChange={(e) => set('referencias', e.target.value)}
-                  placeholder="Ej: cerca del subte B, frente al parque"
-                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Precio */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-400">Precio mensual (USD)</label>
-                <input
-                  type="number"
-                  value={form.precio}
-                  onChange={(e) => set('precio', e.target.value)}
-                  placeholder="0"
-                  min={0}
-                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Expensas */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-400">¿Incluye expensas?</label>
-                <div className="flex gap-3">
-                  <BotonSiNo valor={true} seleccionado={form.incluyeExpensas} onChange={(v) => set('incluyeExpensas', v)} />
-                  <BotonSiNo valor={false} seleccionado={form.incluyeExpensas} onChange={(v) => set('incluyeExpensas', v)} />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Paso 3 — Detalles */}
-          {paso === 2 && (
-            <div className="flex flex-col gap-6">
-              <h2 className="text-xl font-semibold">Detalles de la propiedad</h2>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-400">Descripción</label>
-                <textarea
-                  value={form.descripcion}
-                  onChange={(e) => set('descripcion', e.target.value)}
-                  placeholder="Describí la propiedad: luminosidad, estado, cercanía a servicios..."
-                  rows={4}
-                  className="resize-none rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { key: 'ambientes' as const, label: 'Ambientes' },
-                  { key: 'banos' as const, label: 'Baños' },
-                  { key: 'superficie' as const, label: 'Superficie (m²)' },
-                ].map(({ key, label }) => (
-                  <div key={key} className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium text-zinc-400">{label}</label>
-                    <input
-                      type="number"
-                      value={form[key]}
-                      onChange={(e) => set(key, e.target.value)}
-                      placeholder="0"
-                      min={0}
-                      className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-400">¿Acepta mascotas?</label>
-                <div className="flex gap-3">
-                  <BotonSiNo valor={true} seleccionado={form.aceptaMascotas} onChange={(v) => set('aceptaMascotas', v)} />
-                  <BotonSiNo valor={false} seleccionado={form.aceptaMascotas} onChange={(v) => set('aceptaMascotas', v)} />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-400">¿Acepta niños?</label>
-                <div className="flex gap-3">
-                  <BotonSiNo valor={true} seleccionado={form.aceptaNinos} onChange={(v) => set('aceptaNinos', v)} />
-                  <BotonSiNo valor={false} seleccionado={form.aceptaNinos} onChange={(v) => set('aceptaNinos', v)} />
-                </div>
-              </div>
-
-              {/* Fotos por categoría */}
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium text-zinc-400">Fotos</span>
-                  <span className="text-xs text-zinc-600">
-                    Las categorías marcadas con * son obligatorias.
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  {CATEGORIAS.map((cat) => {
-                    const preview = previews[cat.id]
+            {/* Paso 1 — Tipo */}
+            {paso === 0 && (
+              <div className="flex flex-col gap-6">
+                <h2 className="text-xl font-bold text-slate-900">¿Qué tipo de propiedad querés publicar?</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {TIPOS.map(({ value, label, emoji }) => {
+                    const activo = form.tipo === value
                     return (
-                      <div
-                        key={cat.id}
-                        className="flex items-start gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4"
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => set('tipo', value)}
+                        className={`flex flex-col items-center gap-2 rounded-xl border px-4 py-6 text-sm font-medium transition-colors ${
+                          activo
+                            ? 'border-blue-600 bg-blue-50 text-blue-600'
+                            : 'border-slate-200 text-slate-500 hover:border-blue-300 hover:bg-blue-50/50'
+                        }`}
                       >
-                        {/* Preview o placeholder */}
-                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-zinc-700 bg-zinc-800">
-                          {preview ? (
-                            <>
-                              <Image
-                                src={preview}
-                                alt={cat.label}
-                                fill
-                                className="object-cover"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => eliminarFoto(cat.id)}
-                                className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-950/80 text-zinc-300 transition-colors hover:text-zinc-50"
-                                aria-label="Eliminar foto"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                                </svg>
-                              </button>
-                            </>
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-zinc-600">
-                              {cat.icono}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Info + botón */}
-                        <div className="flex flex-1 flex-col gap-2">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-sm font-medium text-zinc-50">
-                              {cat.label}
-                              {cat.obligatoria && (
-                                <span className="ml-1 text-zinc-500">*</span>
-                              )}
-                            </span>
-                            <span className="text-xs leading-relaxed text-zinc-500">
-                              {cat.instruccion}
-                            </span>
-                          </div>
-
-                          <input
-                            ref={(el) => { inputRefs.current[cat.id] = el }}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleFotoChange(cat.id, e)}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => inputRefs.current[cat.id]?.click()}
-                            className="self-start rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-50"
-                          >
-                            {preview ? 'Cambiar foto' : 'Subir foto'}
-                          </button>
-                        </div>
-                      </div>
+                        <span className="text-3xl">{emoji}</span>
+                        {label}
+                      </button>
                     )
                   })}
                 </div>
-
-                {obligatoriasFaltantes.length > 0 && (
-                  <p className="text-xs text-zinc-500">
-                    Faltan fotos obligatorias: {obligatoriasFaltantes.map((c) => c.label).join(', ')}.
-                  </p>
-                )}
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Paso 2 — Ubicación y precio */}
+            {paso === 1 && (
+              <div className="flex flex-col gap-5">
+                <h2 className="text-xl font-bold text-slate-900">Ubicación y precio</h2>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-slate-700">
+                    Calle y número <span className="text-slate-400">*</span>
+                  </label>
+                  <input type="text" value={form.calle} onChange={(e) => set('calle', e.target.value)}
+                    placeholder="Ej: Av. Corrientes 1234" className={inputCls} />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-slate-700">Localidad o barrio</label>
+                  <input type="text" value={form.barrio} onChange={(e) => set('barrio', e.target.value)}
+                    placeholder="Ej: Palermo, San Telmo, Rosario Centro" className={inputCls} />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-slate-700">
+                    Provincia <span className="text-slate-400">*</span>
+                  </label>
+                  <select value={form.provincia} onChange={(e) => set('provincia', e.target.value)} className={inputCls}>
+                    <option value="" disabled>Seleccioná una provincia</option>
+                    {PROVINCIAS.map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-slate-700">
+                    Referencias <span className="text-slate-400 font-normal">(opcional)</span>
+                  </label>
+                  <input type="text" value={form.referencias} onChange={(e) => set('referencias', e.target.value)}
+                    placeholder="Ej: cerca del subte B, frente al parque" className={inputCls} />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-slate-700">Precio mensual (USD)</label>
+                  <input type="number" value={form.precio} onChange={(e) => set('precio', e.target.value)}
+                    placeholder="0" min={0} className={inputCls} />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-slate-700">¿Incluye expensas?</label>
+                  <div className="flex gap-3">
+                    <BotonSiNo valor={true} seleccionado={form.incluyeExpensas} onChange={(v) => set('incluyeExpensas', v)} />
+                    <BotonSiNo valor={false} seleccionado={form.incluyeExpensas} onChange={(v) => set('incluyeExpensas', v)} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Paso 3 — Detalles */}
+            {paso === 2 && (
+              <div className="flex flex-col gap-5">
+                <h2 className="text-xl font-bold text-slate-900">Detalles de la propiedad</h2>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-slate-700">Descripción</label>
+                  <textarea value={form.descripcion} onChange={(e) => set('descripcion', e.target.value)}
+                    placeholder="Describí la propiedad: luminosidad, estado, cercanía a servicios..."
+                    rows={4} className={`resize-none ${inputCls}`} />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { key: 'ambientes' as const, label: 'Ambientes' },
+                    { key: 'banos' as const, label: 'Baños' },
+                    { key: 'superficie' as const, label: 'Superficie (m²)' },
+                  ].map(({ key, label }) => (
+                    <div key={key} className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium text-slate-700">{label}</label>
+                      <input type="number" value={form[key]} onChange={(e) => set(key, e.target.value)}
+                        placeholder="0" min={0} className={inputCls} />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-slate-700">¿Acepta mascotas?</label>
+                  <div className="flex gap-3">
+                    <BotonSiNo valor={true} seleccionado={form.aceptaMascotas} onChange={(v) => set('aceptaMascotas', v)} />
+                    <BotonSiNo valor={false} seleccionado={form.aceptaMascotas} onChange={(v) => set('aceptaMascotas', v)} />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-slate-700">¿Acepta niños?</label>
+                  <div className="flex gap-3">
+                    <BotonSiNo valor={true} seleccionado={form.aceptaNinos} onChange={(v) => set('aceptaNinos', v)} />
+                    <BotonSiNo valor={false} seleccionado={form.aceptaNinos} onChange={(v) => set('aceptaNinos', v)} />
+                  </div>
+                </div>
+
+                {/* Fotos */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium text-slate-700">Fotos</span>
+                    <span className="text-xs text-slate-400">Las categorías marcadas con * son obligatorias.</span>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    {CATEGORIAS.map((cat) => {
+                      const preview = previews[cat.id]
+                      return (
+                        <div key={cat.id} className="flex items-start gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white">
+                            {preview ? (
+                              <>
+                                <Image src={preview} alt={cat.label} fill className="object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => eliminarFoto(cat.id)}
+                                  className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-sm transition-colors hover:text-red-600"
+                                  aria-label="Eliminar foto"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                  </svg>
+                                </button>
+                              </>
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-slate-300">
+                                {cat.icono}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex flex-1 flex-col gap-2">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-sm font-medium text-slate-900">
+                                {cat.label}
+                                {cat.obligatoria && <span className="ml-1 text-blue-500">*</span>}
+                              </span>
+                              <span className="text-xs leading-relaxed text-slate-400">{cat.instruccion}</span>
+                            </div>
+
+                            <input
+                              ref={(el) => { inputRefs.current[cat.id] = el }}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFotoChange(cat.id, e)}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => inputRefs.current[cat.id]?.click()}
+                              className="self-start rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+                            >
+                              {preview ? 'Cambiar foto' : 'Subir foto'}
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {obligatoriasFaltantes.length > 0 && (
+                    <p className="text-xs text-slate-500">
+                      Faltan fotos obligatorias: {obligatoriasFaltantes.map((c) => c.label).join(', ')}.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+          </div>
 
           {/* Error */}
           {error && (
-            <p className="mt-8 rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-400">
+            <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
               {error}
             </p>
           )}
 
           {/* Navegación */}
-          <div className="mt-6 flex gap-3">
+          <div className="mt-4 flex gap-3">
             {paso > 0 && (
               <button
                 type="button"
                 onClick={() => setPaso((p) => p - 1)}
-                className="flex-1 rounded-lg border border-zinc-700 py-3 text-sm font-medium text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-50"
+                className="flex-1 rounded-lg border border-slate-200 bg-white py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
               >
                 Atrás
               </button>
@@ -574,7 +525,7 @@ export default function PublicarPage() {
                 type="button"
                 onClick={() => setPaso((p) => p + 1)}
                 disabled={!puedeAvanzar()}
-                className="flex-1 rounded-lg bg-zinc-50 py-3 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-80 disabled:opacity-30"
+                className="flex-1 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-30"
               >
                 Siguiente
               </button>
@@ -583,7 +534,7 @@ export default function PublicarPage() {
                 type="button"
                 onClick={handlePublicar}
                 disabled={publicando || !puedeAvanzar()}
-                className="flex-1 rounded-lg bg-zinc-50 py-3 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-80 disabled:opacity-40"
+                className="flex-1 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-40"
               >
                 {publicando ? 'Publicando...' : 'Publicar'}
               </button>

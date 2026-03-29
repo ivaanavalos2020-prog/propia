@@ -11,6 +11,8 @@ interface Props {
 
 type Estado = 'idle' | 'guardando' | 'guardado' | 'error'
 
+const inputCls = 'rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50'
+
 export default function FormularioPerfil({ userId, nombreInicial, telefonoInicial }: Props) {
   const [nombre, setNombre] = useState(nombreInicial)
   const [telefono, setTelefono] = useState(telefonoInicial)
@@ -43,7 +45,7 @@ export default function FormularioPerfil({ userId, nombreInicial, telefonoInicia
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="nombre" className="text-sm font-medium text-zinc-400">
+        <label htmlFor="nombre" className="text-sm font-medium text-slate-700">
           Nombre completo
         </label>
         <input
@@ -53,12 +55,12 @@ export default function FormularioPerfil({ userId, nombreInicial, telefonoInicia
           onChange={(e) => setNombre(e.target.value)}
           placeholder="Tu nombre y apellido"
           disabled={estado === 'guardando'}
-          className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+          className={inputCls}
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="telefono" className="text-sm font-medium text-zinc-400">
+        <label htmlFor="telefono" className="text-sm font-medium text-slate-700">
           Teléfono de contacto
         </label>
         <input
@@ -68,12 +70,12 @@ export default function FormularioPerfil({ userId, nombreInicial, telefonoInicia
           onChange={(e) => setTelefono(e.target.value)}
           placeholder="Ej: +54 9 11 1234-5678"
           disabled={estado === 'guardando'}
-          className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+          className={inputCls}
         />
       </div>
 
       {error && (
-        <p className="rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-400">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {error}
         </p>
       )}
@@ -81,7 +83,11 @@ export default function FormularioPerfil({ userId, nombreInicial, telefonoInicia
       <button
         type="submit"
         disabled={estado === 'guardando'}
-        className="rounded-lg bg-zinc-50 py-3 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-80 disabled:opacity-40"
+        className={`rounded-lg py-3 text-sm font-semibold transition-colors disabled:opacity-50 ${
+          estado === 'guardado'
+            ? 'bg-green-50 border border-green-200 text-green-700'
+            : 'bg-blue-600 text-white hover:bg-blue-700'
+        }`}
       >
         {estado === 'guardando'
           ? 'Guardando...'

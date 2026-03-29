@@ -65,12 +65,12 @@ function fechaChat(dateStr: string): string {
 
 function avatarColor(name: string): string {
   const palettes = [
-    'bg-blue-900 text-blue-200',
-    'bg-violet-900 text-violet-200',
-    'bg-amber-900 text-amber-200',
-    'bg-rose-900 text-rose-200',
-    'bg-teal-900 text-teal-200',
-    'bg-sky-900 text-sky-200',
+    'bg-blue-100 text-blue-700',
+    'bg-violet-100 text-violet-700',
+    'bg-amber-100 text-amber-700',
+    'bg-rose-100 text-rose-700',
+    'bg-teal-100 text-teal-700',
+    'bg-sky-100 text-sky-700',
   ]
   return palettes[name.charCodeAt(0) % palettes.length]
 }
@@ -91,7 +91,7 @@ function playNotificationSound() {
     osc.start(ctx.currentTime)
     osc.stop(ctx.currentTime + 0.4)
   } catch {
-    // AudioContext no disponible (SSR / política del navegador)
+    // AudioContext no disponible
   }
 }
 
@@ -119,7 +119,7 @@ export default function InboxMensajes({
   ownerEmail,
   propertyIds,
 }: Props) {
-  const [mensajes,  setMensajes]  = useState<MensajeType[]>(initial)
+  const [mensajes,   setMensajes]   = useState<MensajeType[]>(initial)
   const [respuestas, setRespuestas] = useState<Record<string, RespuestaType[]>>(initialRespuestas)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [vistaMovil, setVistaMovil] = useState<'lista' | 'detalle'>('lista')
@@ -127,27 +127,24 @@ export default function InboxMensajes({
   const [enviando, setEnviando] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [toasts,   setToasts]   = useState<Toast[]>([])
-  const [, setTick] = useState(0) // dispara re-render cada minuto para timestamps relativos
+  const [, setTick] = useState(0)
   const chatRef = useRef<HTMLDivElement>(null)
 
-  const selected     = mensajes.find((m) => m.id === selectedId) ?? null
-  const hiloActual   = selectedId ? (respuestas[selectedId] ?? []) : []
+  const selected    = mensajes.find((m) => m.id === selectedId) ?? null
+  const hiloActual  = selectedId ? (respuestas[selectedId] ?? []) : []
   const ownerInitial = ownerEmail[0]?.toUpperCase() ?? 'V'
 
-  // ── Tick cada minuto para actualizar timestamps ───────────────
   useEffect(() => {
     const timer = setInterval(() => setTick((t) => t + 1), 60_000)
     return () => clearInterval(timer)
   }, [])
 
-  // ── Scroll al fondo al cambiar conversación o recibir mensaje ─
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight
     }
   }, [selectedId, respuestas, mensajes])
 
-  // ── Realtime: nuevos mensajes entrantes ───────────────────────
   useEffect(() => {
     if (propertyIds.length === 0) return
     const supabase = createClient()
@@ -191,8 +188,7 @@ export default function InboxMensajes({
             return [newMsg, ...prev]
           })
 
-          const toastText = `Nuevo mensaje de ${newMsg.sender_name}${newMsg.address ? ` sobre ${newMsg.address}` : ''}`
-          addToast(toastText)
+          addToast(`Nuevo mensaje de ${newMsg.sender_name}${newMsg.address ? ` sobre ${newMsg.address}` : ''}`)
           playNotificationSound()
         },
       )
@@ -202,7 +198,6 @@ export default function InboxMensajes({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propertyIds.join(',')])
 
-  // ── Toast ─────────────────────────────────────────────────────
   function addToast(text: string) {
     const id = Math.random().toString(36).slice(2)
     setToasts((prev) => [...prev, { id, text }])
@@ -211,19 +206,16 @@ export default function InboxMensajes({
     }, 4000)
   }
 
-  // ── Seleccionar conversación → marcar como leído ──────────────
   async function seleccionar(id: string) {
     setSelectedId(id)
     setVistaMovil('detalle')
     setTexto('')
     setErrorMsg(null)
 
-    // Optimista: marcar leído en estado local
     setMensajes((prev) =>
       prev.map((m) => (m.id === id ? { ...m, leido: true } : m)),
     )
 
-    // Persistir en DB (fire and forget)
     createClient()
       .from('mensajes')
       .update({ leido: true, leido_en: new Date().toISOString() })
@@ -232,7 +224,6 @@ export default function InboxMensajes({
       .then(() => {})
   }
 
-  // ── Enviar respuesta ──────────────────────────────────────────
   async function enviar() {
     const contenido = texto.trim()
     if (!selected || !contenido) return
@@ -262,11 +253,11 @@ export default function InboxMensajes({
   return (
     <>
       {/* ── Toasts ───────────────────────────────────────────── */}
-      <div className="fixed right-4 top-4 z-50 flex flex-col gap-2 pointer-events-none">
+      <div className="fixed right-4 top-20 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex items-start gap-3 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 shadow-xl"
+            className="pointer-events-auto flex items-start gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-lg"
             style={{ animation: 'toast-in 0.25s ease' }}
           >
             <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600">
@@ -274,7 +265,7 @@ export default function InboxMensajes({
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
             </div>
-            <p className="max-w-[260px] text-sm text-zinc-200">{t.text}</p>
+            <p className="max-w-[260px] text-sm text-slate-700">{t.text}</p>
           </div>
         ))}
       </div>
@@ -291,20 +282,20 @@ export default function InboxMensajes({
         {/* ══ PANEL IZQUIERDO ════════════════════════════════════ */}
         <aside
           className={[
-            'flex w-full flex-col border-r border-zinc-800 bg-zinc-950',
+            'flex w-full flex-col border-r border-slate-200 bg-white',
             'md:flex md:w-80 lg:w-96',
             vistaMovil === 'detalle' ? 'hidden md:flex' : 'flex',
           ].join(' ')}
         >
-          <div className="shrink-0 border-b border-zinc-800 px-5 py-4">
+          <div className="shrink-0 border-b border-slate-200 px-5 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-sm font-semibold text-zinc-50">Mensajes recibidos</h1>
-                <p className="mt-0.5 text-xs text-zinc-500">
+                <h1 className="text-sm font-semibold text-slate-900">Mensajes recibidos</h1>
+                <p className="mt-0.5 text-xs text-slate-400">
                   {mensajes.length} conversación{mensajes.length !== 1 ? 'es' : ''}
                 </p>
               </div>
-              <Link href="/dashboard" className="text-xs text-zinc-500 transition-colors hover:text-zinc-300">
+              <Link href="/dashboard" className="text-xs text-slate-400 transition-colors hover:text-slate-700">
                 ← Volver
               </Link>
             </div>
@@ -312,45 +303,41 @@ export default function InboxMensajes({
 
           {mensajes.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800">
-                <IconSobre className="h-5 w-5 text-zinc-500" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                <IconSobre className="h-5 w-5 text-slate-400" />
               </div>
-              <p className="text-sm text-zinc-400">No recibiste mensajes todavía</p>
-              <p className="text-xs text-zinc-600">Aparecerán aquí cuando alguien te contacte desde una propiedad.</p>
+              <p className="text-sm text-slate-500">No recibiste mensajes todavía</p>
+              <p className="text-xs text-slate-400">Aparecerán aquí cuando alguien te contacte.</p>
             </div>
           ) : (
-            <ul className="flex-1 divide-y divide-zinc-800/50 overflow-y-auto">
+            <ul className="flex-1 divide-y divide-slate-100 overflow-y-auto">
               {mensajes.map((m) => (
                 <li key={m.id}>
                   <button
                     type="button"
                     onClick={() => seleccionar(m.id)}
                     className={[
-                      'w-full px-5 py-4 text-left transition-colors hover:bg-zinc-800/50',
-                      m.id === selectedId ? 'bg-zinc-800/70' : '',
+                      'w-full px-5 py-4 text-left transition-colors hover:bg-slate-50',
+                      m.id === selectedId ? 'bg-blue-50' : '',
                     ].join(' ')}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Avatar */}
                       <div className={['flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold', avatarColor(m.sender_name)].join(' ')}>
                         {m.sender_name[0]?.toUpperCase()}
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        {/* Nombre + punto azul + fecha relativa */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex min-w-0 items-center gap-2">
-                            <span className="truncate text-sm font-semibold text-zinc-100">{m.sender_name}</span>
-                            {/* Punto azul: mensaje no leído */}
+                            <span className="truncate text-sm font-semibold text-slate-900">{m.sender_name}</span>
                             {!m.leido && (
-                              <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+                              <span className="h-2 w-2 shrink-0 rounded-full bg-blue-600" />
                             )}
                           </div>
-                          {/* Timestamp relativo — se actualiza con el tick */}
-                          <span className="shrink-0 text-xs text-zinc-500">{fechaRelativa(m.created_at)}</span>
+                          <span className="shrink-0 text-xs text-slate-400">{fechaRelativa(m.created_at)}</span>
                         </div>
-                        <p className="mt-0.5 truncate text-xs text-zinc-500">{m.address || '—'}</p>
-                        <p className="mt-1 truncate text-xs text-zinc-400">
+                        <p className="mt-0.5 truncate text-xs text-slate-400">{m.address || '—'}</p>
+                        <p className="mt-1 truncate text-xs text-slate-500">
                           {m.message.length > 60 ? `${m.message.slice(0, 60)}…` : m.message}
                         </p>
                       </div>
@@ -365,22 +352,22 @@ export default function InboxMensajes({
         {/* ══ PANEL DERECHO ══════════════════════════════════════ */}
         <section
           className={[
-            'flex flex-1 flex-col overflow-hidden bg-zinc-950',
+            'flex flex-1 flex-col overflow-hidden bg-white',
             vistaMovil === 'lista' ? 'hidden md:flex' : 'flex',
           ].join(' ')}
         >
           {selected ? (
             <>
               {/* Header fijo */}
-              <div className="shrink-0 border-b border-zinc-800">
+              <div className="shrink-0 border-b border-slate-200">
 
                 {/* Card de propiedad */}
-                <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+                <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => setVistaMovil('lista')}
-                      className="shrink-0 text-zinc-400 transition-colors hover:text-zinc-50 md:hidden"
+                      className="shrink-0 text-slate-400 transition-colors hover:text-slate-900 md:hidden"
                       aria-label="Volver a la lista"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -395,8 +382,8 @@ export default function InboxMensajes({
                         className="h-[60px] w-[60px] shrink-0 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-lg bg-zinc-800">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600">
+                      <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-lg bg-slate-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
                           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                           <polyline points="9 22 9 12 15 12 15 22" />
                         </svg>
@@ -404,23 +391,23 @@ export default function InboxMensajes({
                     )}
 
                     <div className="min-w-0 flex-1">
-                      <span className="hidden text-xs font-medium uppercase tracking-wider text-zinc-500 sm:block">
+                      <span className="hidden text-xs font-medium uppercase tracking-wider text-slate-400 sm:block">
                         {TIPO_LABEL[selected.property_type] ?? selected.property_type}
                       </span>
-                      <p className="truncate text-sm font-semibold leading-snug text-zinc-50">
+                      <p className="truncate text-sm font-semibold text-slate-900">
                         {selected.address || '—'}
                       </p>
                       {selected.price_usd > 0 && (
-                        <p className="hidden text-xs text-zinc-400 sm:block">
+                        <p className="hidden text-xs text-blue-600 font-medium sm:block">
                           USD {Number(selected.price_usd).toLocaleString('es-AR')}
-                          <span className="text-zinc-600"> / mes</span>
+                          <span className="text-slate-400 font-normal"> / mes</span>
                         </p>
                       )}
                     </div>
 
                     <Link
                       href={`/propiedades/${selected.property_id}`}
-                      className="shrink-0 whitespace-nowrap rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-50"
+                      className="shrink-0 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
                     >
                       Ver propiedad
                     </Link>
@@ -428,14 +415,14 @@ export default function InboxMensajes({
                 </div>
 
                 {/* Datos del inquilino */}
-                <div className="bg-zinc-950 px-6 py-3">
+                <div className="bg-white px-6 py-3">
                   <div className="flex items-center gap-3">
                     <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
                       {selected.sender_name[0]?.toUpperCase()}
                     </div>
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0">
-                      <span className="text-sm font-semibold text-zinc-100">{selected.sender_name}</span>
-                      <a href={`mailto:${selected.sender_email}`} className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">
+                      <span className="text-sm font-semibold text-slate-900">{selected.sender_name}</span>
+                      <a href={`mailto:${selected.sender_email}`} className="text-sm text-slate-400 transition-colors hover:text-slate-700">
                         {selected.sender_email}
                       </a>
                     </div>
@@ -444,19 +431,19 @@ export default function InboxMensajes({
               </div>
 
               {/* Hilo de mensajes */}
-              <div ref={chatRef} className="flex-1 overflow-y-auto px-6 py-6">
+              <div ref={chatRef} className="flex-1 overflow-y-auto bg-slate-50 px-6 py-6">
                 <div className="flex flex-col gap-4">
 
-                  {/* Mensaje original del inquilino */}
+                  {/* Mensaje original */}
                   <div className="flex items-end gap-3">
                     <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
                       {selected.sender_name[0]?.toUpperCase()}
                     </div>
                     <div className="flex max-w-[75%] flex-col gap-1">
-                      <div className="rounded-2xl rounded-bl-sm bg-zinc-800 px-4 py-3 text-sm leading-relaxed text-zinc-200 whitespace-pre-wrap">
+                      <div className="rounded-2xl rounded-bl-sm bg-white border border-slate-200 px-4 py-3 text-sm leading-relaxed text-slate-800 whitespace-pre-wrap shadow-sm">
                         {selected.message}
                       </div>
-                      <span className="ml-1 text-xs text-zinc-600">{fechaChat(selected.created_at)}</span>
+                      <span className="ml-1 text-xs text-slate-400">{fechaChat(selected.created_at)}</span>
                     </div>
                   </div>
 
@@ -465,12 +452,12 @@ export default function InboxMensajes({
                     r.autor === 'dueno' ? (
                       <div key={r.id} className="flex items-end justify-end gap-3">
                         <div className="flex max-w-[75%] flex-col items-end gap-1">
-                          <div className="rounded-2xl rounded-br-sm bg-emerald-900/70 px-4 py-3 text-sm leading-relaxed text-emerald-100 whitespace-pre-wrap">
+                          <div className="rounded-2xl rounded-br-sm bg-blue-600 px-4 py-3 text-sm leading-relaxed text-white whitespace-pre-wrap">
                             {r.contenido}
                           </div>
-                          <span className="mr-1 text-xs text-zinc-600">{fechaChat(r.created_at)}</span>
+                          <span className="mr-1 text-xs text-slate-400">{fechaChat(r.created_at)}</span>
                         </div>
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-xs font-semibold text-emerald-100">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
                           {ownerInitial}
                         </div>
                       </div>
@@ -480,10 +467,10 @@ export default function InboxMensajes({
                           {selected.sender_name[0]?.toUpperCase()}
                         </div>
                         <div className="flex max-w-[75%] flex-col gap-1">
-                          <div className="rounded-2xl rounded-bl-sm bg-zinc-800 px-4 py-3 text-sm leading-relaxed text-zinc-200 whitespace-pre-wrap">
+                          <div className="rounded-2xl rounded-bl-sm bg-white border border-slate-200 px-4 py-3 text-sm leading-relaxed text-slate-800 whitespace-pre-wrap shadow-sm">
                             {r.contenido}
                           </div>
-                          <span className="ml-1 text-xs text-zinc-600">{fechaChat(r.created_at)}</span>
+                          <span className="ml-1 text-xs text-slate-400">{fechaChat(r.created_at)}</span>
                         </div>
                       </div>
                     )
@@ -492,10 +479,10 @@ export default function InboxMensajes({
                 </div>
               </div>
 
-              {/* Caja de respuesta — siempre visible */}
-              <div className="shrink-0 border-t border-zinc-800 px-6 py-4">
+              {/* Caja de respuesta */}
+              <div className="shrink-0 border-t border-slate-200 bg-white px-6 py-4">
                 {errorMsg && (
-                  <p className="mb-3 rounded-lg border border-red-800 bg-red-950 px-4 py-2.5 text-sm text-red-400">
+                  <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-600">
                     {errorMsg}
                   </p>
                 )}
@@ -506,7 +493,7 @@ export default function InboxMensajes({
                     rows={3}
                     disabled={enviando}
                     placeholder="Escribí tu respuesta..."
-                    className="flex-1 resize-none rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+                    className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) enviar()
                     }}
@@ -515,21 +502,21 @@ export default function InboxMensajes({
                     type="button"
                     onClick={enviar}
                     disabled={enviando || !texto.trim()}
-                    className="shrink-0 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-80 disabled:opacity-40"
+                    className="shrink-0 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-40"
                   >
                     {enviando ? '…' : 'Enviar'}
                   </button>
                 </div>
-                <p className="mt-1.5 text-xs text-zinc-600">⌘ + Enter para enviar</p>
+                <p className="mt-1.5 text-xs text-slate-400">⌘ + Enter para enviar</p>
               </div>
             </>
           ) : (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-800">
-                <IconSobre className="h-6 w-6 text-zinc-500" />
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center bg-slate-50">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200">
+                <IconSobre className="h-6 w-6 text-slate-400" />
               </div>
-              <p className="text-sm font-medium text-zinc-400">Seleccioná una conversación</p>
-              <p className="text-xs text-zinc-600">Los mensajes aparecen aquí</p>
+              <p className="text-sm font-medium text-slate-600">Seleccioná una conversación</p>
+              <p className="text-xs text-slate-400">Los mensajes aparecen aquí</p>
             </div>
           )}
         </section>

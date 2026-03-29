@@ -27,19 +27,19 @@ export default function HeroBusqueda() {
   return (
     <form
       onSubmit={handleBuscar}
-      className="mt-10 flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
+      className="mt-10 flex w-full max-w-2xl flex-col gap-2 sm:flex-row shadow-sm rounded-2xl border border-slate-200 bg-white p-2"
     >
       <input
         type="text"
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
         placeholder="Dirección, barrio o ciudad..."
-        className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900/80 px-5 py-3.5 text-base text-zinc-50 placeholder:text-zinc-500 backdrop-blur-sm focus:border-zinc-500 focus:outline-none"
+        className="flex-1 rounded-xl px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none"
       />
       <select
         value={tipo}
         onChange={(e) => setTipo(e.target.value)}
-        className="rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3.5 text-sm text-zinc-300 backdrop-blur-sm focus:border-zinc-500 focus:outline-none sm:w-52"
+        className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 focus:border-blue-500 focus:outline-none sm:w-48"
       >
         {TIPOS.map((t) => (
           <option key={t.value} value={t.value}>{t.label}</option>
@@ -47,7 +47,7 @@ export default function HeroBusqueda() {
       </select>
       <button
         type="submit"
-        className="rounded-xl bg-orange-500 px-6 py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
       >
         Buscar
       </button>

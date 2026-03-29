@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase'
+import Navbar from '@/components/Navbar'
 import BotonFavorito from './BotonFavorito'
 import BotonCompartir from './BotonCompartir'
 import GaleriaFotos from './GaleriaFotos'
@@ -74,11 +75,11 @@ function Caracteristica({
   valor: React.ReactNode
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3">
-      <span className="shrink-0 text-zinc-500">{icono}</span>
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+      <span className="shrink-0 text-slate-400">{icono}</span>
       <div className="flex flex-col gap-0.5 min-w-0">
-        <span className="text-xs font-medium uppercase tracking-wider text-zinc-600">{label}</span>
-        <span className="text-sm font-semibold text-zinc-50">{valor}</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</span>
+        <span className="text-sm font-semibold text-slate-900">{valor}</span>
       </div>
     </div>
   )
@@ -152,12 +153,10 @@ export default async function PropiedadPage({
 
   if (!propiedad) {
     return (
-      <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-50">
-        <header className="flex items-center border-b border-zinc-800 px-6 py-5 md:px-12">
-          <Link href="/" className="text-lg font-bold tracking-widest text-zinc-50">PROPIA</Link>
-        </header>
-        <main className="flex flex-1 items-center justify-center">
-          <p className="text-base text-zinc-400">Propiedad no encontrada.</p>
+      <div className="flex min-h-full flex-1 flex-col bg-slate-50">
+        <Navbar />
+        <main className="flex flex-1 items-center justify-center pt-16">
+          <p className="text-base text-slate-500">Propiedad no encontrada.</p>
         </main>
       </div>
     )
@@ -192,32 +191,25 @@ export default async function PropiedadPage({
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-50">
+    <div className="flex min-h-full flex-1 flex-col bg-slate-50">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <Navbar />
 
-      {/* Nav */}
-      <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-5 md:px-12">
-        <Link href="/" className="text-lg font-bold tracking-widest text-zinc-50">PROPIA</Link>
-        <Link href="/propiedades" className="text-sm text-zinc-400 transition-colors hover:text-zinc-50">
-          ← Volver
-        </Link>
-      </header>
-
-      <main className="flex flex-1 flex-col px-6 py-10 md:px-12">
+      <main className="flex flex-1 flex-col px-6 pt-24 pb-12 md:px-10">
         <div className="mx-auto w-full max-w-6xl">
 
           {/* Banner: ya enviaste una consulta */}
           {yaConsulto && (
-            <div className="mb-8 flex items-center justify-between gap-4 rounded-xl border border-blue-800 bg-blue-950/60 px-5 py-4">
+            <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
               <div className="flex items-center gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-blue-600">
                   <circle cx="12" cy="12" r="10" /><path d="M12 16v-4"/><path d="M12 8h.01"/>
                 </svg>
-                <p className="text-sm text-blue-200">Ya enviaste una consulta por esta propiedad.</p>
+                <p className="text-sm font-medium text-blue-800">Ya enviaste una consulta por esta propiedad.</p>
               </div>
               <Link
                 href="/dashboard/mensajes"
-                className="shrink-0 text-sm font-medium text-blue-400 transition-colors hover:text-blue-200"
+                className="shrink-0 text-sm font-semibold text-blue-600 transition-colors hover:text-blue-800"
               >
                 Ver mensajes →
               </Link>
@@ -227,8 +219,8 @@ export default async function PropiedadPage({
           {/* Galería */}
           <GaleriaFotos fotos={fotos} />
 
-          {/* Contenido: dos columnas en desktop */}
-          <div className="mt-10 flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
+          {/* Contenido */}
+          <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-12">
 
             {/* Columna izquierda */}
             <div className="flex flex-1 flex-col gap-8">
@@ -236,12 +228,17 @@ export default async function PropiedadPage({
               {/* Encabezado */}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex flex-col gap-2">
-                  <span className="inline-flex w-fit rounded-full border border-zinc-700 px-3 py-1 text-xs font-medium uppercase tracking-widest text-zinc-400">
+                  <span className="inline-flex w-fit rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-blue-600">
                     {tipo}
                   </span>
-                  <h1 className="text-3xl font-bold leading-tight text-zinc-50 md:text-4xl">
+                  <h1 className="text-3xl font-extrabold leading-tight text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
                     {propiedad.address}
                   </h1>
+                  {(propiedad.neighborhood || propiedad.city) && (
+                    <p className="text-slate-500">
+                      {[propiedad.neighborhood, propiedad.city].filter(Boolean).join(', ')}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <BotonCompartir url={`${BASE_URL}/propiedades/${propiedad.id}`} />
@@ -249,31 +246,25 @@ export default async function PropiedadPage({
                 </div>
               </div>
 
-              {/* Precio (visible solo en mobile, en desktop está en el card) */}
-              <div className="flex items-baseline gap-2 lg:hidden">
-                <span className="text-4xl font-bold text-zinc-50">
+              {/* Precio mobile */}
+              <div className="flex items-baseline gap-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:hidden">
+                <span className="text-4xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
                   USD {Number(propiedad.price_usd).toLocaleString('es-AR')}
                 </span>
-                <span className="text-base text-zinc-500">/ mes</span>
+                <span className="text-base text-slate-400">/ mes</span>
               </div>
 
               {/* Descripción */}
               {propiedad.description && (
                 <div className="flex flex-col gap-2">
-                  <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500">
-                    Descripción
-                  </h2>
-                  <p className="text-base leading-relaxed text-zinc-300">
-                    {propiedad.description}
-                  </p>
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">Descripción</h2>
+                  <p className="text-base leading-relaxed text-slate-600">{propiedad.description}</p>
                 </div>
               )}
 
               {/* Características */}
               <div className="flex flex-col gap-3">
-                <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500">
-                  Características
-                </h2>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">Características</h2>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {propiedad.bedrooms != null && (
                     <Caracteristica icono={<IconoCama />} label="Ambientes" valor={propiedad.bedrooms} />
@@ -309,37 +300,32 @@ export default async function PropiedadPage({
                 const mapsQuery = encodeURIComponent(direccionCompleta)
                 return (
                   <div className="flex flex-col gap-3">
-                    <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500">
-                      Ubicación
-                    </h2>
-                    <div className="flex flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-                      {/* Dirección formateada */}
+                    <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">Ubicación</h2>
+                    <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                       <div className="flex flex-col gap-0.5">
-                        <p className="text-sm font-semibold text-zinc-100">{direccionCompleta || propiedad.address}</p>
+                        <p className="text-sm font-semibold text-slate-900">{direccionCompleta || propiedad.address}</p>
                         {propiedad.referencia && (
-                          <p className="text-sm text-zinc-400">{propiedad.referencia}</p>
+                          <p className="text-sm text-slate-500">{propiedad.referencia}</p>
                         )}
                       </div>
 
-                      {/* Mapa embed */}
-                      <div className="overflow-hidden rounded-lg">
+                      <div className="overflow-hidden rounded-xl border border-slate-200">
                         <iframe
                           title="Mapa de ubicación"
                           src={`https://maps.google.com/maps?q=${mapsQuery}&output=embed`}
                           width="100%"
-                          height="300"
+                          height="280"
                           style={{ border: 0 }}
                           loading="lazy"
                           referrerPolicy="no-referrer-when-downgrade"
                         />
                       </div>
 
-                      {/* Link externo */}
                       <a
                         href={`https://maps.google.com/maps?q=${mapsQuery}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 self-start text-sm font-medium text-zinc-400 transition-colors hover:text-zinc-50"
+                        className="flex items-center gap-1.5 self-start text-sm font-semibold text-blue-600 transition-colors hover:text-blue-800"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -360,32 +346,32 @@ export default async function PropiedadPage({
 
             </div>
 
-            {/* Columna derecha — card sticky (solo desktop) */}
+            {/* Columna derecha — card sticky (desktop) */}
             <div className="hidden lg:block lg:w-80 xl:w-96">
-              <div className="sticky top-8 flex flex-col gap-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+              <div className="sticky top-24 flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-md">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-zinc-50">
+                    <span className="text-4xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
                       USD {Number(propiedad.price_usd).toLocaleString('es-AR')}
                     </span>
                   </div>
-                  <span className="text-sm text-zinc-500">por mes</span>
+                  <span className="text-sm text-slate-400">por mes</span>
                   {propiedad.includes_expenses && (
-                    <span className="mt-1 inline-flex w-fit rounded-full border border-zinc-700 px-2.5 py-0.5 text-xs text-zinc-400">
+                    <span className="mt-1 inline-flex w-fit rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
                       Expensas incluidas
                     </span>
                   )}
                 </div>
 
-                <div className="h-px bg-zinc-800" />
+                <div className="h-px bg-slate-100" />
 
                 <BotonesContacto propertyId={propiedad.id} userEmail={userEmail} />
 
                 <div className="flex items-center justify-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-emerald-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-green-600">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
-                  <p className="text-xs font-medium text-zinc-400">
+                  <p className="text-xs font-medium text-green-700">
                     Sin comisiones ni intermediarios
                   </p>
                 </div>

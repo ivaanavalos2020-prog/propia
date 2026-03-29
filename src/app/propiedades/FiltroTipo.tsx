@@ -12,7 +12,7 @@ const TIPOS = [
 ]
 
 const PRECIOS = [
-  { value: '', label: 'Todos' },
+  { value: '', label: 'Cualquier precio' },
   { value: '300', label: 'Hasta USD 300' },
   { value: '500', label: 'Hasta USD 500' },
   { value: '800', label: 'Hasta USD 800' },
@@ -44,7 +44,7 @@ function GrupoFiltro({
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">{label}</span>
+      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</span>
       <div className="flex flex-wrap gap-2">
         {opciones.map(({ value, label: opLabel }) => (
           <button
@@ -53,8 +53,8 @@ function GrupoFiltro({
             onClick={() => seleccionar(value)}
             className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
               actual === value
-                ? 'border-zinc-50 bg-zinc-50 text-zinc-950'
-                : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-50'
+                ? 'border-blue-600 bg-blue-50 text-blue-600'
+                : 'border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600'
             }`}
           >
             {opLabel}
@@ -82,11 +82,11 @@ function FiltroProvincia() {
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">Provincia</span>
+      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Provincia</span>
       <select
         value={actual}
         onChange={(e) => seleccionar(e.target.value)}
-        className="w-full max-w-xs rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 focus:border-zinc-500 focus:outline-none"
+        className="w-full max-w-xs rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
       >
         <option value="">Todas las provincias</option>
         {PROVINCIAS.map((p) => (
