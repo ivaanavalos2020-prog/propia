@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { createClient } from '@/lib/supabase-client'
 
 const BASE_URL = 'https://propia-kappa.vercel.app'
 
@@ -18,15 +19,32 @@ interface Props {
   direccion: string
   precio: number
   incluye_expensas: boolean | null
+  status: string
 }
 
-export default function PropiedadItem({ id, tipo, direccion, precio, incluye_expensas }: Props) {
+export default function PropiedadItem({ id, tipo, direccion, precio, incluye_expensas, status: statusInicial }: Props) {
   const [copiado, setCopiado] = useState(false)
+  const [status, setStatus] = useState(statusInicial)
+  const [cambiando, setCambiando] = useState(false)
+
+  const activa = status === 'active'
 
   async function copiarLink() {
     await navigator.clipboard.writeText(`${BASE_URL}/propiedades/${id}`)
     setCopiado(true)
     setTimeout(() => setCopiado(false), 2000)
+  }
+
+  async function toggleStatus() {
+    setCambiando(true)
+    const nuevoStatus = activa ? 'paused' : 'active'
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('properties')
+      .update({ status: nuevoStatus })
+      .eq('id', id)
+    if (!error) setStatus(nuevoStatus)
+    setCambiando(false)
   }
 
   return (
@@ -36,9 +54,15 @@ export default function PropiedadItem({ id, tipo, direccion, precio, incluye_exp
           <span className="text-sm font-semibold text-zinc-50">
             {TIPO_LABEL[tipo] ?? tipo}
           </span>
-          <span className="rounded-full bg-emerald-950 px-2 py-0.5 text-xs font-medium text-emerald-400">
-            Activa
-          </span>
+          {activa ? (
+            <span className="rounded-full bg-emerald-950 px-2 py-0.5 text-xs font-medium text-emerald-400">
+              Activa
+            </span>
+          ) : (
+            <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-500">
+              Pausada
+            </span>
+          )}
         </div>
         <span className="truncate text-sm text-zinc-400">{direccion}</span>
       </div>
@@ -66,6 +90,14 @@ export default function PropiedadItem({ id, tipo, direccion, precio, incluye_exp
             className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-50"
           >
             {copiado ? '¡Copiado!' : 'Copiar link'}
+          </button>
+          <button
+            type="button"
+            onClick={toggleStatus}
+            disabled={cambiando}
+            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-50 disabled:opacity-40"
+          >
+            {cambiando ? '...' : activa ? 'Pausar' : 'Activar'}
           </button>
         </div>
       </div>
