@@ -8,9 +8,9 @@ import ListadoConBuscador from './ListadoConBuscador'
 export default async function PropiedadesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tipo?: string; precio?: string; orden?: string }>
+  searchParams: Promise<{ tipo?: string; precio?: string; orden?: string; ciudad?: string }>
 }) {
-  const { tipo, precio, orden } = await searchParams
+  const { tipo, precio, orden, ciudad } = await searchParams
   const supabase = await createServerSupabaseClient()
 
   const ordenMap: Record<string, { column: string; ascending: boolean }> = {
@@ -22,12 +22,13 @@ export default async function PropiedadesPage({
 
   let query = supabase
     .from('properties')
-    .select('id, type, address, price_usd, bedrooms, bathrooms, area_m2, status')
+    .select('id, type, address, neighborhood, city, price_usd, bedrooms, bathrooms, area_m2, status')
     .eq('status', 'active')
     .order(column, { ascending })
 
-  if (tipo) query = query.eq('type', tipo)
+  if (tipo)   query = query.eq('type', tipo)
   if (precio) query = query.lte('price_usd', Number(precio))
+  if (ciudad) query = query.eq('city', ciudad)
 
   const { data: propiedades } = await query
 
@@ -62,7 +63,7 @@ export default async function PropiedadesPage({
           {/* Buscador + grilla (client) */}
           <ListadoConBuscador
             propiedades={propiedades ?? []}
-            hayFiltros={!!(tipo || precio)}
+            hayFiltros={!!(tipo || precio || ciudad)}
           />
 
         </div>

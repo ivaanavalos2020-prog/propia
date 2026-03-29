@@ -20,7 +20,7 @@ async function getPropiedad(id: string) {
   const { data } = await supabase
     .from('properties')
     .select(
-      'id, type, address, price_usd, includes_expenses, description, bedrooms, bathrooms, area_m2, allows_pets, allows_kids, status, photo_urls'
+      'id, type, address, neighborhood, city, referencia, price_usd, includes_expenses, description, bedrooms, bathrooms, area_m2, allows_pets, allows_kids, status, photo_urls'
     )
     .eq('id', id)
     .single()
@@ -301,6 +301,57 @@ export default async function PropiedadPage({
                   />
                 </div>
               </div>
+
+              {/* Ubicación */}
+              {(() => {
+                const partes = [propiedad.address, propiedad.neighborhood, propiedad.city].filter(Boolean)
+                const direccionCompleta = partes.join(', ')
+                const mapsQuery = encodeURIComponent(direccionCompleta)
+                return (
+                  <div className="flex flex-col gap-3">
+                    <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500">
+                      Ubicación
+                    </h2>
+                    <div className="flex flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+                      {/* Dirección formateada */}
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-sm font-semibold text-zinc-100">{direccionCompleta || propiedad.address}</p>
+                        {propiedad.referencia && (
+                          <p className="text-sm text-zinc-400">{propiedad.referencia}</p>
+                        )}
+                      </div>
+
+                      {/* Mapa embed */}
+                      <div className="overflow-hidden rounded-lg">
+                        <iframe
+                          title="Mapa de ubicación"
+                          src={`https://maps.google.com/maps?q=${mapsQuery}&output=embed`}
+                          width="100%"
+                          height="300"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
+                      </div>
+
+                      {/* Link externo */}
+                      <a
+                        href={`https://maps.google.com/maps?q=${mapsQuery}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 self-start text-sm font-medium text-zinc-400 transition-colors hover:text-zinc-50"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                          <polyline points="15 3 21 3 21 9" />
+                          <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg>
+                        Ver en Google Maps
+                      </a>
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* CTAs mobile */}
               <div className="flex flex-col gap-3 lg:hidden">

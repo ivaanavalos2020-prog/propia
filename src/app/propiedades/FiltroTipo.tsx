@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { PROVINCIAS } from '@/lib/provincias'
 
 const TIPOS = [
   { value: '', label: 'Todos' },
@@ -64,11 +65,44 @@ function GrupoFiltro({
   )
 }
 
+function FiltroProvincia() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const actual = searchParams.get('ciudad') ?? ''
+
+  function seleccionar(value: string) {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value) {
+      params.set('ciudad', value)
+    } else {
+      params.delete('ciudad')
+    }
+    router.push(`/propiedades?${params.toString()}`)
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">Provincia</span>
+      <select
+        value={actual}
+        onChange={(e) => seleccionar(e.target.value)}
+        className="w-full max-w-xs rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 focus:border-zinc-500 focus:outline-none"
+      >
+        <option value="">Todas las provincias</option>
+        {PROVINCIAS.map((p) => (
+          <option key={p} value={p}>{p}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 export default function Filtros() {
   return (
     <div className="flex flex-col gap-4">
       <GrupoFiltro label="Tipo" opciones={TIPOS} paramKey="tipo" />
       <GrupoFiltro label="Precio máximo" opciones={PRECIOS} paramKey="precio" />
+      <FiltroProvincia />
     </div>
   )
 }

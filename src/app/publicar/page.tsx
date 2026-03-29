@@ -5,12 +5,16 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase-client'
+import { PROVINCIAS } from '@/lib/provincias'
 
 type TipoPropiedad = 'departamento' | 'casa' | 'habitacion' | 'local'
 
 interface FormData {
   tipo: TipoPropiedad | null
-  direccion: string
+  calle: string
+  barrio: string
+  provincia: string
+  referencias: string
   precio: string
   incluyeExpensas: boolean | null
   descripcion: string
@@ -123,7 +127,10 @@ const PASOS = ['Tipo', 'Ubicación y precio', 'Detalles']
 
 const INICIAL: FormData = {
   tipo: null,
-  direccion: '',
+  calle: '',
+  barrio: '',
+  provincia: '',
+  referencias: '',
   precio: '',
   incluyeExpensas: null,
   descripcion: '',
@@ -195,7 +202,7 @@ export default function PublicarPage() {
   function puedeAvanzar() {
     if (paso === 0) return form.tipo !== null
     if (paso === 1)
-      return form.direccion.trim() !== '' && form.precio.trim() !== '' && form.incluyeExpensas !== null
+      return form.calle.trim() !== '' && form.provincia !== '' && form.precio.trim() !== '' && form.incluyeExpensas !== null
     return obligatoriasFaltantes.length === 0
   }
 
@@ -233,7 +240,10 @@ export default function PublicarPage() {
     const { error: insertError } = await supabase.from('properties').insert({
       owner_id: user.id,
       type: form.tipo,
-      address: form.direccion,
+      address: form.calle,
+      neighborhood: form.barrio || null,
+      city: form.provincia,
+      referencia: form.referencias || null,
       price_usd: Number(form.precio),
       includes_expenses: form.incluyeExpensas,
       description: form.descripcion || null,
@@ -319,17 +329,64 @@ export default function PublicarPage() {
             <div className="flex flex-col gap-6">
               <h2 className="text-xl font-semibold">Ubicación y precio</h2>
 
+              {/* Calle y número */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-zinc-400">Dirección</label>
+                <label className="text-sm font-medium text-zinc-400">
+                  Calle y número <span className="text-zinc-600">*</span>
+                </label>
                 <input
                   type="text"
-                  value={form.direccion}
-                  onChange={(e) => set('direccion', e.target.value)}
-                  placeholder="Ej: Av. Corrientes 1234, CABA"
+                  value={form.calle}
+                  onChange={(e) => set('calle', e.target.value)}
+                  placeholder="Ej: Av. Corrientes 1234"
                   className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
                 />
               </div>
 
+              {/* Localidad / barrio */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-zinc-400">Localidad o barrio</label>
+                <input
+                  type="text"
+                  value={form.barrio}
+                  onChange={(e) => set('barrio', e.target.value)}
+                  placeholder="Ej: Palermo, San Telmo, Rosario Centro"
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Provincia */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-zinc-400">
+                  Provincia <span className="text-zinc-600">*</span>
+                </label>
+                <select
+                  value={form.provincia}
+                  onChange={(e) => set('provincia', e.target.value)}
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 focus:border-zinc-500 focus:outline-none"
+                >
+                  <option value="" disabled>Seleccioná una provincia</option>
+                  {PROVINCIAS.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Referencias (opcional) */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-zinc-400">
+                  Referencias <span className="text-zinc-600 font-normal">(opcional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.referencias}
+                  onChange={(e) => set('referencias', e.target.value)}
+                  placeholder="Ej: cerca del subte B, frente al parque"
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-base text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Precio */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-zinc-400">Precio mensual (USD)</label>
                 <input
@@ -342,6 +399,7 @@ export default function PublicarPage() {
                 />
               </div>
 
+              {/* Expensas */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-zinc-400">¿Incluye expensas?</label>
                 <div className="flex gap-3">

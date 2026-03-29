@@ -14,6 +14,8 @@ interface Propiedad {
   id: string
   type: string
   address: string
+  neighborhood: string | null
+  city: string | null
   price_usd: number
   bedrooms: number | null
   bathrooms: number | null
@@ -31,7 +33,11 @@ export default function ListadoConBuscador({
 
   const termino = busqueda.trim().toLowerCase()
   const resultado = termino
-    ? propiedades.filter((p) => p.address.toLowerCase().includes(termino))
+    ? propiedades.filter((p) =>
+        p.address.toLowerCase().includes(termino) ||
+        p.neighborhood?.toLowerCase().includes(termino) ||
+        p.city?.toLowerCase().includes(termino)
+      )
     : propiedades
 
   const sinResultados = resultado.length === 0
@@ -92,6 +98,11 @@ export default function ListadoConBuscador({
                   <span className="line-clamp-2 text-base font-semibold text-zinc-50">
                     {p.address}
                   </span>
+                  {(p.neighborhood || p.city) && (
+                    <span className="text-xs text-zinc-500">
+                      {[p.neighborhood, p.city].filter(Boolean).join(', ')}
+                    </span>
+                  )}
                 </div>
 
                 <div className="mt-auto flex flex-col gap-3">
