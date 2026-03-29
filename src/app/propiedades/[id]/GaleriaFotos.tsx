@@ -35,7 +35,7 @@ export default function GaleriaFotos({ fotos }: { fotos: string[] }) {
   return (
     <div className="flex flex-col gap-3">
       {/* Foto principal */}
-      <div className="relative w-full overflow-hidden rounded-2xl bg-zinc-900" style={{ aspectRatio: '16/9' }}>
+      <div className="relative w-full overflow-hidden rounded-2xl bg-zinc-900" style={{ height: '500px' }}>
         {/* Imagen con fade */}
         <Image
           key={fadeKey}
@@ -97,7 +97,7 @@ export default function GaleriaFotos({ fotos }: { fotos: string[] }) {
               className={`relative h-20 w-32 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-300 md:h-24 md:w-40 ${
                 i === activa
                   ? 'border-white brightness-100'
-                  : 'border-transparent brightness-[0.6] hover:brightness-100'
+                  : 'border-transparent brightness-[0.85] hover:brightness-100'
               }`}
             >
               <Image

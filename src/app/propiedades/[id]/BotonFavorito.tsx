@@ -47,10 +47,14 @@ export default function BotonFavorito({ propertyId, userId, esFavorito: inicial 
       onClick={toggleFavorito}
       disabled={cargando}
       aria-label={esFavorito ? 'Quitar de favoritos' : 'Guardar en favoritos'}
-      className="flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-700 text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-50 disabled:opacity-40"
+      className={`flex h-12 w-12 items-center justify-center rounded-xl border transition-colors disabled:opacity-40 ${
+        esFavorito
+          ? 'border-red-500 bg-red-500 text-white hover:bg-red-600 hover:border-red-600'
+          : 'border-zinc-700 bg-transparent text-white hover:border-zinc-500'
+      }`}
     >
       {esFavorito ? (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-red-400">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 21.593c-.525-.445-4.145-3.61-6.204-5.616C3.248 13.486 2 11.503 2 9.5 2 6.42 4.42 4 7.5 4c1.71 0 3.286.857 4.5 2.25C13.214 4.857 14.79 4 16.5 4 19.58 4 22 6.42 22 9.5c0 2.003-1.248 3.986-3.796 6.477-2.059 2.006-5.679 5.171-6.204 5.616z"/>
         </svg>
       ) : (
