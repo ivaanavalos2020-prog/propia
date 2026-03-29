@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import ModalContacto from './ModalContacto'
 import BotonFavorito from './BotonFavorito'
 import BotonCompartir from './BotonCompartir'
 import GaleriaFotos from './GaleriaFotos'
+import BotonesContacto from './BotonesContacto'
 
 const BASE_URL = 'https://propia-kappa.vercel.app'
 
@@ -126,6 +126,7 @@ export default async function PropiedadPage({
   const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   const userId = session?.user.id ?? null
+  const userEmail = session?.user.email ?? null
 
   let esFavorito = false
   if (userId && propiedad) {
@@ -274,13 +275,7 @@ export default async function PropiedadPage({
 
               {/* CTAs mobile */}
               <div className="flex flex-col gap-3 lg:hidden">
-                <Link
-                  href="/login"
-                  className="flex w-full items-center justify-center rounded-xl bg-green-500 py-4 text-base font-bold text-white transition-colors hover:bg-green-600"
-                >
-                  Quiero esta propiedad
-                </Link>
-                <ModalContacto />
+                <BotonesContacto propertyId={propiedad.id} userEmail={userEmail} />
               </div>
 
             </div>
@@ -304,15 +299,7 @@ export default async function PropiedadPage({
 
                 <div className="h-px bg-zinc-800" />
 
-                <div className="flex flex-col gap-3">
-                  <Link
-                    href="/login"
-                    className="flex w-full items-center justify-center rounded-xl bg-green-500 py-3.5 text-sm font-bold text-white transition-colors hover:bg-green-600"
-                  >
-                    Quiero esta propiedad
-                  </Link>
-                  <ModalContacto />
-                </div>
+                <BotonesContacto propertyId={propiedad.id} userEmail={userEmail} />
 
                 <div className="flex items-center justify-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-emerald-500">
