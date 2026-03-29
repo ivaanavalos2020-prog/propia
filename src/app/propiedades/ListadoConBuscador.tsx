@@ -83,7 +83,7 @@ export default function ListadoConBuscador({
             <li key={p.id}>
               <Link
                 href={`/propiedades/${p.id}`}
-                className="flex h-full flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5 transition-colors hover:border-zinc-600 hover:bg-zinc-800"
+                className="flex h-full cursor-pointer flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5 transition-colors hover:border-zinc-600 hover:bg-zinc-800"
               >
                 <div className="flex flex-col gap-1">
                   <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
