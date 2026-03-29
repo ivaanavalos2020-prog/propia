@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 
@@ -10,22 +11,41 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <h1 className="mb-10 text-center text-3xl font-bold tracking-widest text-foreground">
-          PROPIA
-        </h1>
+    <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-50">
+      {/* Nav */}
+      <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-5 md:px-12">
+        <span className="text-lg font-bold tracking-widest text-zinc-50">PROPIA</span>
+        <span className="text-sm text-zinc-400">{session.user.email}</span>
+      </header>
 
-        <div className="rounded-xl border border-foreground/10 bg-foreground/5 p-6">
-          <p className="text-base text-foreground">
-            Bienvenida,{' '}
-            <span className="font-medium">{session.user.email}</span>
-          </p>
-          <p className="mt-1 text-sm text-foreground/60">
-            Estás dentro de tu espacio.
-          </p>
+      {/* Contenido */}
+      <main className="flex flex-1 flex-col px-6 py-10 md:px-12">
+        <div className="mx-auto w-full max-w-4xl">
+          {/* Encabezado de sección */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-zinc-50">Mis propiedades</h2>
+            <Link
+              href="/publicar"
+              className="rounded-lg bg-zinc-50 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-80"
+            >
+              Publicar propiedad
+            </Link>
+          </div>
+
+          {/* Estado vacío */}
+          <div className="mt-8 flex flex-col items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 py-20 text-center">
+            <p className="text-base text-zinc-400">
+              Todavía no publicaste ninguna propiedad.
+            </p>
+            <Link
+              href="/publicar"
+              className="mt-4 text-sm font-medium text-zinc-50 underline underline-offset-4 transition-opacity hover:opacity-70"
+            >
+              Publicá tu primera propiedad
+            </Link>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
