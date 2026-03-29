@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Image from 'next/image'
 
+const CATEGORIAS = ['Frente', 'Living', 'Cocina', 'Dormitorio', 'Baño', 'Extras']
+
 export default function GaleriaFotos({ fotos }: { fotos: string[] }) {
   const [activa, setActiva] = useState(0)
 
@@ -34,6 +36,11 @@ export default function GaleriaFotos({ fotos }: { fotos: string[] }) {
           priority
           sizes="(max-width: 768px) 100vw, 1200px"
         />
+        {CATEGORIAS[activa] && (
+          <span className="absolute bottom-3 left-3 rounded-md bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+            {CATEGORIAS[activa]}
+          </span>
+        )}
       </div>
 
       {/* Miniaturas */}
@@ -57,6 +64,11 @@ export default function GaleriaFotos({ fotos }: { fotos: string[] }) {
                 className="object-cover"
                 sizes="160px"
               />
+              {CATEGORIAS[i] && (
+                <span className="absolute bottom-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium leading-none text-white backdrop-blur-sm">
+                  {CATEGORIAS[i]}
+                </span>
+              )}
             </button>
           ))}
         </div>

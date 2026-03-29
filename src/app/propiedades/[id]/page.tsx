@@ -276,7 +276,7 @@ export default async function PropiedadPage({
               <div className="flex flex-col gap-3 lg:hidden">
                 <Link
                   href="/login"
-                  className="flex w-full items-center justify-center rounded-xl bg-emerald-500 py-4 text-base font-bold text-white transition-opacity hover:opacity-90"
+                  className="flex w-full items-center justify-center rounded-xl bg-green-500 py-4 text-base font-bold text-white transition-colors hover:bg-green-600"
                 >
                   Quiero esta propiedad
                 </Link>
@@ -307,7 +307,7 @@ export default async function PropiedadPage({
                 <div className="flex flex-col gap-3">
                   <Link
                     href="/login"
-                    className="flex w-full items-center justify-center rounded-xl bg-zinc-50 py-3.5 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-80"
+                    className="flex w-full items-center justify-center rounded-xl bg-green-500 py-3.5 text-sm font-bold text-white transition-colors hover:bg-green-600"
                   >
                     Quiero esta propiedad
                   </Link>
