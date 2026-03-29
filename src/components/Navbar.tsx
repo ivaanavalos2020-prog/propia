@@ -25,16 +25,16 @@ export default async function Navbar() {
               Mi perfil
             </Link>
             <Link
-              href="/favoritos"
-              className="text-sm text-zinc-400 transition-colors hover:text-zinc-50"
-            >
-              Favoritos
-            </Link>
-            <Link
               href="/dashboard/mensajes"
               className="text-sm text-zinc-400 transition-colors hover:text-zinc-50"
             >
               Mensajes
+            </Link>
+            <Link
+              href="/favoritos"
+              className="text-sm text-zinc-400 transition-colors hover:text-zinc-50"
+            >
+              Favoritos
             </Link>
             <BotonCerrarSesion />
           </>
