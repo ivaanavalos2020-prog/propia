@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase-client'
 
 type TipoPropiedad = 'departamento' | 'casa' | 'habitacion' | 'local'
 
@@ -69,6 +70,8 @@ function BotonSiNo({
 export default function PublicarPage() {
   const [paso, setPaso] = useState(0)
   const [form, setForm] = useState<FormData>(INICIAL)
+  const [publicando, setPublicando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
@@ -82,8 +85,38 @@ export default function PublicarPage() {
     return true
   }
 
-  function handlePublicar() {
-    // TODO: guardar en Supabase
+  async function handlePublicar() {
+    setPublicando(true)
+    setError(null)
+
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      router.push('/login')
+      return
+    }
+
+    const { error: insertError } = await supabase.from('properties').insert({
+      owner_id: user.id,
+      tipo: form.tipo,
+      direccion: form.direccion,
+      precio: Number(form.precio),
+      incluye_expensas: form.incluyeExpensas,
+      descripcion: form.descripcion || null,
+      ambientes: form.ambientes ? Number(form.ambientes) : null,
+      banos: form.banos ? Number(form.banos) : null,
+      superficie: form.superficie ? Number(form.superficie) : null,
+      acepta_mascotas: form.aceptaMascotas,
+      acepta_ninos: form.aceptaNinos,
+    })
+
+    if (insertError) {
+      setError(insertError.message)
+      setPublicando(false)
+      return
+    }
+
     router.push('/dashboard')
   }
 
@@ -239,8 +272,15 @@ export default function PublicarPage() {
             </div>
           )}
 
+          {/* Error */}
+          {error && (
+            <p className="mt-8 rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-400">
+              {error}
+            </p>
+          )}
+
           {/* Navegación */}
-          <div className="mt-10 flex gap-3">
+          <div className="mt-6 flex gap-3">
             {paso > 0 && (
               <button
                 type="button"
@@ -264,9 +304,10 @@ export default function PublicarPage() {
               <button
                 type="button"
                 onClick={handlePublicar}
-                className="flex-1 rounded-lg bg-zinc-50 py-3 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-80"
+                disabled={publicando}
+                className="flex-1 rounded-lg bg-zinc-50 py-3 text-sm font-semibold text-zinc-950 transition-opacity hover:opacity-80 disabled:opacity-40"
               >
-                Publicar
+                {publicando ? 'Publicando...' : 'Publicar'}
               </button>
             )}
           </div>
