@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import FiltroTipo from './FiltroTipo'
+import Filtros from './FiltroTipo'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -13,9 +13,9 @@ const TIPO_LABEL: Record<string, string> = {
 export default async function PropiedadesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tipo?: string }>
+  searchParams: Promise<{ tipo?: string; precio?: string }>
 }) {
-  const { tipo } = await searchParams
+  const { tipo, precio } = await searchParams
   const supabase = await createServerSupabaseClient()
 
   let query = supabase
@@ -25,6 +25,9 @@ export default async function PropiedadesPage({
 
   if (tipo) {
     query = query.eq('tipo', tipo)
+  }
+  if (precio) {
+    query = query.lte('precio', Number(precio))
   }
 
   const { data: propiedades } = await query
@@ -48,7 +51,7 @@ export default async function PropiedadesPage({
           <div className="flex flex-col gap-6">
             <h1 className="text-2xl font-bold text-zinc-50">Propiedades disponibles</h1>
             <Suspense>
-              <FiltroTipo />
+              <Filtros />
             </Suspense>
           </div>
 
@@ -77,15 +80,9 @@ export default async function PropiedadesPage({
                       </span>
 
                       <div className="flex gap-4 text-sm text-zinc-400">
-                        {p.ambientes != null && (
-                          <span>{p.ambientes} amb.</span>
-                        )}
-                        {p.banos != null && (
-                          <span>{p.banos} baño{p.banos !== 1 ? 's' : ''}</span>
-                        )}
-                        {p.superficie != null && (
-                          <span>{p.superficie} m²</span>
-                        )}
+                        {p.ambientes != null && <span>{p.ambientes} amb.</span>}
+                        {p.banos != null && <span>{p.banos} baño{p.banos !== 1 ? 's' : ''}</span>}
+                        {p.superficie != null && <span>{p.superficie} m²</span>}
                       </div>
                     </div>
                   </Link>
@@ -95,7 +92,9 @@ export default async function PropiedadesPage({
           ) : (
             <div className="mt-8 flex flex-col items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 py-20 text-center">
               <p className="text-base text-zinc-400">
-                No hay propiedades disponibles{tipo ? ` de tipo "${TIPO_LABEL[tipo] ?? tipo}"` : ''}.
+                {tipo || precio
+                  ? 'No encontramos propiedades con esos filtros.'
+                  : 'No hay propiedades disponibles.'}
               </p>
             </div>
           )}
