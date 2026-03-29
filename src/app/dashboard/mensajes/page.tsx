@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
+import FormularioRespuesta from './FormularioRespuesta'
 
 const AHORA = Date.now()
 const MS_24H = 24 * 60 * 60 * 1000
@@ -33,7 +34,7 @@ export default async function MensajesPage() {
   const { data: mensajes } = propertyIds.length > 0
     ? await supabase
         .from('mensajes')
-        .select('id, sender_name, sender_email, message, created_at, property_id, properties(address)')
+        .select('id, sender_name, sender_email, message, created_at, respuesta, respondido_en, property_id, properties(address)')
         .in('property_id', propertyIds)
         .order('created_at', { ascending: false })
     : { data: [] }
@@ -64,7 +65,8 @@ export default async function MensajesPage() {
               {mensajes.map((m) => {
                 const propiedad = m.properties as { address: string } | null
                 const address = propiedad?.address ?? ''
-                const esNuevo = AHORA - new Date(m.created_at).getTime() < MS_24H
+                const esNuevo = !m.respuesta && AHORA - new Date(m.created_at).getTime() < MS_24H
+                const esRespondido = !!m.respuesta
                 const fecha = new Date(m.created_at).toLocaleDateString('es-AR', {
                   day: '2-digit',
                   month: 'long',
@@ -79,19 +81,24 @@ export default async function MensajesPage() {
                     key={m.id}
                     className="flex flex-col gap-5 rounded-xl border border-zinc-800 bg-zinc-900 p-6 transition-colors hover:border-zinc-700 hover:bg-zinc-900/80"
                   >
-                    {/* Fila superior: propiedad + badge + fecha */}
+                    {/* Fila superior: propiedad + badges + fecha */}
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex flex-col gap-1">
                         <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
                           Propiedad
                         </span>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="text-sm font-semibold text-zinc-100">
                             {address || '—'}
                           </span>
                           {esNuevo && (
                             <span className="rounded-full bg-emerald-950 px-2 py-0.5 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-800">
                               Nuevo
+                            </span>
+                          )}
+                          {esRespondido && (
+                            <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs font-semibold text-zinc-400 ring-1 ring-zinc-700">
+                              Respondido
                             </span>
                           )}
                         </div>
@@ -127,7 +134,7 @@ export default async function MensajesPage() {
                       </div>
                     </div>
 
-                    {/* Mensaje */}
+                    {/* Mensaje original */}
                     <div className="flex flex-col gap-2">
                       <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
                         Mensaje
@@ -137,19 +144,26 @@ export default async function MensajesPage() {
                       </p>
                     </div>
 
-                    {/* Acción */}
+                    {/* Botón mailto */}
                     <div className="flex justify-end">
                       <a
                         href={mailto}
                         className="flex items-center gap-2 rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-50"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <polyline points="9 17 4 12 9 7" />
-                          <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                          <rect x="2" y="4" width="20" height="16" rx="2" />
+                          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                         </svg>
                         Responder por email
                       </a>
                     </div>
+
+                    {/* Formulario de respuesta interna */}
+                    <FormularioRespuesta
+                      mensajeId={m.id}
+                      respuestaInicial={m.respuesta ?? null}
+                      respondidoEnInicial={m.respondido_en ?? null}
+                    />
                   </li>
                 )
               })}
