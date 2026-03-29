@@ -18,7 +18,7 @@ async function getPropiedad(id: string) {
   const { data } = await supabase
     .from('properties')
     .select(
-      'id, tipo, direccion, precio, incluye_expensas, descripcion, ambientes, banos, superficie, acepta_mascotas, acepta_ninos'
+      'id, type, address, price_usd, includes_expenses, description, bedrooms, bathrooms, area_m2, allows_pets, allows_kids, status'
     )
     .eq('id', id)
     .single()
@@ -37,10 +37,10 @@ export async function generateMetadata({
     return { title: 'Propiedad no encontrada' }
   }
 
-  const tipo = TIPO_LABEL[propiedad.tipo] ?? propiedad.tipo
-  const precio = Number(propiedad.precio).toLocaleString('es-AR')
-  const title = `${tipo} en ${propiedad.direccion}`
-  const description = `Alquilá este ${tipo.toLowerCase()} en ${propiedad.direccion} por USD ${precio}/mes. Sin intermediarios ni comisiones abusivas.`
+  const tipo = TIPO_LABEL[propiedad.type] ?? propiedad.type
+  const precio = Number(propiedad.price_usd).toLocaleString('es-AR')
+  const title = `${tipo} en ${propiedad.address}`
+  const description = `Alquilá este ${tipo.toLowerCase()} en ${propiedad.address} por USD ${precio}/mes. Sin intermediarios ni comisiones abusivas.`
 
   return {
     title,
@@ -115,31 +115,31 @@ export default async function PropiedadPage({
     )
   }
 
-  const tipo = TIPO_LABEL[propiedad.tipo] ?? propiedad.tipo
+  const tipo = TIPO_LABEL[propiedad.type] ?? propiedad.type
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'RentAction',
-    name: `${tipo} en alquiler — ${propiedad.direccion}`,
-    description: propiedad.descripcion ?? `${tipo} en alquiler en ${propiedad.direccion}`,
+    name: `${tipo} en alquiler — ${propiedad.address}`,
+    description: propiedad.description ?? `${tipo} en alquiler en ${propiedad.address}`,
     url: `${BASE_URL}/propiedades/${propiedad.id}`,
     object: {
       '@type': 'Accommodation',
-      name: `${tipo} en ${propiedad.direccion}`,
+      name: `${tipo} en ${propiedad.address}`,
       accommodationCategory: tipo,
       address: {
         '@type': 'PostalAddress',
-        streetAddress: propiedad.direccion,
+        streetAddress: propiedad.address,
         addressCountry: 'AR',
       },
-      ...(propiedad.superficie != null && { floorSize: { '@type': 'QuantitativeValue', value: propiedad.superficie, unitCode: 'MTK' } }),
-      ...(propiedad.ambientes != null && { numberOfRooms: propiedad.ambientes }),
-      ...(propiedad.banos != null && { numberOfBathroomsTotal: propiedad.banos }),
-      petsAllowed: propiedad.acepta_mascotas ?? false,
+      ...(propiedad.area_m2 != null && { floorSize: { '@type': 'QuantitativeValue', value: propiedad.area_m2, unitCode: 'MTK' } }),
+      ...(propiedad.bedrooms != null && { numberOfRooms: propiedad.bedrooms }),
+      ...(propiedad.bathrooms != null && { numberOfBathroomsTotal: propiedad.bathrooms }),
+      petsAllowed: propiedad.allows_pets ?? false,
     },
     priceSpecification: {
       '@type': 'UnitPriceSpecification',
-      price: propiedad.precio,
+      price: propiedad.price_usd,
       priceCurrency: 'USD',
       unitCode: 'MON',
       billingIncrement: 1,
@@ -167,7 +167,7 @@ export default async function PropiedadPage({
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium text-zinc-500">{tipo}</span>
-              <h1 className="text-2xl font-bold text-zinc-50">{propiedad.direccion}</h1>
+              <h1 className="text-2xl font-bold text-zinc-50">{propiedad.address}</h1>
             </div>
             <BotonFavorito
               propertyId={propiedad.id}
@@ -179,10 +179,10 @@ export default async function PropiedadPage({
           {/* Precio */}
           <div className="mt-6 flex items-baseline gap-2">
             <span className="text-3xl font-bold text-zinc-50">
-              USD {Number(propiedad.precio).toLocaleString('es-AR')}
+              USD {Number(propiedad.price_usd).toLocaleString('es-AR')}
             </span>
             <span className="text-sm text-zinc-500">/ mes</span>
-            {propiedad.incluye_expensas && (
+            {propiedad.includes_expenses && (
               <span className="ml-1 rounded-full border border-zinc-700 px-2.5 py-0.5 text-xs text-zinc-400">
                 Expensas incluidas
               </span>
@@ -190,29 +190,29 @@ export default async function PropiedadPage({
           </div>
 
           {/* Descripción */}
-          {propiedad.descripcion && (
+          {propiedad.description && (
             <p className="mt-6 text-base leading-relaxed text-zinc-400">
-              {propiedad.descripcion}
+              {propiedad.description}
             </p>
           )}
 
           {/* Grilla de detalles */}
           <div className="mt-8 grid grid-cols-2 gap-6 rounded-xl border border-zinc-800 bg-zinc-900 p-6 sm:grid-cols-3">
-            {propiedad.ambientes != null && (
-              <Detalle label="Ambientes" valor={propiedad.ambientes} />
+            {propiedad.bedrooms != null && (
+              <Detalle label="Ambientes" valor={propiedad.bedrooms} />
             )}
-            {propiedad.banos != null && (
-              <Detalle label="Baños" valor={propiedad.banos} />
+            {propiedad.bathrooms != null && (
+              <Detalle label="Baños" valor={propiedad.bathrooms} />
             )}
-            {propiedad.superficie != null && (
-              <Detalle label="Superficie" valor={`${propiedad.superficie} m²`} />
+            {propiedad.area_m2 != null && (
+              <Detalle label="Superficie" valor={`${propiedad.area_m2} m²`} />
             )}
             <Detalle
               label="Mascotas"
               valor={
-                propiedad.acepta_mascotas == null
+                propiedad.allows_pets == null
                   ? 'A consultar'
-                  : propiedad.acepta_mascotas
+                  : propiedad.allows_pets
                   ? 'Acepta'
                   : 'No acepta'
               }
@@ -220,9 +220,9 @@ export default async function PropiedadPage({
             <Detalle
               label="Niños"
               valor={
-                propiedad.acepta_ninos == null
+                propiedad.allows_kids == null
                   ? 'A consultar'
-                  : propiedad.acepta_ninos
+                  : propiedad.allows_kids
                   ? 'Acepta'
                   : 'No acepta'
               }
