@@ -23,20 +23,28 @@ export default async function MensajesPage() {
   const { data: rawMensajes } = propertyIds.length > 0
     ? await supabase
         .from('mensajes')
-        .select('id, sender_name, sender_email, message, created_at, property_id, properties(address)')
+        .select('id, sender_name, sender_email, message, created_at, property_id, properties(address, type, price_usd, photo_urls)')
         .in('property_id', propertyIds)
         .order('created_at', { ascending: false })
     : { data: [] }
 
-  const mensajes = (rawMensajes ?? []).map((m) => ({
-    id:           m.id,
-    sender_name:  m.sender_name,
-    sender_email: m.sender_email,
-    message:      m.message,
-    created_at:   m.created_at,
-    property_id:  m.property_id,
-    address:      (m.properties as { address: string } | null)?.address ?? '',
-  }))
+  type PropRow = { address: string; type: string; price_usd: number; photo_urls: string[] | null } | null
+
+  const mensajes = (rawMensajes ?? []).map((m) => {
+    const prop = m.properties as PropRow
+    return {
+      id:             m.id,
+      sender_name:    m.sender_name,
+      sender_email:   m.sender_email,
+      message:        m.message,
+      created_at:     m.created_at,
+      property_id:    m.property_id,
+      address:        prop?.address ?? '',
+      property_type:  prop?.type ?? '',
+      price_usd:      prop?.price_usd ?? 0,
+      photo_url:      prop?.photo_urls?.[0] ?? null,
+    }
+  })
 
   // Respuestas de todos los hilos del dueño
   const mensajeIds = mensajes.map((m) => m.id)

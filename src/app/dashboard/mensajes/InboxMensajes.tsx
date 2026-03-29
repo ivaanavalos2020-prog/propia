@@ -22,6 +22,16 @@ export type MensajeType = {
   created_at: string
   property_id: string
   address: string
+  property_type: string
+  price_usd: number
+  photo_url: string | null
+}
+
+const TIPO_LABEL: Record<string, string> = {
+  departamento: 'Departamento',
+  casa:         'Casa',
+  habitacion:   'Habitación',
+  local:        'Local comercial',
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -219,32 +229,88 @@ export default function InboxMensajes({ mensajes: initial, respuestasPorMensaje:
       >
         {selected ? (
           <>
-            {/* Header */}
-            <div className="shrink-0 border-b border-zinc-800 px-6 py-4">
-              <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => setVistaMovil('lista')}
-                  className="shrink-0 text-zinc-400 transition-colors hover:text-zinc-50 md:hidden"
-                  aria-label="Volver a la lista"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
-                </button>
-                <div className={['flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold', avatarColor(selected.sender_name)].join(' ')}>
-                  {selected.sender_name[0]?.toUpperCase()}
+            {/* Header fijo */}
+            <div className="shrink-0 border-b border-zinc-800">
+
+              {/* Card de propiedad */}
+              <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+                <div className="flex items-center gap-3">
+
+                  {/* Botón volver — solo mobile, alineado al inicio de la card */}
+                  <button
+                    type="button"
+                    onClick={() => setVistaMovil('lista')}
+                    className="shrink-0 text-zinc-400 transition-colors hover:text-zinc-50 md:hidden"
+                    aria-label="Volver a la lista"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+
+                  {/* Foto o placeholder */}
+                  {selected.photo_url ? (
+                    <img
+                      src={selected.photo_url}
+                      alt={selected.address}
+                      className="h-[60px] w-[60px] shrink-0 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-lg bg-zinc-800">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Info de la propiedad */}
+                  <div className="min-w-0 flex-1">
+                    {/* Tipo — oculto en mobile */}
+                    <span className="hidden text-xs font-medium uppercase tracking-wider text-zinc-500 sm:block">
+                      {TIPO_LABEL[selected.property_type] ?? selected.property_type}
+                    </span>
+                    {/* Dirección */}
+                    <p className="truncate text-sm font-semibold leading-snug text-zinc-50">
+                      {selected.address || '—'}
+                    </p>
+                    {/* Precio — oculto en mobile */}
+                    {selected.price_usd > 0 && (
+                      <p className="hidden text-xs text-zinc-400 sm:block">
+                        USD {Number(selected.price_usd).toLocaleString('es-AR')}
+                        <span className="text-zinc-600"> / mes</span>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Link a la propiedad */}
+                  <Link
+                    href={`/propiedades/${selected.property_id}`}
+                    className="shrink-0 whitespace-nowrap rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-50"
+                  >
+                    Ver propiedad
+                  </Link>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                    <span className="font-semibold text-zinc-50">{selected.sender_name}</span>
-                    <a href={`mailto:${selected.sender_email}`} className="truncate text-sm text-zinc-400 transition-colors hover:text-zinc-200">
+              </div>
+
+              {/* Datos del inquilino */}
+              <div className="bg-zinc-950 px-6 py-3">
+                <div className="flex items-center gap-3">
+                  <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
+                    {selected.sender_name[0]?.toUpperCase()}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0">
+                    <span className="text-sm font-semibold text-zinc-100">{selected.sender_name}</span>
+                    <a
+                      href={`mailto:${selected.sender_email}`}
+                      className="text-sm text-zinc-500 transition-colors hover:text-zinc-300"
+                    >
                       {selected.sender_email}
                     </a>
                   </div>
-                  <p className="truncate text-xs text-zinc-500">{selected.address || '—'}</p>
                 </div>
               </div>
+
             </div>
 
             {/* Hilo de mensajes */}
