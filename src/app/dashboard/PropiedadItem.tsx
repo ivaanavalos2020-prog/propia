@@ -15,14 +15,14 @@ const TIPO_LABEL: Record<string, string> = {
 
 interface Props {
   id: string
-  tipo: string
-  direccion: string
-  precio: number
-  incluye_expensas: boolean | null
+  type: string
+  address: string
+  price_usd: number
+  includes_expenses: boolean | null
   status: string
 }
 
-export default function PropiedadItem({ id, tipo, direccion, precio, incluye_expensas, status: statusInicial }: Props) {
+export default function PropiedadItem({ id, type, address, price_usd, includes_expenses, status: statusInicial }: Props) {
   const [copiado, setCopiado] = useState(false)
   const [status, setStatus] = useState(statusInicial)
   const [cambiando, setCambiando] = useState(false)
@@ -52,7 +52,7 @@ export default function PropiedadItem({ id, tipo, direccion, precio, incluye_exp
       <div className="flex flex-col gap-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-zinc-50">
-            {TIPO_LABEL[tipo] ?? tipo}
+            {TIPO_LABEL[type] ?? type}
           </span>
           {activa ? (
             <span className="rounded-full bg-emerald-950 px-2 py-0.5 text-xs font-medium text-emerald-400">
@@ -64,16 +64,16 @@ export default function PropiedadItem({ id, tipo, direccion, precio, incluye_exp
             </span>
           )}
         </div>
-        <span className="truncate text-sm text-zinc-400">{direccion}</span>
+        <span className="truncate text-sm text-zinc-400">{address}</span>
       </div>
 
       <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
         <div className="flex flex-col items-start sm:items-end gap-0.5">
           <span className="text-sm font-semibold text-zinc-50">
-            USD {Number(precio).toLocaleString('es-AR')}
+            USD {Number(price_usd).toLocaleString('es-AR')}
           </span>
           <span className="text-xs text-zinc-500">
-            {incluye_expensas ? 'Expensas incluidas' : 'Sin expensas'}
+            {includes_expenses ? 'Expensas incluidas' : 'Sin expensas'}
           </span>
         </div>
 
