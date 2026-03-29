@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Filtros from './FiltroTipo'
+import SelectorOrden from './SelectorOrden'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -13,15 +14,22 @@ const TIPO_LABEL: Record<string, string> = {
 export default async function PropiedadesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tipo?: string; precio?: string }>
+  searchParams: Promise<{ tipo?: string; precio?: string; orden?: string }>
 }) {
-  const { tipo, precio } = await searchParams
+  const { tipo, precio, orden } = await searchParams
   const supabase = await createServerSupabaseClient()
+
+  const ordenMap: Record<string, { column: string; ascending: boolean }> = {
+    precio_asc:  { column: 'precio',     ascending: true  },
+    precio_desc: { column: 'precio',     ascending: false },
+    recientes:   { column: 'created_at', ascending: false },
+  }
+  const { column, ascending } = ordenMap[orden ?? ''] ?? ordenMap.recientes
 
   let query = supabase
     .from('properties')
     .select('id, tipo, direccion, precio, ambientes, banos, superficie')
-    .order('created_at', { ascending: false })
+    .order(column, { ascending })
 
   if (tipo) {
     query = query.eq('tipo', tipo)
@@ -49,7 +57,12 @@ export default async function PropiedadesPage({
 
           {/* Encabezado */}
           <div className="flex flex-col gap-6">
-            <h1 className="text-2xl font-bold text-zinc-50">Propiedades disponibles</h1>
+            <div className="flex items-center justify-between gap-4">
+              <h1 className="text-2xl font-bold text-zinc-50">Propiedades disponibles</h1>
+              <Suspense>
+                <SelectorOrden />
+              </Suspense>
+            </div>
             <Suspense>
               <Filtros />
             </Suspense>
