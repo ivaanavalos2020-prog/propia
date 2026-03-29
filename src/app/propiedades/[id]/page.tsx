@@ -139,6 +139,17 @@ export default async function PropiedadPage({
     esFavorito = !!data
   }
 
+  let yaConsulto = false
+  if (userEmail && propiedad) {
+    const { data } = await supabase
+      .from('mensajes')
+      .select('id')
+      .eq('property_id', propiedad.id)
+      .eq('sender_email', userEmail)
+      .maybeSingle()
+    yaConsulto = !!data
+  }
+
   if (!propiedad) {
     return (
       <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-50">
@@ -194,6 +205,24 @@ export default async function PropiedadPage({
 
       <main className="flex flex-1 flex-col px-6 py-10 md:px-12">
         <div className="mx-auto w-full max-w-6xl">
+
+          {/* Banner: ya enviaste una consulta */}
+          {yaConsulto && (
+            <div className="mb-8 flex items-center justify-between gap-4 rounded-xl border border-blue-800 bg-blue-950/60 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-blue-400">
+                  <circle cx="12" cy="12" r="10" /><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                </svg>
+                <p className="text-sm text-blue-200">Ya enviaste una consulta por esta propiedad.</p>
+              </div>
+              <Link
+                href="/dashboard/mensajes"
+                className="shrink-0 text-sm font-medium text-blue-400 transition-colors hover:text-blue-200"
+              >
+                Ver mensajes →
+              </Link>
+            </div>
+          )}
 
           {/* Galería */}
           <GaleriaFotos fotos={fotos} />
