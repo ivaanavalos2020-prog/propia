@@ -38,16 +38,16 @@ export default function GaleriaFotos({ fotos }: { fotos: string[] }) {
 
       {/* Miniaturas */}
       {fotos.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-3 overflow-x-auto pb-1">
           {fotos.map((src, i) => (
             <button
               key={i}
               type="button"
               onClick={() => setActiva(i)}
-              className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all md:h-20 md:w-32 ${
+              className={`relative h-20 w-32 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-150 md:h-24 md:w-40 ${
                 i === activa
-                  ? 'border-zinc-50 opacity-100'
-                  : 'border-transparent opacity-50 hover:opacity-80'
+                  ? 'border-white opacity-100 shadow-[0_0_0_2px_rgba(255,255,255,0.15)]'
+                  : 'border-transparent opacity-40 hover:opacity-70 hover:border-zinc-600'
               }`}
             >
               <Image
@@ -55,7 +55,7 @@ export default function GaleriaFotos({ fotos }: { fotos: string[] }) {
                 alt={`Miniatura ${i + 1}`}
                 fill
                 className="object-cover"
-                sizes="128px"
+                sizes="160px"
               />
             </button>
           ))}

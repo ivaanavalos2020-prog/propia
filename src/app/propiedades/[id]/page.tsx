@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import ModalContacto from './ModalContacto'
 import BotonFavorito from './BotonFavorito'
+import BotonCompartir from './BotonCompartir'
 import GaleriaFotos from './GaleriaFotos'
 
 const BASE_URL = 'https://propia-kappa.vercel.app'
@@ -212,7 +213,10 @@ export default async function PropiedadPage({
                     {propiedad.address}
                   </h1>
                 </div>
-                <BotonFavorito propertyId={propiedad.id} userId={userId} esFavorito={esFavorito} />
+                <div className="flex gap-2">
+                  <BotonCompartir url={`${BASE_URL}/propiedades/${propiedad.id}`} />
+                  <BotonFavorito propertyId={propiedad.id} userId={userId} esFavorito={esFavorito} />
+                </div>
               </div>
 
               {/* Precio (visible solo en mobile, en desktop está en el card) */}
@@ -272,7 +276,7 @@ export default async function PropiedadPage({
               <div className="flex flex-col gap-3 lg:hidden">
                 <Link
                   href="/login"
-                  className="flex w-full items-center justify-center rounded-xl bg-zinc-50 py-4 text-base font-semibold text-zinc-950 transition-opacity hover:opacity-80"
+                  className="flex w-full items-center justify-center rounded-xl bg-emerald-500 py-4 text-base font-bold text-white transition-opacity hover:opacity-90"
                 >
                   Quiero esta propiedad
                 </Link>
@@ -310,9 +314,14 @@ export default async function PropiedadPage({
                   <ModalContacto />
                 </div>
 
-                <p className="text-center text-xs text-zinc-600">
-                  Sin comisiones ni intermediarios
-                </p>
+                <div className="flex items-center justify-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-emerald-500">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  <p className="text-xs font-medium text-zinc-400">
+                    Sin comisiones ni intermediarios
+                  </p>
+                </div>
               </div>
             </div>
 
