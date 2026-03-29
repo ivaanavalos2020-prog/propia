@@ -17,6 +17,16 @@ export default async function DashboardPage() {
     .eq('owner_id', session.user.id)
     .order('created_at', { ascending: false })
 
+  // Mensajes sin leer
+  const propertyIds = propiedades?.map((p) => p.id) ?? []
+  const { count: mensajesSinLeer } = propertyIds.length > 0
+    ? await supabase
+        .from('mensajes')
+        .select('*', { count: 'exact', head: true })
+        .in('property_id', propertyIds)
+        .eq('leido', false)
+    : { count: 0 }
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-50">
       {/* Nav */}
@@ -51,6 +61,29 @@ export default async function DashboardPage() {
               </Link>
             </div>
           </div>
+
+          {/* Card de mensajes sin leer */}
+          {mensajesSinLeer != null && mensajesSinLeer > 0 && (
+            <Link
+              href="/dashboard/mensajes"
+              className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-red-800 bg-red-950/50 px-5 py-4 transition-colors hover:border-red-700 hover:bg-red-950/70"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-900">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-300">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  </svg>
+                </div>
+                <p className="text-sm font-semibold text-red-200">
+                  Tenés {mensajesSinLeer} mensaje{mensajesSinLeer !== 1 ? 's' : ''} sin leer
+                </p>
+              </div>
+              <span className="shrink-0 text-sm font-medium text-red-400">
+                Ver mensajes →
+              </span>
+            </Link>
+          )}
 
           {/* Lista o estado vacío */}
           {propiedades && propiedades.length > 0 ? (

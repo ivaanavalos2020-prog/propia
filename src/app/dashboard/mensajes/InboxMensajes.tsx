@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
 
@@ -25,7 +25,10 @@ export type MensajeType = {
   property_type: string
   price_usd: number
   photo_url: string | null
+  leido: boolean
 }
+
+type Toast = { id: string; text: string }
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -42,7 +45,7 @@ function fechaRelativa(dateStr: string): string {
   const diffH   = Math.floor(diffMs / 3_600_000)
   const diffD   = Math.floor(diffMs / 86_400_000)
   if (diffMin < 1)  return 'ahora'
-  if (diffMin < 60) return `hace ${diffMin}m`
+  if (diffMin < 60) return `hace ${diffMin} min`
   if (diffH < 24)   return `hace ${diffH}h`
   if (diffD === 1)  return 'ayer'
   if (diffD < 7)    return new Date(dateStr).toLocaleDateString('es-AR', { weekday: 'long' })
@@ -72,6 +75,26 @@ function avatarColor(name: string): string {
   return palettes[name.charCodeAt(0) % palettes.length]
 }
 
+function playNotificationSound() {
+  try {
+    const ctx = new AudioContext()
+    const osc  = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(880, ctx.currentTime)
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.12)
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.07, ctx.currentTime + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.4)
+  } catch {
+    // AudioContext no disponible (SSR / política del navegador)
+  }
+}
+
 function IconSobre({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -87,36 +110,129 @@ interface Props {
   mensajes: MensajeType[]
   respuestasPorMensaje: Record<string, RespuestaType[]>
   ownerEmail: string
+  propertyIds: string[]
 }
 
-export default function InboxMensajes({ mensajes: initial, respuestasPorMensaje: initialRespuestas, ownerEmail }: Props) {
-  const [mensajes]    = useState(initial)
+export default function InboxMensajes({
+  mensajes: initial,
+  respuestasPorMensaje: initialRespuestas,
+  ownerEmail,
+  propertyIds,
+}: Props) {
+  const [mensajes,  setMensajes]  = useState<MensajeType[]>(initial)
   const [respuestas, setRespuestas] = useState<Record<string, RespuestaType[]>>(initialRespuestas)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [vistaMovil, setVistaMovil] = useState<'lista' | 'detalle'>('lista')
-  const [texto, setTexto]           = useState('')
-  const [enviando, setEnviando]     = useState(false)
-  const [errorMsg, setErrorMsg]     = useState<string | null>(null)
+  const [texto,    setTexto]    = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [toasts,   setToasts]   = useState<Toast[]>([])
+  const [, setTick] = useState(0) // dispara re-render cada minuto para timestamps relativos
   const chatRef = useRef<HTMLDivElement>(null)
 
-  const selected       = mensajes.find((m) => m.id === selectedId) ?? null
-  const hiloActual     = selectedId ? (respuestas[selectedId] ?? []) : []
-  const ownerInitial   = ownerEmail[0]?.toUpperCase() ?? 'V'
+  const selected     = mensajes.find((m) => m.id === selectedId) ?? null
+  const hiloActual   = selectedId ? (respuestas[selectedId] ?? []) : []
+  const ownerInitial = ownerEmail[0]?.toUpperCase() ?? 'V'
 
-  // Scroll al final cuando cambia la conversación o llega un mensaje nuevo
+  // ── Tick cada minuto para actualizar timestamps ───────────────
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), 60_000)
+    return () => clearInterval(timer)
+  }, [])
+
+  // ── Scroll al fondo al cambiar conversación o recibir mensaje ─
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight
     }
-  }, [selectedId, respuestas])
+  }, [selectedId, respuestas, mensajes])
 
-  function seleccionar(id: string) {
+  // ── Realtime: nuevos mensajes entrantes ───────────────────────
+  useEffect(() => {
+    if (propertyIds.length === 0) return
+    const supabase = createClient()
+
+    type PropRow = { address: string; type: string; price_usd: number; photo_urls: string[] | null } | null
+
+    const channel = supabase
+      .channel('inbox-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'mensajes' },
+        async (payload) => {
+          const raw = payload.new as { id: string; property_id: string }
+          if (!propertyIds.includes(raw.property_id)) return
+
+          const { data } = await supabase
+            .from('mensajes')
+            .select('id, sender_name, sender_email, message, created_at, property_id, leido, properties(address, type, price_usd, photo_urls)')
+            .eq('id', raw.id)
+            .single()
+
+          if (!data) return
+
+          const prop = data.properties as PropRow
+          const newMsg: MensajeType = {
+            id:            data.id,
+            sender_name:   data.sender_name,
+            sender_email:  data.sender_email,
+            message:       data.message,
+            created_at:    data.created_at,
+            property_id:   data.property_id,
+            leido:         data.leido ?? false,
+            address:       prop?.address ?? '',
+            property_type: prop?.type ?? '',
+            price_usd:     prop?.price_usd ?? 0,
+            photo_url:     prop?.photo_urls?.[0] ?? null,
+          }
+
+          setMensajes((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev
+            return [newMsg, ...prev]
+          })
+
+          const toastText = `Nuevo mensaje de ${newMsg.sender_name}${newMsg.address ? ` sobre ${newMsg.address}` : ''}`
+          addToast(toastText)
+          playNotificationSound()
+        },
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [propertyIds.join(',')])
+
+  // ── Toast ─────────────────────────────────────────────────────
+  function addToast(text: string) {
+    const id = Math.random().toString(36).slice(2)
+    setToasts((prev) => [...prev, { id, text }])
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id))
+    }, 4000)
+  }
+
+  // ── Seleccionar conversación → marcar como leído ──────────────
+  async function seleccionar(id: string) {
     setSelectedId(id)
     setVistaMovil('detalle')
     setTexto('')
     setErrorMsg(null)
+
+    // Optimista: marcar leído en estado local
+    setMensajes((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, leido: true } : m)),
+    )
+
+    // Persistir en DB (fire and forget)
+    createClient()
+      .from('mensajes')
+      .update({ leido: true, leido_en: new Date().toISOString() })
+      .eq('id', id)
+      .eq('leido', false)
+      .then(() => {})
   }
 
+  // ── Enviar respuesta ──────────────────────────────────────────
   async function enviar() {
     const contenido = texto.trim()
     if (!selected || !contenido) return
@@ -143,269 +259,282 @@ export default function InboxMensajes({ mensajes: initial, respuestasPorMensaje:
     setEnviando(false)
   }
 
-  // El punto azul se muestra si el dueño aún no respondió
-  function sinRespuestaDueno(mensajeId: string): boolean {
-    return !(respuestas[mensajeId] ?? []).some((r) => r.autor === 'dueno')
-  }
-
   return (
-    <div className="flex flex-1 overflow-hidden">
-
-      {/* ══ PANEL IZQUIERDO ══════════════════════════════════════ */}
-      <aside
-        className={[
-          'flex w-full flex-col border-r border-zinc-800 bg-zinc-950',
-          'md:flex md:w-80 lg:w-96',
-          vistaMovil === 'detalle' ? 'hidden md:flex' : 'flex',
-        ].join(' ')}
-      >
-        <div className="shrink-0 border-b border-zinc-800 px-5 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-sm font-semibold text-zinc-50">Mensajes recibidos</h1>
-              <p className="mt-0.5 text-xs text-zinc-500">
-                {mensajes.length} conversación{mensajes.length !== 1 ? 'es' : ''}
-              </p>
+    <>
+      {/* ── Toasts ───────────────────────────────────────────── */}
+      <div className="fixed right-4 top-4 z-50 flex flex-col gap-2 pointer-events-none">
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            className="pointer-events-auto flex items-start gap-3 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 shadow-xl"
+            style={{ animation: 'toast-in 0.25s ease' }}
+          >
+            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
             </div>
-            <Link href="/dashboard" className="text-xs text-zinc-500 transition-colors hover:text-zinc-300">
-              ← Volver
-            </Link>
+            <p className="max-w-[260px] text-sm text-zinc-200">{t.text}</p>
           </div>
-        </div>
+        ))}
+      </div>
 
-        {mensajes.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800">
-              <IconSobre className="h-5 w-5 text-zinc-500" />
+      <style>{`
+        @keyframes toast-in {
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* ══ PANEL IZQUIERDO ════════════════════════════════════ */}
+        <aside
+          className={[
+            'flex w-full flex-col border-r border-zinc-800 bg-zinc-950',
+            'md:flex md:w-80 lg:w-96',
+            vistaMovil === 'detalle' ? 'hidden md:flex' : 'flex',
+          ].join(' ')}
+        >
+          <div className="shrink-0 border-b border-zinc-800 px-5 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-sm font-semibold text-zinc-50">Mensajes recibidos</h1>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  {mensajes.length} conversación{mensajes.length !== 1 ? 'es' : ''}
+                </p>
+              </div>
+              <Link href="/dashboard" className="text-xs text-zinc-500 transition-colors hover:text-zinc-300">
+                ← Volver
+              </Link>
             </div>
-            <p className="text-sm text-zinc-400">No recibiste mensajes todavía</p>
-            <p className="text-xs text-zinc-600">Aparecerán aquí cuando alguien te contacte desde una propiedad.</p>
           </div>
-        ) : (
-          <ul className="flex-1 divide-y divide-zinc-800/50 overflow-y-auto">
-            {mensajes.map((m) => (
-              <li key={m.id}>
-                <button
-                  type="button"
-                  onClick={() => seleccionar(m.id)}
-                  className={[
-                    'w-full px-5 py-4 text-left transition-colors hover:bg-zinc-800/50',
-                    m.id === selectedId ? 'bg-zinc-800/70' : '',
-                  ].join(' ')}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={['flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold', avatarColor(m.sender_name)].join(' ')}>
-                      {m.sender_name[0]?.toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className="truncate text-sm font-semibold text-zinc-100">{m.sender_name}</span>
-                          {sinRespuestaDueno(m.id) && (
-                            <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
-                          )}
-                        </div>
-                        <span className="shrink-0 text-xs text-zinc-500">{fechaRelativa(m.created_at)}</span>
-                      </div>
-                      <p className="mt-0.5 truncate text-xs text-zinc-500">{m.address || '—'}</p>
-                      <p className="mt-1 truncate text-xs text-zinc-400">
-                        {m.message.length > 60 ? `${m.message.slice(0, 60)}…` : m.message}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </aside>
 
-      {/* ══ PANEL DERECHO ════════════════════════════════════════ */}
-      <section
-        className={[
-          'flex flex-1 flex-col overflow-hidden bg-zinc-950',
-          vistaMovil === 'lista' ? 'hidden md:flex' : 'flex',
-        ].join(' ')}
-      >
-        {selected ? (
-          <>
-            {/* Header fijo */}
-            <div className="shrink-0 border-b border-zinc-800">
-
-              {/* Card de propiedad */}
-              <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-                <div className="flex items-center gap-3">
-
-                  {/* Botón volver — solo mobile, alineado al inicio de la card */}
+          {mensajes.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800">
+                <IconSobre className="h-5 w-5 text-zinc-500" />
+              </div>
+              <p className="text-sm text-zinc-400">No recibiste mensajes todavía</p>
+              <p className="text-xs text-zinc-600">Aparecerán aquí cuando alguien te contacte desde una propiedad.</p>
+            </div>
+          ) : (
+            <ul className="flex-1 divide-y divide-zinc-800/50 overflow-y-auto">
+              {mensajes.map((m) => (
+                <li key={m.id}>
                   <button
                     type="button"
-                    onClick={() => setVistaMovil('lista')}
-                    className="shrink-0 text-zinc-400 transition-colors hover:text-zinc-50 md:hidden"
-                    aria-label="Volver a la lista"
+                    onClick={() => seleccionar(m.id)}
+                    className={[
+                      'w-full px-5 py-4 text-left transition-colors hover:bg-zinc-800/50',
+                      m.id === selectedId ? 'bg-zinc-800/70' : '',
+                    ].join(' ')}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="15 18 9 12 15 6" />
-                    </svg>
-                  </button>
+                    <div className="flex items-start gap-3">
+                      {/* Avatar */}
+                      <div className={['flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold', avatarColor(m.sender_name)].join(' ')}>
+                        {m.sender_name[0]?.toUpperCase()}
+                      </div>
 
-                  {/* Foto o placeholder */}
-                  {selected.photo_url ? (
-                    <img
-                      src={selected.photo_url}
-                      alt={selected.address}
-                      className="h-[60px] w-[60px] shrink-0 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-lg bg-zinc-800">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600">
-                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                        <polyline points="9 22 9 12 15 12 15 22" />
-                      </svg>
+                      <div className="min-w-0 flex-1">
+                        {/* Nombre + punto azul + fecha relativa */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="truncate text-sm font-semibold text-zinc-100">{m.sender_name}</span>
+                            {/* Punto azul: mensaje no leído */}
+                            {!m.leido && (
+                              <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+                            )}
+                          </div>
+                          {/* Timestamp relativo — se actualiza con el tick */}
+                          <span className="shrink-0 text-xs text-zinc-500">{fechaRelativa(m.created_at)}</span>
+                        </div>
+                        <p className="mt-0.5 truncate text-xs text-zinc-500">{m.address || '—'}</p>
+                        <p className="mt-1 truncate text-xs text-zinc-400">
+                          {m.message.length > 60 ? `${m.message.slice(0, 60)}…` : m.message}
+                        </p>
+                      </div>
                     </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
+
+        {/* ══ PANEL DERECHO ══════════════════════════════════════ */}
+        <section
+          className={[
+            'flex flex-1 flex-col overflow-hidden bg-zinc-950',
+            vistaMovil === 'lista' ? 'hidden md:flex' : 'flex',
+          ].join(' ')}
+        >
+          {selected ? (
+            <>
+              {/* Header fijo */}
+              <div className="shrink-0 border-b border-zinc-800">
+
+                {/* Card de propiedad */}
+                <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setVistaMovil('lista')}
+                      className="shrink-0 text-zinc-400 transition-colors hover:text-zinc-50 md:hidden"
+                      aria-label="Volver a la lista"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+
+                    {selected.photo_url ? (
+                      <img
+                        src={selected.photo_url}
+                        alt={selected.address}
+                        className="h-[60px] w-[60px] shrink-0 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-lg bg-zinc-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600">
+                          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                          <polyline points="9 22 9 12 15 12 15 22" />
+                        </svg>
+                      </div>
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <span className="hidden text-xs font-medium uppercase tracking-wider text-zinc-500 sm:block">
+                        {TIPO_LABEL[selected.property_type] ?? selected.property_type}
+                      </span>
+                      <p className="truncate text-sm font-semibold leading-snug text-zinc-50">
+                        {selected.address || '—'}
+                      </p>
+                      {selected.price_usd > 0 && (
+                        <p className="hidden text-xs text-zinc-400 sm:block">
+                          USD {Number(selected.price_usd).toLocaleString('es-AR')}
+                          <span className="text-zinc-600"> / mes</span>
+                        </p>
+                      )}
+                    </div>
+
+                    <Link
+                      href={`/propiedades/${selected.property_id}`}
+                      className="shrink-0 whitespace-nowrap rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-50"
+                    >
+                      Ver propiedad
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Datos del inquilino */}
+                <div className="bg-zinc-950 px-6 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
+                      {selected.sender_name[0]?.toUpperCase()}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0">
+                      <span className="text-sm font-semibold text-zinc-100">{selected.sender_name}</span>
+                      <a href={`mailto:${selected.sender_email}`} className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">
+                        {selected.sender_email}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hilo de mensajes */}
+              <div ref={chatRef} className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="flex flex-col gap-4">
+
+                  {/* Mensaje original del inquilino */}
+                  <div className="flex items-end gap-3">
+                    <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
+                      {selected.sender_name[0]?.toUpperCase()}
+                    </div>
+                    <div className="flex max-w-[75%] flex-col gap-1">
+                      <div className="rounded-2xl rounded-bl-sm bg-zinc-800 px-4 py-3 text-sm leading-relaxed text-zinc-200 whitespace-pre-wrap">
+                        {selected.message}
+                      </div>
+                      <span className="ml-1 text-xs text-zinc-600">{fechaChat(selected.created_at)}</span>
+                    </div>
+                  </div>
+
+                  {/* Respuestas del hilo */}
+                  {hiloActual.map((r) =>
+                    r.autor === 'dueno' ? (
+                      <div key={r.id} className="flex items-end justify-end gap-3">
+                        <div className="flex max-w-[75%] flex-col items-end gap-1">
+                          <div className="rounded-2xl rounded-br-sm bg-emerald-900/70 px-4 py-3 text-sm leading-relaxed text-emerald-100 whitespace-pre-wrap">
+                            {r.contenido}
+                          </div>
+                          <span className="mr-1 text-xs text-zinc-600">{fechaChat(r.created_at)}</span>
+                        </div>
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-xs font-semibold text-emerald-100">
+                          {ownerInitial}
+                        </div>
+                      </div>
+                    ) : (
+                      <div key={r.id} className="flex items-end gap-3">
+                        <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
+                          {selected.sender_name[0]?.toUpperCase()}
+                        </div>
+                        <div className="flex max-w-[75%] flex-col gap-1">
+                          <div className="rounded-2xl rounded-bl-sm bg-zinc-800 px-4 py-3 text-sm leading-relaxed text-zinc-200 whitespace-pre-wrap">
+                            {r.contenido}
+                          </div>
+                          <span className="ml-1 text-xs text-zinc-600">{fechaChat(r.created_at)}</span>
+                        </div>
+                      </div>
+                    )
                   )}
 
-                  {/* Info de la propiedad */}
-                  <div className="min-w-0 flex-1">
-                    {/* Tipo — oculto en mobile */}
-                    <span className="hidden text-xs font-medium uppercase tracking-wider text-zinc-500 sm:block">
-                      {TIPO_LABEL[selected.property_type] ?? selected.property_type}
-                    </span>
-                    {/* Dirección */}
-                    <p className="truncate text-sm font-semibold leading-snug text-zinc-50">
-                      {selected.address || '—'}
-                    </p>
-                    {/* Precio — oculto en mobile */}
-                    {selected.price_usd > 0 && (
-                      <p className="hidden text-xs text-zinc-400 sm:block">
-                        USD {Number(selected.price_usd).toLocaleString('es-AR')}
-                        <span className="text-zinc-600"> / mes</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Link a la propiedad */}
-                  <Link
-                    href={`/propiedades/${selected.property_id}`}
-                    className="shrink-0 whitespace-nowrap rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-50"
-                  >
-                    Ver propiedad
-                  </Link>
                 </div>
               </div>
 
-              {/* Datos del inquilino */}
-              <div className="bg-zinc-950 px-6 py-3">
-                <div className="flex items-center gap-3">
-                  <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
-                    {selected.sender_name[0]?.toUpperCase()}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0">
-                    <span className="text-sm font-semibold text-zinc-100">{selected.sender_name}</span>
-                    <a
-                      href={`mailto:${selected.sender_email}`}
-                      className="text-sm text-zinc-500 transition-colors hover:text-zinc-300"
-                    >
-                      {selected.sender_email}
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Hilo de mensajes */}
-            <div ref={chatRef} className="flex-1 overflow-y-auto px-6 py-6">
-              <div className="flex flex-col gap-4">
-
-                {/* Mensaje original del inquilino */}
-                <div className="flex items-end gap-3">
-                  <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
-                    {selected.sender_name[0]?.toUpperCase()}
-                  </div>
-                  <div className="flex max-w-[75%] flex-col gap-1">
-                    <div className="rounded-2xl rounded-bl-sm bg-zinc-800 px-4 py-3 text-sm leading-relaxed text-zinc-200 whitespace-pre-wrap">
-                      {selected.message}
-                    </div>
-                    <span className="ml-1 text-xs text-zinc-600">{fechaChat(selected.created_at)}</span>
-                  </div>
-                </div>
-
-                {/* Respuestas del hilo */}
-                {hiloActual.map((r) =>
-                  r.autor === 'dueno' ? (
-                    /* Respuesta del dueño — derecha, verde */
-                    <div key={r.id} className="flex items-end justify-end gap-3">
-                      <div className="flex max-w-[75%] flex-col items-end gap-1">
-                        <div className="rounded-2xl rounded-br-sm bg-emerald-900/70 px-4 py-3 text-sm leading-relaxed text-emerald-100 whitespace-pre-wrap">
-                          {r.contenido}
-                        </div>
-                        <span className="mr-1 text-xs text-zinc-600">{fechaChat(r.created_at)}</span>
-                      </div>
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-xs font-semibold text-emerald-100">
-                        {ownerInitial}
-                      </div>
-                    </div>
-                  ) : (
-                    /* Respuesta del inquilino — izquierda, gris */
-                    <div key={r.id} className="flex items-end gap-3">
-                      <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
-                        {selected.sender_name[0]?.toUpperCase()}
-                      </div>
-                      <div className="flex max-w-[75%] flex-col gap-1">
-                        <div className="rounded-2xl rounded-bl-sm bg-zinc-800 px-4 py-3 text-sm leading-relaxed text-zinc-200 whitespace-pre-wrap">
-                          {r.contenido}
-                        </div>
-                        <span className="ml-1 text-xs text-zinc-600">{fechaChat(r.created_at)}</span>
-                      </div>
-                    </div>
-                  )
+              {/* Caja de respuesta — siempre visible */}
+              <div className="shrink-0 border-t border-zinc-800 px-6 py-4">
+                {errorMsg && (
+                  <p className="mb-3 rounded-lg border border-red-800 bg-red-950 px-4 py-2.5 text-sm text-red-400">
+                    {errorMsg}
+                  </p>
                 )}
-
+                <div className="flex items-end gap-3">
+                  <textarea
+                    value={texto}
+                    onChange={(e) => setTexto(e.target.value)}
+                    rows={3}
+                    disabled={enviando}
+                    placeholder="Escribí tu respuesta..."
+                    className="flex-1 resize-none rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) enviar()
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={enviar}
+                    disabled={enviando || !texto.trim()}
+                    className="shrink-0 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-80 disabled:opacity-40"
+                  >
+                    {enviando ? '…' : 'Enviar'}
+                  </button>
+                </div>
+                <p className="mt-1.5 text-xs text-zinc-600">⌘ + Enter para enviar</p>
               </div>
-            </div>
-
-            {/* Caja de respuesta — siempre visible */}
-            <div className="shrink-0 border-t border-zinc-800 px-6 py-4">
-              {errorMsg && (
-                <p className="mb-3 rounded-lg border border-red-800 bg-red-950 px-4 py-2.5 text-sm text-red-400">
-                  {errorMsg}
-                </p>
-              )}
-              <div className="flex items-end gap-3">
-                <textarea
-                  value={texto}
-                  onChange={(e) => setTexto(e.target.value)}
-                  rows={3}
-                  disabled={enviando}
-                  placeholder="Escribí tu respuesta..."
-                  className="flex-1 resize-none rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) enviar()
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={enviar}
-                  disabled={enviando || !texto.trim()}
-                  className="shrink-0 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-80 disabled:opacity-40"
-                >
-                  {enviando ? '…' : 'Enviar'}
-                </button>
+            </>
+          ) : (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-800">
+                <IconSobre className="h-6 w-6 text-zinc-500" />
               </div>
-              <p className="mt-1.5 text-xs text-zinc-600">⌘ + Enter para enviar</p>
+              <p className="text-sm font-medium text-zinc-400">Seleccioná una conversación</p>
+              <p className="text-xs text-zinc-600">Los mensajes aparecen aquí</p>
             </div>
-          </>
-        ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-800">
-              <IconSobre className="h-6 w-6 text-zinc-500" />
-            </div>
-            <p className="text-sm font-medium text-zinc-400">Seleccioná una conversación</p>
-            <p className="text-xs text-zinc-600">Los mensajes aparecen aquí</p>
-          </div>
-        )}
-      </section>
+          )}
+        </section>
 
-    </div>
+      </div>
+    </>
   )
 }

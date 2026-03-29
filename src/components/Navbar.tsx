@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import BotonCerrarSesion from './BotonCerrarSesion'
+import BadgeMensajes from './BadgeMensajes'
 
 export default async function Navbar() {
   const supabase = await createServerSupabaseClient()
@@ -26,9 +27,10 @@ export default async function Navbar() {
             </Link>
             <Link
               href="/dashboard/mensajes"
-              className="text-sm text-zinc-400 transition-colors hover:text-zinc-50"
+              className="flex items-center gap-1.5 text-sm text-zinc-400 transition-colors hover:text-zinc-50"
             >
               Mensajes
+              <BadgeMensajes />
             </Link>
             <Link
               href="/favoritos"

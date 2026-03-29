@@ -23,7 +23,7 @@ export default async function MensajesPage() {
   const { data: rawMensajes } = propertyIds.length > 0
     ? await supabase
         .from('mensajes')
-        .select('id, sender_name, sender_email, message, created_at, property_id, properties(address, type, price_usd, photo_urls)')
+        .select('id, sender_name, sender_email, message, created_at, property_id, leido, properties(address, type, price_usd, photo_urls)')
         .in('property_id', propertyIds)
         .order('created_at', { ascending: false })
     : { data: [] }
@@ -39,6 +39,7 @@ export default async function MensajesPage() {
       message:        m.message,
       created_at:     m.created_at,
       property_id:    m.property_id,
+      leido:          m.leido ?? false,
       address:        prop?.address ?? '',
       property_type:  prop?.type ?? '',
       price_usd:      prop?.price_usd ?? 0,
@@ -76,6 +77,7 @@ export default async function MensajesPage() {
         mensajes={mensajes}
         respuestasPorMensaje={respuestasPorMensaje}
         ownerEmail={session.user.email ?? ''}
+        propertyIds={propertyIds}
       />
     </div>
   )
