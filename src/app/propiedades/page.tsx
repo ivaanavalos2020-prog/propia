@@ -14,19 +14,20 @@ export default async function PropiedadesPage({
   const supabase = await createServerSupabaseClient()
 
   const ordenMap: Record<string, { column: string; ascending: boolean }> = {
-    precio_asc:  { column: 'precio',     ascending: true  },
-    precio_desc: { column: 'precio',     ascending: false },
+    precio_asc:  { column: 'price_usd',  ascending: true  },
+    precio_desc: { column: 'price_usd',  ascending: false },
     recientes:   { column: 'created_at', ascending: false },
   }
   const { column, ascending } = ordenMap[orden ?? ''] ?? ordenMap.recientes
 
   let query = supabase
     .from('properties')
-    .select('id, tipo, direccion, precio, ambientes, banos, superficie')
+    .select('id, type, address, price_usd, bedrooms, bathrooms, area_m2, status')
+    .eq('status', 'active')
     .order(column, { ascending })
 
-  if (tipo) query = query.eq('tipo', tipo)
-  if (precio) query = query.lte('precio', Number(precio))
+  if (tipo) query = query.eq('type', tipo)
+  if (precio) query = query.lte('price_usd', Number(precio))
 
   const { data: propiedades } = await query
 
