@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -29,7 +30,8 @@ export default function ListadoConBuscador({
   propiedades: Propiedad[]
   hayFiltros: boolean
 }) {
-  const [busqueda, setBusqueda] = useState('')
+  const searchParams = useSearchParams()
+  const [busqueda, setBusqueda] = useState(searchParams.get('q') ?? '')
 
   const termino = busqueda.trim().toLowerCase()
   const resultado = termino
