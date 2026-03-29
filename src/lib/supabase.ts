@@ -14,8 +14,14 @@ export async function createServerSupabaseClient() {
         return cookieStore.getAll()
       },
       setAll(cookiesToSet) {
-        for (const { name, value, options } of cookiesToSet) {
-          cookieStore.set(name, value, options)
+        try {
+          for (const { name, value, options } of cookiesToSet) {
+            cookieStore.set(name, value, options)
+          }
+        } catch {
+          // No se pueden modificar cookies durante el render de un Server Component.
+          // Esto es seguro: la sesión se lee igual; el refresco del token
+          // se completa en el middleware.
         }
       },
     },
