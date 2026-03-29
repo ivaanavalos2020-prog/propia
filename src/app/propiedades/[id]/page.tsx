@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase'
+import ModalContacto from './ModalContacto'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -121,13 +122,16 @@ export default async function PropiedadPage({
             />
           </div>
 
-          {/* CTA */}
-          <Link
-            href="/login"
-            className="mt-8 flex w-full items-center justify-center rounded-xl bg-zinc-50 py-4 text-base font-semibold text-zinc-950 transition-opacity hover:opacity-80"
-          >
-            Quiero esta propiedad
-          </Link>
+          {/* CTAs */}
+          <div className="mt-8 flex flex-col gap-3">
+            <Link
+              href="/login"
+              className="flex w-full items-center justify-center rounded-xl bg-zinc-50 py-4 text-base font-semibold text-zinc-950 transition-opacity hover:opacity-80"
+            >
+              Quiero esta propiedad
+            </Link>
+            <ModalContacto />
+          </div>
 
         </div>
       </main>
