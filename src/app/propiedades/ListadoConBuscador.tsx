@@ -12,12 +12,12 @@ const TIPO_LABEL: Record<string, string> = {
 
 interface Propiedad {
   id: string
-  tipo: string
-  direccion: string
-  precio: number
-  ambientes: number | null
-  banos: number | null
-  superficie: number | null
+  type: string
+  address: string
+  price_usd: number
+  bedrooms: number | null
+  bathrooms: number | null
+  area_m2: number | null
 }
 
 export default function ListadoConBuscador({
@@ -31,7 +31,7 @@ export default function ListadoConBuscador({
 
   const termino = busqueda.trim().toLowerCase()
   const resultado = termino
-    ? propiedades.filter((p) => p.direccion.toLowerCase().includes(termino))
+    ? propiedades.filter((p) => p.address.toLowerCase().includes(termino))
     : propiedades
 
   const sinResultados = resultado.length === 0
