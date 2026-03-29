@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import ModalContacto from './ModalContacto'
+import BotonFavorito from './BotonFavorito'
 
 const BASE_URL = 'https://propia-kappa.vercel.app'
 
@@ -84,6 +85,21 @@ export default async function PropiedadPage({
   const { id } = await params
   const propiedad = await getPropiedad(id)
 
+  const supabase = await createServerSupabaseClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  const userId = session?.user.id ?? null
+
+  let esFavorito = false
+  if (userId && propiedad) {
+    const { data } = await supabase
+      .from('favoritos')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('property_id', propiedad.id)
+      .maybeSingle()
+    esFavorito = !!data
+  }
+
   if (!propiedad) {
     return (
       <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-50">
@@ -148,9 +164,16 @@ export default async function PropiedadPage({
         <div className="w-full max-w-2xl">
 
           {/* Encabezado */}
-          <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-zinc-500">{tipo}</span>
-            <h1 className="text-2xl font-bold text-zinc-50">{propiedad.direccion}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-zinc-500">{tipo}</span>
+              <h1 className="text-2xl font-bold text-zinc-50">{propiedad.direccion}</h1>
+            </div>
+            <BotonFavorito
+              propertyId={propiedad.id}
+              userId={userId}
+              esFavorito={esFavorito}
+            />
           </div>
 
           {/* Precio */}
