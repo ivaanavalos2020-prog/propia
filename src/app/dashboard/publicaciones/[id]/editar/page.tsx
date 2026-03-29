@@ -25,7 +25,7 @@ export default async function EditarPropiedadPage({
 
   const { data: propiedad } = await supabase
     .from('properties')
-    .select('id, tipo, direccion, precio, descripcion, incluye_expensas, acepta_mascotas, acepta_ninos, owner_id')
+    .select('id, type, address, price_usd, description, includes_expenses, allows_pets, allows_kids, owner_id')
     .eq('id', id)
     .single()
 
@@ -52,17 +52,17 @@ export default async function EditarPropiedadPage({
           <div className="mb-8 flex flex-col gap-1">
             <h1 className="text-xl font-semibold text-zinc-50">Editar propiedad</h1>
             <p className="text-sm text-zinc-500">
-              {TIPO_LABEL[propiedad.tipo] ?? propiedad.tipo} · {propiedad.direccion}
+              {TIPO_LABEL[propiedad.type] ?? propiedad.type} · {propiedad.address}
             </p>
           </div>
 
           <FormularioEditar
             id={propiedad.id}
-            precioInicial={propiedad.precio}
-            descripcionInicial={propiedad.descripcion}
-            incluyeExpensasInicial={propiedad.incluye_expensas}
-            aceptaMascotasInicial={propiedad.acepta_mascotas}
-            aceptaNinosInicial={propiedad.acepta_ninos}
+            precioInicial={propiedad.price_usd}
+            descripcionInicial={propiedad.description}
+            incluyeExpensasInicial={propiedad.includes_expenses}
+            aceptaMascotasInicial={propiedad.allows_pets}
+            aceptaNinosInicial={propiedad.allows_kids}
           />
         </div>
       </main>

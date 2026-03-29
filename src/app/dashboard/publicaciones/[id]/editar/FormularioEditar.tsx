@@ -66,11 +66,11 @@ export default function FormularioEditar({
     const { error: updateError } = await supabase
       .from('properties')
       .update({
-        precio: Number(precio),
-        descripcion: descripcion.trim() || null,
-        incluye_expensas: incluyeExpensas,
-        acepta_mascotas: aceptaMascotas,
-        acepta_ninos: aceptaNinos,
+        price_usd: Number(precio),
+        description: descripcion.trim() || null,
+        includes_expenses: incluyeExpensas,
+        allows_pets: aceptaMascotas,
+        allows_kids: aceptaNinos,
       })
       .eq('id', id)
 
