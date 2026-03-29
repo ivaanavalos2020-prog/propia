@@ -104,11 +104,11 @@ export default function PublicarPage() {
       precio: Number(form.precio),
       incluye_expensas: form.incluyeExpensas,
       descripcion: form.descripcion || null,
-      ambientes: form.ambientes ? Number(form.ambientes) : null,
-      banos: form.banos ? Number(form.banos) : null,
-      superficie: form.superficie ? Number(form.superficie) : null,
-      acepta_mascotas: form.aceptaMascotas,
-      acepta_ninos: form.aceptaNinos,
+      bedrooms: form.ambientes ? Number(form.ambientes) : null,
+      bathrooms: form.banos ? Number(form.banos) : null,
+      area_m2: form.superficie ? Number(form.superficie) : null,
+      allows_pets: form.aceptaMascotas,
+      allows_kids: form.aceptaNinos,
     })
 
     if (insertError) {
