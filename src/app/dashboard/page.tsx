@@ -1,13 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-
-const TIPO_LABEL: Record<string, string> = {
-  departamento: 'Departamento',
-  casa: 'Casa',
-  habitacion: 'Habitación',
-  local: 'Local comercial',
-}
+import PropiedadItem from './PropiedadItem'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -50,31 +44,7 @@ export default async function DashboardPage() {
           {propiedades && propiedades.length > 0 ? (
             <ul className="mt-8 flex flex-col gap-3">
               {propiedades.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-4"
-                >
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-zinc-50">
-                        {TIPO_LABEL[p.tipo] ?? p.tipo}
-                      </span>
-                      <span className="rounded-full bg-emerald-950 px-2 py-0.5 text-xs font-medium text-emerald-400">
-                        Activa
-                      </span>
-                    </div>
-                    <span className="truncate text-sm text-zinc-400">{p.direccion}</span>
-                  </div>
-
-                  <div className="flex shrink-0 flex-col items-end gap-1">
-                    <span className="text-sm font-semibold text-zinc-50">
-                      USD {Number(p.precio).toLocaleString('es-AR')}
-                    </span>
-                    <span className="text-xs text-zinc-500">
-                      {p.incluye_expensas ? 'Expensas incluidas' : 'Sin expensas'}
-                    </span>
-                  </div>
-                </li>
+                <PropiedadItem key={p.id} {...p} />
               ))}
             </ul>
           ) : (
