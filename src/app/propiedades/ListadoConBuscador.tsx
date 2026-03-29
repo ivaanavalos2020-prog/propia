@@ -87,22 +87,22 @@ export default function ListadoConBuscador({
               >
                 <div className="flex flex-col gap-1">
                   <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                    {TIPO_LABEL[p.tipo] ?? p.tipo}
+                    {TIPO_LABEL[p.type] ?? p.type}
                   </span>
                   <span className="line-clamp-2 text-base font-semibold text-zinc-50">
-                    {p.direccion}
+                    {p.address}
                   </span>
                 </div>
 
                 <div className="mt-auto flex flex-col gap-3">
                   <span className="text-xl font-bold text-zinc-50">
-                    USD {Number(p.precio).toLocaleString('es-AR')}
+                    USD {Number(p.price_usd).toLocaleString('es-AR')}
                     <span className="ml-1 text-sm font-normal text-zinc-500">/mes</span>
                   </span>
                   <div className="flex gap-4 text-sm text-zinc-400">
-                    {p.ambientes != null && <span>{p.ambientes} amb.</span>}
-                    {p.banos != null && <span>{p.banos} baño{p.banos !== 1 ? 's' : ''}</span>}
-                    {p.superficie != null && <span>{p.superficie} m²</span>}
+                    {p.bedrooms != null && <span>{p.bedrooms} amb.</span>}
+                    {p.bathrooms != null && <span>{p.bathrooms} baño{p.bathrooms !== 1 ? 's' : ''}</span>}
+                    {p.area_m2 != null && <span>{p.area_m2} m²</span>}
                   </div>
                 </div>
               </Link>
