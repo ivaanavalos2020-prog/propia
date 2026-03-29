@@ -99,11 +99,11 @@ export default function PublicarPage() {
 
     const { error: insertError } = await supabase.from('properties').insert({
       owner_id: user.id,
-      tipo: form.tipo,
-      direccion: form.direccion,
-      precio: Number(form.precio),
-      incluye_expensas: form.incluyeExpensas,
-      descripcion: form.descripcion || null,
+      type: form.tipo,
+      address: form.direccion,
+      price_usd: Number(form.precio),
+      includes_expenses: form.incluyeExpensas,
+      description: form.descripcion || null,
       bedrooms: form.ambientes ? Number(form.ambientes) : null,
       bathrooms: form.banos ? Number(form.banos) : null,
       area_m2: form.superficie ? Number(form.superficie) : null,
