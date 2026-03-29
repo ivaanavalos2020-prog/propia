@@ -30,6 +30,12 @@ export default async function Navbar() {
             >
               Favoritos
             </Link>
+            <Link
+              href="/dashboard/mensajes"
+              className="text-sm text-zinc-400 transition-colors hover:text-zinc-50"
+            >
+              Mensajes
+            </Link>
             <BotonCerrarSesion />
           </>
         ) : (
