@@ -1,12 +1,70 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import ModalContacto from './ModalContacto'
+
+const BASE_URL = 'https://propia-kappa.vercel.app'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
   casa: 'Casa',
   habitacion: 'Habitación',
   local: 'Local comercial',
+}
+
+async function getPropiedad(id: string) {
+  const supabase = await createServerSupabaseClient()
+  const { data } = await supabase
+    .from('properties')
+    .select(
+      'id, tipo, direccion, precio, incluye_expensas, descripcion, ambientes, banos, superficie, acepta_mascotas, acepta_ninos'
+    )
+    .eq('id', id)
+    .single()
+  return data
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const propiedad = await getPropiedad(id)
+
+  if (!propiedad) {
+    return { title: 'Propiedad no encontrada' }
+  }
+
+  const tipo = TIPO_LABEL[propiedad.tipo] ?? propiedad.tipo
+  const precio = Number(propiedad.precio).toLocaleString('es-AR')
+  const title = `${tipo} en ${propiedad.direccion}`
+  const description = `Alquilá este ${tipo.toLowerCase()} en ${propiedad.direccion} por USD ${precio}/mes. Sin intermediarios ni comisiones abusivas.`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${BASE_URL}/propiedades/${propiedad.id}`,
+      type: 'website',
+      images: [
+        {
+          url: `${BASE_URL}/og-placeholder.png`,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${BASE_URL}/og-placeholder.png`],
+    },
+  }
 }
 
 function Detalle({ label, valor }: { label: string; valor: React.ReactNode }) {
@@ -24,15 +82,7 @@ export default async function PropiedadPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createServerSupabaseClient()
-
-  const { data: propiedad } = await supabase
-    .from('properties')
-    .select(
-      'id, tipo, direccion, precio, incluye_expensas, descripcion, ambientes, banos, superficie, acepta_mascotas, acepta_ninos'
-    )
-    .eq('id', id)
-    .single()
+  const propiedad = await getPropiedad(id)
 
   if (!propiedad) {
     return (
@@ -49,8 +99,44 @@ export default async function PropiedadPage({
     )
   }
 
+  const tipo = TIPO_LABEL[propiedad.tipo] ?? propiedad.tipo
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'RentAction',
+    name: `${tipo} en alquiler — ${propiedad.direccion}`,
+    description: propiedad.descripcion ?? `${tipo} en alquiler en ${propiedad.direccion}`,
+    url: `${BASE_URL}/propiedades/${propiedad.id}`,
+    object: {
+      '@type': 'Accommodation',
+      name: `${tipo} en ${propiedad.direccion}`,
+      accommodationCategory: tipo,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: propiedad.direccion,
+        addressCountry: 'AR',
+      },
+      ...(propiedad.superficie != null && { floorSize: { '@type': 'QuantitativeValue', value: propiedad.superficie, unitCode: 'MTK' } }),
+      ...(propiedad.ambientes != null && { numberOfRooms: propiedad.ambientes }),
+      ...(propiedad.banos != null && { numberOfBathroomsTotal: propiedad.banos }),
+      petsAllowed: propiedad.acepta_mascotas ?? false,
+    },
+    priceSpecification: {
+      '@type': 'UnitPriceSpecification',
+      price: propiedad.precio,
+      priceCurrency: 'USD',
+      unitCode: 'MON',
+      billingIncrement: 1,
+    },
+  }
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* Nav */}
       <header className="flex items-center border-b border-zinc-800 px-6 py-5 md:px-12">
         <Link href="/" className="text-lg font-bold tracking-widest text-zinc-50">
@@ -63,9 +149,7 @@ export default async function PropiedadPage({
 
           {/* Encabezado */}
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-zinc-500">
-              {TIPO_LABEL[propiedad.tipo] ?? propiedad.tipo}
-            </span>
+            <span className="text-sm font-medium text-zinc-500">{tipo}</span>
             <h1 className="text-2xl font-bold text-zinc-50">{propiedad.direccion}</h1>
           </div>
 
