@@ -13,7 +13,7 @@ export default async function DashboardPage() {
 
   const { data: propiedades } = await supabase
     .from('properties')
-    .select('id, tipo, direccion, precio, incluye_expensas, status')
+    .select('id, type, address, price_usd, status')
     .eq('owner_id', session.user.id)
     .order('created_at', { ascending: false })
 
