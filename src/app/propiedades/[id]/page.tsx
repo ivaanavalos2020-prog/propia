@@ -7,6 +7,7 @@ import BotonCompartir from './BotonCompartir'
 import GaleriaFotos from './GaleriaFotos'
 import BotonesContacto from './BotonesContacto'
 import ContadorVistas from './ContadorVistas'
+import VentajasUbicacion from './VentajasUbicacion'
 
 const BASE_URL = 'https://propia-kappa.vercel.app'
 
@@ -460,6 +461,14 @@ export default async function PropiedadPage({
                   </div>
                 )
               })()}
+
+              {/* Ventajas de la ubicación */}
+              <VentajasUbicacion
+                propertyId={propiedad.id}
+                address={propiedad.address ?? null}
+                neighborhood={propiedad.neighborhood ?? null}
+                city={propiedad.city ?? null}
+              />
 
               {/* CTAs mobile */}
               <div className="flex flex-col gap-3 lg:hidden">
