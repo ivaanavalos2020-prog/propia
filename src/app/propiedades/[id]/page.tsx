@@ -349,44 +349,113 @@ export default async function PropiedadPage({
               {/* Ubicación */}
               {(() => {
                 const partes = [propiedad.address, propiedad.neighborhood, propiedad.city].filter(Boolean)
-                const direccionCompleta = partes.join(', ')
-                const mapsQuery = encodeURIComponent(direccionCompleta)
+                const tieneUbicacion = partes.length > 0
+                const direccionMapa = [...partes, 'Argentina'].join(', ')
+                const mapsQuery = encodeURIComponent(direccionMapa)
+
                 return (
                   <div className="flex flex-col gap-3">
-                    <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">Ubicación</h2>
-                    <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                      <div className="flex flex-col gap-0.5">
-                        <p className="text-sm font-semibold text-slate-900">{direccionCompleta || propiedad.address}</p>
-                        {propiedad.property_references && (
-                          <p className="text-sm text-slate-500">{propiedad.property_references}</p>
-                        )}
-                      </div>
+                    <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/>
+                      </svg>
+                      Ubicación
+                    </h2>
 
-                      <div className="overflow-hidden rounded-xl border border-slate-200">
-                        <iframe
-                          title="Mapa de ubicación"
-                          src={`https://maps.google.com/maps?q=${mapsQuery}&output=embed`}
-                          width="100%"
-                          height="280"
-                          style={{ border: 0 }}
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                        />
-                      </div>
+                    <div className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
-                      <a
-                        href={`https://maps.google.com/maps?q=${mapsQuery}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 self-start text-sm font-semibold text-blue-600 transition-colors hover:text-blue-800"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                          <polyline points="15 3 21 3 21 9" />
-                          <line x1="10" y1="14" x2="21" y2="3" />
-                        </svg>
-                        Ver en Google Maps
-                      </a>
+                      {!tieneUbicacion ? (
+                        /* ── Fallback: sin dirección ── */
+                        <div className="flex flex-col items-center gap-3 py-10 text-slate-300">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/>
+                          </svg>
+                          <p className="text-sm font-medium text-slate-400">Ubicación no especificada</p>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Dirección en tres líneas */}
+                          <div className="flex flex-col gap-0.5">
+                            {propiedad.address && (
+                              <p className="text-base font-bold text-slate-900">{propiedad.address}</p>
+                            )}
+                            {propiedad.neighborhood && (
+                              <p className="text-sm text-slate-600">{propiedad.neighborhood}</p>
+                            )}
+                            {propiedad.city && (
+                              <p className="text-sm text-slate-500">{propiedad.city}</p>
+                            )}
+                            {propiedad.property_references && (
+                              <div className="mt-2 flex items-start gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-slate-400" aria-hidden="true">
+                                  <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                                </svg>
+                                <p className="text-sm text-slate-500">
+                                  <span className="font-medium text-slate-600">Referencias:</span>{' '}
+                                  {propiedad.property_references}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Badge de zona */}
+                          {propiedad.neighborhood && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-slate-400">Zona:</span>
+                              <Link
+                                href={`/propiedades?barrio=${encodeURIComponent(propiedad.neighborhood)}`}
+                                className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+                              >
+                                {propiedad.neighborhood}
+                              </Link>
+                            </div>
+                          )}
+
+                          {/* Mapa */}
+                          <div className="overflow-hidden rounded-xl" style={{ borderRadius: '12px' }}>
+                            <iframe
+                              title="Mapa de ubicación"
+                              src={`https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=15&hl=es`}
+                              width="100%"
+                              height="380"
+                              style={{ border: 'none', borderRadius: '12px', display: 'block' }}
+                              loading="lazy"
+                              referrerPolicy="no-referrer-when-downgrade"
+                            />
+                          </div>
+
+                          {/* Botones */}
+                          <div className="flex flex-wrap gap-3">
+                            <a
+                              href={`https://www.google.com/maps/search/${mapsQuery}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:border-blue-400 hover:bg-blue-50"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                              </svg>
+                              Abrir en Google Maps
+                            </a>
+                            <a
+                              href={`https://www.google.com/maps/dir//${mapsQuery}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:border-blue-400 hover:bg-blue-50"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                              Cómo llegar
+                            </a>
+                          </div>
+
+                          {/* Privacidad */}
+                          <p className="text-xs text-slate-400">
+                            🔒 La dirección exacta se comparte solo cuando el dueño lo confirma
+                          </p>
+                        </>
+                      )}
+
                     </div>
                   </div>
                 )
