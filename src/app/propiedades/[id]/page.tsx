@@ -22,7 +22,7 @@ async function getPropiedad(id: string) {
   const { data } = await supabase
     .from('properties')
     .select(
-      'id, type, address, neighborhood, city, referencia, price_usd, includes_expenses, description, bedrooms, bathrooms, area_m2, allows_pets, allows_kids, status, photo_urls, created_at, owner_id, views_count'
+      'id, type, address, neighborhood, city, property_references, price_usd, includes_expenses, description, bedrooms, bathrooms, area_m2, allows_pets, allows_kids, status, photo_urls, created_at, owner_id, views_count'
     )
     .eq('id', id)
     .single()
@@ -357,8 +357,8 @@ export default async function PropiedadPage({
                     <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                       <div className="flex flex-col gap-0.5">
                         <p className="text-sm font-semibold text-slate-900">{direccionCompleta || propiedad.address}</p>
-                        {propiedad.referencia && (
-                          <p className="text-sm text-slate-500">{propiedad.referencia}</p>
+                        {propiedad.property_references && (
+                          <p className="text-sm text-slate-500">{propiedad.property_references}</p>
                         )}
                       </div>
 
