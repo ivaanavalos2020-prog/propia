@@ -389,7 +389,7 @@ export default function PublicarPage() {
       address: form.calle,
       neighborhood: form.barrio || null,
       city: form.provincia,
-      referencia: form.referencias || null,
+      property_references: form.referencias || null,
       price_usd: Number(form.precio),
       includes_expenses: form.incluyeExpensas,
       description: form.descripcion || null,
