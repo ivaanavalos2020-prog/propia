@@ -3,6 +3,8 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import HeroBusqueda from './HeroBusqueda'
 import AnimarAlEntrar from '@/components/AnimarAlEntrar'
+import HeroCanvas from '@/components/HeroCanvas'
+import ContadorAnimado from '@/components/ContadorAnimado'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -86,6 +88,7 @@ export default async function LandingPage() {
 
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="relative flex min-h-[90vh] flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-16 text-center bg-gradient-to-b from-white to-blue-50/60">
+        <HeroCanvas />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-5%,rgba(37,99,235,0.06),transparent)]" />
 
         <AnimarAlEntrar>
@@ -141,12 +144,16 @@ export default async function LandingPage() {
         <AnimarAlEntrar>
           <div className="mx-auto grid max-w-4xl gap-8 sm:grid-cols-3 text-center">
             {[
-              { num: '0%',    label: 'Comisión para dueños e inquilinos' },
-              { num: '5 min', label: 'Para publicar tu propiedad' },
-              { num: '100%',  label: 'Contacto directo sin filtros' },
-            ].map(({ num, label }) => (
-              <div key={num} className="flex flex-col gap-1">
-                <span className="text-4xl font-extrabold text-blue-600 md:text-5xl">{num}</span>
+              { target: 0,   suffix: '%',    label: 'Comisión para dueños e inquilinos' },
+              { target: 5,   suffix: ' min', label: 'Para publicar tu propiedad' },
+              { target: 100, suffix: '%',    label: 'Contacto directo sin filtros' },
+            ].map(({ target, suffix, label }) => (
+              <div key={label} className="flex flex-col gap-1">
+                <ContadorAnimado
+                  target={target}
+                  suffix={suffix}
+                  className="text-4xl font-extrabold text-blue-600 md:text-5xl"
+                />
                 <span className="text-sm font-medium text-slate-500">{label}</span>
               </div>
             ))}

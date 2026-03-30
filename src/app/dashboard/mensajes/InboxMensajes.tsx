@@ -127,8 +127,19 @@ export default function InboxMensajes({
   const [enviando, setEnviando] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [toasts,   setToasts]   = useState<Toast[]>([])
+  const [busqueda, setBusqueda] = useState('')
   const [, setTick] = useState(0)
   const chatRef = useRef<HTMLDivElement>(null)
+
+  const terminoBusqueda = busqueda.trim().toLowerCase()
+  const mensajesFiltrados = terminoBusqueda
+    ? mensajes.filter(
+        (m) =>
+          m.sender_name.toLowerCase().includes(terminoBusqueda) ||
+          m.sender_email.toLowerCase().includes(terminoBusqueda) ||
+          m.address.toLowerCase().includes(terminoBusqueda)
+      )
+    : mensajes
 
   const selected    = mensajes.find((m) => m.id === selectedId) ?? null
   const hiloActual  = selectedId ? (respuestas[selectedId] ?? []) : []
@@ -288,16 +299,42 @@ export default function InboxMensajes({
           ].join(' ')}
         >
           <div className="shrink-0 border-b border-slate-200 px-5 py-4">
-            <div className="flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between">
               <div>
                 <h1 className="text-sm font-semibold text-slate-900">Mensajes recibidos</h1>
                 <p className="mt-0.5 text-xs text-slate-400">
-                  {mensajes.length} conversación{mensajes.length !== 1 ? 'es' : ''}
+                  {mensajesFiltrados.length}/{mensajes.length} conversación{mensajes.length !== 1 ? 'es' : ''}
                 </p>
               </div>
               <Link href="/dashboard" className="text-xs text-slate-400 transition-colors hover:text-slate-700">
                 ← Volver
               </Link>
+            </div>
+            {/* Búsqueda */}
+            <div className="relative">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar por nombre o propiedad..."
+                aria-label="Buscar conversaciones"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-8 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
+              />
+              {busqueda && (
+                <button
+                  type="button"
+                  onClick={() => setBusqueda('')}
+                  aria-label="Limpiar búsqueda"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
 
@@ -311,7 +348,7 @@ export default function InboxMensajes({
             </div>
           ) : (
             <ul className="flex-1 divide-y divide-slate-100 overflow-y-auto">
-              {mensajes.map((m) => (
+              {mensajesFiltrados.map((m) => (
                 <li key={m.id}>
                   <button
                     type="button"

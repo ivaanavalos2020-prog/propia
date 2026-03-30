@@ -52,9 +52,10 @@ function IconX() {
 // ── Nav links config ────────────────────────────────────────────────────────
 
 const NAV_LINKS = [
-  { label: 'Alquilar',       href: '/propiedades',     matchPath: '/propiedades' },
-  { label: 'Publicar',       href: '/publicar',        matchPath: '/publicar'    },
-  { label: 'Cómo funciona',  href: '/#como-funciona',  matchPath: '/'            },
+  { label: 'Inicio',         href: '/',                matchPath: '/',            exact: true,  noActive: false },
+  { label: 'Alquilar',       href: '/propiedades',     matchPath: '/propiedades', exact: false, noActive: false },
+  { label: 'Publicar',       href: '/publicar',        matchPath: '/publicar',    exact: false, noActive: false },
+  { label: 'Cómo funciona',  href: '/#como-funciona',  matchPath: '',             exact: false, noActive: true  },
 ]
 
 const DROPDOWN_LINKS = [
@@ -116,9 +117,11 @@ export default function NavbarClient({ isLoggedIn, userEmail }: Props) {
     router.refresh()
   }
 
-  function isActive(matchPath: string) {
-    if (matchPath === '/') return pathname === '/'
-    return pathname === matchPath || pathname.startsWith(matchPath + '/')
+  function isActive(link: { matchPath: string; exact?: boolean; noActive?: boolean }) {
+    if (link.noActive) return false
+    if (link.exact) return pathname === link.matchPath
+    if (!link.matchPath) return false
+    return pathname === link.matchPath || pathname.startsWith(link.matchPath + '/')
   }
 
   const initial = userEmail?.charAt(0).toUpperCase() ?? '?'
@@ -143,8 +146,9 @@ export default function NavbarClient({ isLoggedIn, userEmail }: Props) {
 
           {/* ── Centro: nav links (desktop) ──────────────────────────── */}
           <div className="hidden items-center gap-8 md:flex">
-            {NAV_LINKS.map(({ label, href, matchPath }) => {
-              const active = isActive(matchPath)
+            {NAV_LINKS.map((link) => {
+              const { label, href } = link
+              const active = isActive(link)
               return (
                 <Link
                   key={href}
@@ -329,8 +333,9 @@ export default function NavbarClient({ isLoggedIn, userEmail }: Props) {
             <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
               Navegación
             </p>
-            {NAV_LINKS.map(({ label, href, matchPath }) => {
-              const active = isActive(matchPath)
+            {NAV_LINKS.map((link) => {
+              const { label, href } = link
+              const active = isActive(link)
               return (
                 <Link
                   key={href}
