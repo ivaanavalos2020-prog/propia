@@ -29,7 +29,7 @@ export default async function MensajesPage() {
   type PropRow = { address: string; type: string; price_usd: number; photo_urls: string[] | null } | null
 
   const mensajes = (rawMensajes ?? []).map((m) => {
-    const prop = m.properties as PropRow
+    const prop = m.properties as unknown as PropRow
     return {
       id:             m.id,
       sender_name:    m.sender_name,

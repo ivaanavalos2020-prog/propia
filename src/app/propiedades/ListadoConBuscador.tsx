@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
@@ -9,6 +10,13 @@ const TIPO_LABEL: Record<string, string> = {
   casa: 'Casa',
   habitacion: 'Habitación',
   local: 'Local comercial',
+}
+
+const CONTRATO_LABEL: Record<string, string> = {
+  tradicional: 'Alquiler tradicional',
+  temporario: 'Alquiler temporario',
+  temporada: 'Por temporada',
+  a_convenir: 'A convenir',
 }
 
 interface Propiedad {
@@ -21,6 +29,9 @@ interface Propiedad {
   bedrooms: number | null
   bathrooms: number | null
   area_m2: number | null
+  photo_urls: string[] | null
+  created_at: string | null
+  contract_type: string | null
 }
 
 function IconGrilla() {
@@ -41,23 +52,63 @@ function IconLista() {
   )
 }
 
+function esNueva(created_at: string | null) {
+  if (!created_at) return false
+  return Date.now() - new Date(created_at).getTime() < 7 * 24 * 60 * 60 * 1000
+}
+
+function FotoPlaceholder() {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-slate-100">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300" aria-hidden="true">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    </div>
+  )
+}
+
 function CardGrilla({ p }: { p: Propiedad }) {
+  const nueva = esNueva(p.created_at)
+  const foto = p.photo_urls?.[0] ?? null
+
   return (
     <Link
       href={`/propiedades/${p.id}`}
       className="group flex h-full cursor-pointer flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md overflow-hidden"
     >
-      <div className="h-44 w-full bg-slate-100 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300" aria-hidden="true">
-          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
+      {/* Foto */}
+      <div className="relative h-44 w-full shrink-0 overflow-hidden bg-slate-100">
+        {foto ? (
+          <Image
+            src={foto}
+            alt={p.address}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <FotoPlaceholder />
+        )}
+        {nueva && (
+          <span className="absolute left-3 top-3 rounded-full bg-green-500 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
+            Nuevo
+          </span>
+        )}
       </div>
+
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex flex-col gap-1">
-          <span className="inline-flex w-fit rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
-            {TIPO_LABEL[p.type] ?? p.type}
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex w-fit rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
+              {TIPO_LABEL[p.type] ?? p.type}
+            </span>
+            {p.contract_type && p.contract_type !== 'a_convenir' && (
+              <span className="inline-flex w-fit rounded-full border border-blue-100 bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600">
+                {CONTRATO_LABEL[p.contract_type] ?? p.contract_type}
+              </span>
+            )}
+          </div>
           <span className="line-clamp-2 text-base font-semibold text-slate-900">{p.address}</span>
           {(p.neighborhood || p.city) && (
             <span className="text-xs text-slate-400">
@@ -82,24 +133,46 @@ function CardGrilla({ p }: { p: Propiedad }) {
 }
 
 function CardLista({ p }: { p: Propiedad }) {
+  const nueva = esNueva(p.created_at)
+  const foto = p.photo_urls?.[0] ?? null
+
   return (
     <Link
       href={`/propiedades/${p.id}`}
       className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-slate-300"
     >
-      <div className="h-16 w-16 shrink-0 rounded-lg bg-slate-100 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300" aria-hidden="true">
-          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
+      <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+        {foto ? (
+          <Image
+            src={foto}
+            alt={p.address}
+            fill
+            sizes="96px"
+            className="object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300" aria-hidden="true">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </div>
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0">
-            <span className="inline-flex w-fit rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
-              {TIPO_LABEL[p.type] ?? p.type}
-            </span>
-            <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">{p.address}</p>
+          <div className="min-w-0 flex flex-col gap-0.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="inline-flex w-fit rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                {TIPO_LABEL[p.type] ?? p.type}
+              </span>
+              {nueva && (
+                <span className="inline-flex w-fit rounded-full bg-green-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                  Nuevo
+                </span>
+              )}
+            </div>
+            <p className="truncate text-sm font-semibold text-slate-900">{p.address}</p>
             {(p.neighborhood || p.city) && (
               <p className="text-xs text-slate-400">
                 {[p.neighborhood, p.city].filter(Boolean).join(', ')}
@@ -117,6 +190,9 @@ function CardLista({ p }: { p: Propiedad }) {
           {p.bedrooms != null && <span>{p.bedrooms} amb.</span>}
           {p.bathrooms != null && <span>{p.bathrooms} baño{p.bathrooms !== 1 ? 's' : ''}</span>}
           {p.area_m2 != null && <span>{p.area_m2} m²</span>}
+          {p.contract_type && p.contract_type !== 'a_convenir' && (
+            <span className="text-blue-500">{CONTRATO_LABEL[p.contract_type] ?? p.contract_type}</span>
+          )}
         </div>
       </div>
     </Link>

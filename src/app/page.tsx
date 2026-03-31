@@ -403,7 +403,7 @@ export default async function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-16 gap-y-2 text-sm text-slate-400">
+          <div className="grid grid-cols-3 gap-x-12 gap-y-2 text-sm text-slate-400">
             <div className="flex flex-col gap-2">
               <span className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Plataforma</span>
               <Link href="/propiedades" className="transition-colors hover:text-white">Alquilar</Link>
@@ -415,6 +415,11 @@ export default async function LandingPage() {
               <Link href="/login" className="transition-colors hover:text-white">Ingresar</Link>
               <Link href="/login" className="transition-colors hover:text-white">Registrarse</Link>
               <Link href="/dashboard" className="transition-colors hover:text-white">Mi dashboard</Link>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Legal</span>
+              <Link href="/terminos" className="transition-colors hover:text-white">Términos</Link>
+              <Link href="/privacidad" className="transition-colors hover:text-white">Privacidad</Link>
             </div>
           </div>
         </div>

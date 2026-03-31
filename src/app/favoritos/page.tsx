@@ -24,9 +24,9 @@ export default async function FavoritosPage() {
     .eq('user_id', session.user.id)
     .order('created_at', { ascending: false })
 
-  const propiedades = (favoritos ?? [])
+  const propiedades = ((favoritos ?? [])
     .map((f) => f.properties)
-    .filter(Boolean) as {
+    .filter(Boolean) as unknown) as {
       id: string
       type: string
       address: string

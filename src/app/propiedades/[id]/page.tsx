@@ -18,12 +18,52 @@ const TIPO_LABEL: Record<string, string> = {
   local: 'Local comercial',
 }
 
+const CONTRATO_LABEL: Record<string, string> = {
+  tradicional: 'Alquiler tradicional',
+  temporario: 'Alquiler temporario',
+  temporada: 'Por temporada',
+  a_convenir: 'A convenir',
+}
+
+const DEPOSITO_LABEL: Record<string, string> = {
+  sin_deposito: 'Sin depósito',
+  '1_mes': '1 mes',
+  '2_meses': '2 meses',
+  '3_meses': '3 meses',
+  a_negociar: 'A negociar',
+}
+
+const GARANTIA_LABEL: Record<string, string> = {
+  propietario: 'Garantía propietario',
+  recibo_sueldo: 'Recibo de sueldo',
+  aval_bancario: 'Aval bancario',
+  fiador: 'Fiador',
+  seguro_de_caucion: 'Seguro de caución',
+  garantia_digital: 'Garantía digital',
+}
+
+const SERVICIO_LABEL: Record<string, string> = {
+  agua: 'Agua',
+  gas: 'Gas',
+  luz: 'Luz',
+  internet: 'Internet',
+  cable: 'Cable',
+  telefono: 'Teléfono',
+}
+
+const CONDITION_LABEL: Record<string, string> = {
+  excelente: 'Excelente',
+  muy_bueno: 'Muy bueno',
+  bueno: 'Bueno',
+  a_reciclar: 'A reciclar',
+}
+
 async function getPropiedad(id: string) {
   const supabase = await createServerSupabaseClient()
   const { data } = await supabase
     .from('properties')
     .select(
-      'id, type, address, neighborhood, city, property_references, price_usd, includes_expenses, description, bedrooms, bathrooms, area_m2, allows_pets, allows_kids, status, photo_urls, created_at, owner_id, views_count'
+      'id, type, address, neighborhood, city, property_references, price_usd, includes_expenses, has_expenses, expenses_amount, expenses_included, deposit_months, contract_type, contract_duration_months, update_index, guarantees_accepted, services_included, description, bedrooms, bathrooms, rooms, toilettes, area_m2, total_area_m2, floor_number, property_age, property_condition, allows_pets, pets_policy, allows_kids, allows_smoking, allows_wfh, status, photo_urls, created_at, owner_id, views_count, has_garage, has_storage, has_garden, has_terrace, has_pool, has_bbq, has_gym, has_laundry, has_security, has_elevator, has_heating, has_ac, is_furnished, has_appliances'
     )
     .eq('id', id)
     .single()
@@ -320,32 +360,202 @@ export default async function PropiedadPage({
               <div className="flex flex-col gap-3">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">Características</h2>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {propiedad.bedrooms != null && (
-                    <Caracteristica icono={<IconoCama />} label="Ambientes" valor={propiedad.bedrooms} />
+                  {(propiedad.rooms ?? propiedad.bedrooms) != null && (
+                    <Caracteristica icono={<IconoCama />} label="Ambientes" valor={propiedad.rooms ?? propiedad.bedrooms} />
+                  )}
+                  {propiedad.bedrooms != null && propiedad.rooms != null && propiedad.bedrooms !== propiedad.rooms && (
+                    <Caracteristica icono={<IconoCama />} label="Dormitorios" valor={propiedad.bedrooms} />
                   )}
                   {propiedad.bathrooms != null && (
                     <Caracteristica icono={<IconoBano />} label="Baños" valor={propiedad.bathrooms} />
                   )}
-                  {propiedad.area_m2 != null && (
-                    <Caracteristica icono={<IconoSuperficie />} label="Superficie" valor={`${propiedad.area_m2} m²`} />
+                  {(propiedad.toilettes as number | null) != null && (
+                    <Caracteristica icono={<IconoBano />} label="Toilettes" valor={propiedad.toilettes as number} />
                   )}
-                  <Caracteristica
-                    icono={<IconoMascota />}
-                    label="Mascotas"
-                    valor={propiedad.allows_pets == null ? 'A consultar' : propiedad.allows_pets ? 'Acepta' : 'No acepta'}
-                  />
-                  <Caracteristica
-                    icono={<IconoNino />}
-                    label="Niños"
-                    valor={propiedad.allows_kids == null ? 'A consultar' : propiedad.allows_kids ? 'Acepta' : 'No acepta'}
-                  />
+                  {propiedad.area_m2 != null && (
+                    <Caracteristica icono={<IconoSuperficie />} label="Sup. cubierta" valor={`${propiedad.area_m2} m²`} />
+                  )}
+                  {(propiedad.total_area_m2 as number | null) != null && (
+                    <Caracteristica icono={<IconoSuperficie />} label="Sup. total" valor={`${propiedad.total_area_m2 as number} m²`} />
+                  )}
+                  {(propiedad.floor_number as number | null) != null && (
+                    <Caracteristica icono={<IconoSuperficie />} label="Piso" valor={`${propiedad.floor_number as number}°`} />
+                  )}
+                  {(propiedad.property_age as number | null) != null && (
+                    <Caracteristica icono={<IconoSuperficie />} label="Antigüedad" valor={`${propiedad.property_age as number} años`} />
+                  )}
+                  {(propiedad.property_condition as string | null) && (
+                    <Caracteristica icono={<IconoSuperficie />} label="Estado" valor={CONDITION_LABEL[propiedad.property_condition as string] ?? propiedad.property_condition as string} />
+                  )}
                   <Caracteristica
                     icono={<IconoExpensas />}
                     label="Expensas"
-                    valor={propiedad.includes_expenses == null ? 'A consultar' : propiedad.includes_expenses ? 'Incluidas' : 'No incluidas'}
+                    valor={
+                      (propiedad.has_expenses as boolean | null) == null && propiedad.includes_expenses == null
+                        ? 'A consultar'
+                        : (propiedad.expenses_included as boolean | null) || propiedad.includes_expenses
+                        ? (propiedad.expenses_amount as number | null)
+                          ? `Incluidas (USD ${propiedad.expenses_amount as number}/mes)`
+                          : 'Incluidas'
+                        : 'No incluidas'
+                    }
                   />
                 </div>
               </div>
+
+              {/* Políticas de convivencia */}
+              {(propiedad.pets_policy != null || propiedad.allows_kids != null || propiedad.allows_smoking != null || propiedad.allows_wfh != null) && (
+                <div className="flex flex-col gap-3">
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">Políticas</h2>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {propiedad.pets_policy != null && (
+                      <Caracteristica
+                        icono={<IconoMascota />}
+                        label="Mascotas"
+                        valor={
+                          propiedad.pets_policy === 'si' ? 'Acepta' :
+                          propiedad.pets_policy === 'no' ? 'No acepta' :
+                          propiedad.pets_policy === 'consultar' ? 'A consultar' :
+                          (propiedad.allows_pets == null ? 'A consultar' : propiedad.allows_pets ? 'Acepta' : 'No acepta')
+                        }
+                      />
+                    )}
+                    {propiedad.allows_kids != null && (
+                      <Caracteristica
+                        icono={<IconoNino />}
+                        label="Niños"
+                        valor={propiedad.allows_kids ? 'Acepta' : 'No acepta'}
+                      />
+                    )}
+                    {(propiedad.allows_smoking as boolean | null) != null && (
+                      <Caracteristica
+                        icono={<IconoNino />}
+                        label="Fumar"
+                        valor={(propiedad.allows_smoking as boolean) ? 'Permitido' : 'No permitido'}
+                      />
+                    )}
+                    {(propiedad.allows_wfh as boolean | null) != null && (
+                      <Caracteristica
+                        icono={<IconoNino />}
+                        label="Home office"
+                        valor={(propiedad.allows_wfh as boolean) ? 'Permitido' : 'No permitido'}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Comodidades */}
+              {(() => {
+                const comodidades = [
+                  { campo: 'has_garage',    label: 'Cochera',         emoji: '🚗' },
+                  { campo: 'has_storage',   label: 'Baulera',         emoji: '📦' },
+                  { campo: 'has_garden',    label: 'Jardín',          emoji: '🌿' },
+                  { campo: 'has_terrace',   label: 'Terraza/Balcón',  emoji: '🏗️' },
+                  { campo: 'has_pool',      label: 'Pileta',          emoji: '🏊' },
+                  { campo: 'has_bbq',       label: 'Quincho/BBQ',     emoji: '🔥' },
+                  { campo: 'has_gym',       label: 'Gimnasio',        emoji: '💪' },
+                  { campo: 'has_laundry',   label: 'Laundry',         emoji: '👕' },
+                  { campo: 'has_security',  label: 'Seguridad 24h',   emoji: '🔒' },
+                  { campo: 'has_elevator',  label: 'Ascensor',        emoji: '🛗' },
+                  { campo: 'has_heating',   label: 'Calefacción',     emoji: '🌡️' },
+                  { campo: 'has_ac',        label: 'Aire acondicionado', emoji: '❄️' },
+                  { campo: 'is_furnished',  label: 'Amoblado',        emoji: '🛋️' },
+                  { campo: 'has_appliances', label: 'Electrodomésticos', emoji: '🍳' },
+                ] as const
+
+                const activas = comodidades.filter(
+                  (c) => (propiedad as Record<string, unknown>)[c.campo] === true
+                )
+
+                if (activas.length === 0) return null
+
+                return (
+                  <div className="flex flex-col gap-3">
+                    <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">Comodidades</h2>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      {activas.map((c) => (
+                        <div
+                          key={c.campo}
+                          className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5"
+                        >
+                          <span className="text-base leading-none">{c.emoji}</span>
+                          <span className="text-sm font-medium text-slate-700">{c.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* Contrato */}
+              {((propiedad.contract_type as string | null) || (propiedad.guarantees_accepted as string[] | null)?.length || (propiedad.services_included as string[] | null)?.length) && (
+                <div className="flex flex-col gap-3">
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">Contrato</h2>
+                  <div className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col gap-4">
+                    {(propiedad.contract_type as string | null) && (
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400">Tipo de contrato</p>
+                          <p className="text-sm font-semibold text-slate-800">
+                            {CONTRATO_LABEL[propiedad.contract_type as string] ?? propiedad.contract_type as string}
+                          </p>
+                          {(propiedad.contract_duration_months as number | null) && (
+                            <p className="text-xs text-slate-500">{propiedad.contract_duration_months as number} meses</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {(propiedad.deposit_months as string | null) && (propiedad.deposit_months as string) !== 'sin_deposito' && (
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-50">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400">Depósito</p>
+                          <p className="text-sm font-semibold text-slate-800">
+                            {DEPOSITO_LABEL[propiedad.deposit_months as string] ?? propiedad.deposit_months as string}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {((propiedad.guarantees_accepted as string[] | null) ?? []).length > 0 && (
+                      <div>
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Garantías aceptadas</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(propiedad.guarantees_accepted as string[]).map((g) => (
+                            <span key={g} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                              {GARANTIA_LABEL[g] ?? g}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {((propiedad.services_included as string[] | null) ?? []).length > 0 && (
+                      <div>
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Servicios incluidos</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(propiedad.services_included as string[]).map((s) => (
+                            <span key={s} className="rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                              {SERVICIO_LABEL[s] ?? s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Ubicación */}
               {(() => {
@@ -487,11 +697,18 @@ export default async function PropiedadPage({
                     </span>
                   </div>
                   <span className="text-sm text-slate-400">por mes</span>
-                  {propiedad.includes_expenses && (
-                    <span className="mt-1 inline-flex w-fit rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                      Expensas incluidas
-                    </span>
-                  )}
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {((propiedad.expenses_included as boolean | null) || propiedad.includes_expenses) && (
+                      <span className="inline-flex w-fit rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                        Expensas incluidas
+                      </span>
+                    )}
+                    {(propiedad.contract_type as string | null) && (
+                      <span className="inline-flex w-fit rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                        {CONTRATO_LABEL[propiedad.contract_type as string] ?? propiedad.contract_type as string}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="h-px bg-slate-100" />

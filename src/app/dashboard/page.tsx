@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
-import PropiedadItem from './PropiedadItem'
+import ListadoPropiedades from './ListadoPropiedades'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -215,13 +215,11 @@ export default async function DashboardPage() {
             </h2>
           )}
 
-          {/* Lista de propiedades */}
+          {/* Lista de propiedades con búsqueda */}
           {propiedades && propiedades.length > 0 ? (
-            <ul className="mt-3 flex flex-col gap-3">
-              {propiedades.map((p) => (
-                <PropiedadItem key={p.id} {...p} />
-              ))}
-            </ul>
+            <div className="mt-3">
+              <ListadoPropiedades propiedades={propiedades} />
+            </div>
           ) : (
             /* Onboarding empty state */
             <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">

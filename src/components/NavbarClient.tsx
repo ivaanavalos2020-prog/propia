@@ -9,6 +9,7 @@ import BadgeMensajes from './BadgeMensajes'
 interface Props {
   isLoggedIn: boolean
   userEmail: string | null
+  userName: string | null
 }
 
 // ── Icons ──────────────────────────────────────────────────────────────────
@@ -67,7 +68,7 @@ const DROPDOWN_LINKS = [
 
 // ── Component ───────────────────────────────────────────────────────────────
 
-export default function NavbarClient({ isLoggedIn, userEmail }: Props) {
+export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props) {
   const [scrolled,     setScrolled]     = useState(false)
   const [drawerOpen,   setDrawerOpen]   = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -218,6 +219,9 @@ export default function NavbarClient({ isLoggedIn, userEmail }: Props) {
                       className="animate-dropdown absolute right-0 top-full mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60"
                     >
                       <div className="border-b border-slate-100 px-4 py-3">
+                        {userName && (
+                          <p className="truncate text-sm font-semibold text-slate-800">{userName}</p>
+                        )}
                         <p className="truncate text-[11px] text-slate-400">{userEmail}</p>
                       </div>
 
@@ -323,7 +327,10 @@ export default function NavbarClient({ isLoggedIn, userEmail }: Props) {
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">
               {initial}
             </div>
-            <span className="truncate text-sm text-slate-700">{userEmail}</span>
+            <div className="min-w-0 flex flex-col">
+              {userName && <span className="truncate text-sm font-semibold text-slate-800">{userName}</span>}
+              <span className="truncate text-xs text-slate-500">{userEmail}</span>
+            </div>
           </div>
         )}
 

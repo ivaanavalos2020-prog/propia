@@ -179,7 +179,7 @@ export default function InboxMensajes({
 
           if (!data) return
 
-          const prop = data.properties as PropRow
+          const prop = data.properties as unknown as PropRow
           const newMsg: MensajeType = {
             id:            data.id,
             sender_name:   data.sender_name,
