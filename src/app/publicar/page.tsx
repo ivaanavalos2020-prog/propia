@@ -1002,18 +1002,66 @@ export default function PublicarPage() {
                   {/* Fotos */}
                   <div className="flex flex-col gap-3">
                     {/* Photo importance banner */}
-                    <div className="rounded-lg px-5 py-5" style={{ background: '#F0FDF4', borderLeft: '4px solid #16A34A' }}>
-                      <p className="mb-3 text-sm font-bold text-green-900">📸 Las fotos son lo más importante de tu publicación</p>
-                      <p className="mb-3 text-xs leading-relaxed text-green-800">El 87% de los interesados decide si contactar al dueño basándose únicamente en las fotos. Una propiedad con fotos profesionales recibe 3 veces más consultas que una con fotos de baja calidad.</p>
-                      <p className="mb-2 text-xs font-semibold text-green-800">Nuestras recomendaciones:</p>
-                      <ul className="flex flex-col gap-1.5 text-xs leading-relaxed text-green-800">
-                        <li className="flex gap-2"><span className="shrink-0 font-bold text-green-600">✓</span><span>Sacá las fotos de día con luz natural — abrí todas las persianas y cortinas</span></li>
-                        <li className="flex gap-2"><span className="shrink-0 font-bold text-green-600">✓</span><span>Ordená y limpiá cada ambiente antes de fotografiar — menos es más</span></li>
-                        <li className="flex gap-2"><span className="shrink-0 font-bold text-green-600">✓</span><span>Fotografiá desde la esquina del ambiente para mostrar la mayor superficie posible</span></li>
-                        <li className="flex gap-2"><span className="shrink-0 font-bold text-green-600">✓</span><span>Evitá tener personas, mascotas o objetos personales en las fotos</span></li>
-                        <li className="flex gap-2"><span className="shrink-0 font-bold text-green-600">✓</span><span>Para el exterior, elegí un día soleado y sacá desde la vereda de enfrente</span></li>
-                      </ul>
-                      <p className="mt-3 text-xs italic text-green-700">Las propiedades que siguen estas recomendaciones cierran el alquiler en promedio 3 semanas antes.</p>
+                    <div style={{ border: '2px solid #16A34A', borderRadius: 16, background: '#fff' }}>
+                      {/* Header */}
+                      <div style={{ background: '#16A34A', borderRadius: '12px 12px 0 0', padding: '16px 24px' }}>
+                        <p style={{ color: '#fff', fontSize: 20, fontWeight: 700, lineHeight: 1.3, margin: 0 }}>
+                          📸 Las fotos deciden si te contactan
+                        </p>
+                        <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, marginTop: 4, marginBottom: 0 }}>
+                          El 87% de los interesados decide basándose solo en las fotos
+                        </p>
+                      </div>
+
+                      {/* Stats row */}
+                      <div className="grid grid-cols-3 gap-3 p-5 pb-0">
+                        {[
+                          { stat: '3x', desc: 'más consultas con buenas fotos' },
+                          { stat: '87%', desc: 'decide por las fotos antes de contactar' },
+                          { stat: '3 sem', desc: 'antes se alquila con fotos de calidad' },
+                        ].map(({ stat, desc }) => (
+                          <div key={stat} className="flex flex-col items-center gap-1 rounded-xl p-3 text-center"
+                            style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+                            <span style={{ fontSize: 32, fontWeight: 700, color: '#16A34A', lineHeight: 1 }}>{stat}</span>
+                            <span style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.3 }}>{desc}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Recommendations */}
+                      <div className="px-5 pb-0 pt-5">
+                        <p style={{ fontSize: 16, fontWeight: 600, color: '#1A1A2E', marginBottom: 12 }}>
+                          Cómo sacar las mejores fotos:
+                        </p>
+                        <ol className="flex flex-col gap-3.5">
+                          {[
+                            { title: 'Usá luz natural', body: 'Abrí todas las persianas y cortinas. Sacá las fotos durante el día.' },
+                            { title: 'Ordená y limpiá antes', body: 'Retirá objetos personales y dejá cada ambiente despejado.' },
+                            { title: 'Fotografiá desde las esquinas', body: 'Posicionarte en la esquina del ambiente muestra más espacio.' },
+                            { title: 'Sin personas ni mascotas', body: 'Las fotos deben mostrar la propiedad, no a sus habitantes.' },
+                            { title: 'Exterior en día soleado', body: 'Sacá desde la vereda de enfrente mostrando toda la fachada.' },
+                          ].map(({ title, body }, i) => (
+                            <li key={i} className="flex gap-3">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+                                style={{ background: '#16A34A', minWidth: 28 }}>
+                                {i + 1}
+                              </span>
+                              <div>
+                                <p style={{ fontSize: 15, fontWeight: 700, color: '#1A1A2E', marginBottom: 1 }}>{title}</p>
+                                <p style={{ fontSize: 13, color: '#6b7280' }}>{body}</p>
+                              </div>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+
+                      {/* Closing stat */}
+                      <div className="m-5 flex items-center gap-2.5 rounded-lg px-4 py-3" style={{ background: '#DCFCE7' }}>
+                        <span className="shrink-0 text-base font-bold" style={{ color: '#16A34A' }}>✓</span>
+                        <p className="text-sm italic" style={{ color: '#166534' }}>
+                          Las propiedades con fotos de calidad se alquilan en promedio 3 semanas antes
+                        </p>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
