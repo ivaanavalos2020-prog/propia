@@ -70,7 +70,7 @@ export default function ListadoPropiedades({ propiedades }: { propiedades: Propi
             onChange={(e) => cambiarBusqueda(e.target.value)}
             placeholder="Buscar por dirección..."
             aria-label="Buscar propiedades"
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-9 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/10"
+            className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-9 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/10"
           />
           {busqueda && (
             <button
@@ -86,7 +86,7 @@ export default function ListadoPropiedades({ propiedades }: { propiedades: Propi
           )}
         </div>
 
-        <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden shrink-0">
+        <div className="flex items-center rounded-xl border border-slate-300 bg-white shadow-sm overflow-hidden shrink-0">
           {(['todos', 'active', 'paused'] as const).map((s) => (
             <button
               key={s}
@@ -133,7 +133,7 @@ export default function ListadoPropiedades({ propiedades }: { propiedades: Propi
                   type="button"
                   onClick={() => setPagina((p) => Math.max(1, p - 1))}
                   disabled={paginaActual === 1}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                   aria-label="Página anterior"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -151,7 +151,7 @@ export default function ListadoPropiedades({ propiedades }: { propiedades: Propi
                       className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-medium transition-colors ${
                         n === paginaActual
                           ? 'border-blue-600 bg-blue-600 text-white'
-                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                          : 'border-slate-300 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       {n}
@@ -162,7 +162,7 @@ export default function ListadoPropiedades({ propiedades }: { propiedades: Propi
                   type="button"
                   onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
                   disabled={paginaActual === totalPaginas}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                   aria-label="Página siguiente"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -174,7 +174,7 @@ export default function ListadoPropiedades({ propiedades }: { propiedades: Propi
           )}
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white py-12 text-center">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center">
           <p className="text-sm font-medium text-slate-500">
             {termino ? `Sin resultados para "${busqueda}"` : 'No hay propiedades con este filtro'}
           </p>

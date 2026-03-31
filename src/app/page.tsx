@@ -124,7 +124,7 @@ export default async function LandingPage() {
             </Link>
             <Link
               href="/propiedades"
-              className="rounded-xl border border-slate-200 px-7 py-3.5 text-base font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
+              className="rounded-xl border-2 border-slate-900 px-7 py-3.5 text-base font-semibold text-slate-900 transition-colors hover:bg-slate-900 hover:text-white"
             >
               Buscar alquiler
             </Link>
@@ -145,19 +145,20 @@ export default async function LandingPage() {
       {/* ── Stats ────────────────────────────────────────────── */}
       <section className="border-y border-slate-100 bg-slate-50 px-6 py-14">
         <AnimarAlEntrar>
-          <div className="mx-auto grid max-w-4xl gap-8 sm:grid-cols-3 text-center">
+          <div className="mx-auto grid max-w-4xl grid-cols-2 gap-6 text-center sm:grid-cols-4 sm:gap-8">
             {[
-              { target: 0,   suffix: '%',    label: 'Comisión para dueños e inquilinos' },
-              { target: 5,   suffix: ' min', label: 'Para publicar tu propiedad' },
-              { target: 100, suffix: '%',    label: 'Contacto directo sin filtros' },
+              { target: 0,   suffix: '%',       label: 'Comisión en alquileres' },
+              { target: 5,   suffix: ' min',    label: 'Para publicar tu propiedad' },
+              { target: 1,   suffix: '%',       label: 'En ventas (vs 3–4% tradicional)' },
+              { target: 100, suffix: '% legal', label: 'Contratos con validez jurídica' },
             ].map(({ target, suffix, label }) => (
-              <div key={label} className="flex flex-col gap-1">
+              <div key={label} className="flex flex-col gap-1.5">
                 <ContadorAnimado
                   target={target}
                   suffix={suffix}
-                  className="text-4xl font-extrabold text-blue-600 md:text-5xl"
+                  className="text-[48px] font-extrabold leading-none text-blue-600 md:text-[56px]"
                 />
-                <span className="text-sm font-medium text-slate-500">{label}</span>
+                <span className="text-[15px] font-medium leading-snug text-slate-500">{label}</span>
               </div>
             ))}
           </div>
@@ -190,7 +191,7 @@ export default async function LandingPage() {
             <div className="grid gap-6 md:grid-cols-3">
               {PASOS.map((paso, i) => (
                 <AnimarAlEntrar key={paso.num} delay={i * 120}>
-                  <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg overflow-hidden">
+                  <div className="flex h-full flex-col rounded-2xl border border-slate-300 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg overflow-hidden">
                     {/* Cabecera: número grande + ícono */}
                     <div className="flex items-start justify-between px-8 pt-8 pb-5">
                       <span
@@ -257,7 +258,7 @@ export default async function LandingPage() {
                     <li>
                       <Link
                         href={`/propiedades/${p.id}`}
-                        className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                        className="group flex h-full flex-col rounded-2xl border border-slate-300 bg-white shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                       >
                         <div className="h-44 w-full overflow-hidden bg-slate-100">
                           {foto ? (
@@ -324,10 +325,10 @@ export default async function LandingPage() {
           </AnimarAlEntrar>
 
           <AnimarAlEntrar delay={100}>
-            <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+            <div className="overflow-hidden rounded-2xl border border-slate-300 shadow-sm">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50">
+                  <tr className="border-b border-slate-300 bg-slate-50">
                     <th className="px-5 py-4 text-left font-semibold text-slate-500">Característica</th>
                     <th className="px-5 py-4 text-center font-bold text-blue-600">PROPIA</th>
                     <th className="px-5 py-4 text-center font-medium text-slate-400">Inmobiliaria</th>
@@ -379,7 +380,7 @@ export default async function LandingPage() {
           <div className="grid gap-6 sm:grid-cols-3">
             {TESTIMONIOS.map((t, i) => (
               <AnimarAlEntrar key={t.nombre} delay={i * 100}>
-                <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-col gap-4 rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
                   <div className="flex gap-1 text-amber-400">
                     {Array.from({ length: 5 }).map((_, j) => (
                       <svg key={j} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">

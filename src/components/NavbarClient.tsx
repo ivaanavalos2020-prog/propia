@@ -131,7 +131,7 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props)
     <>
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 transition-shadow duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-300 transition-shadow duration-300 ${
           scrolled ? 'shadow-[0_2px_20px_rgba(0,0,0,0.08)]' : 'shadow-none'
         }`}
       >
@@ -216,7 +216,7 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props)
                     <div
                       ref={dropdownRef}
                       role="menu"
-                      className="animate-dropdown absolute right-0 top-full mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60"
+                      className="animate-dropdown absolute right-0 top-full mt-2 w-52 overflow-hidden rounded-xl border border-slate-300 bg-white shadow-lg shadow-slate-200/60"
                     >
                       <div className="border-b border-slate-100 px-4 py-3">
                         {userName && (
@@ -309,7 +309,7 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props)
         }`}
       >
         {/* Header */}
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 px-5">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-300 px-5">
           <span className="text-sm font-bold tracking-widest text-slate-900">PROPIA</span>
           <button
             type="button"
@@ -323,7 +323,7 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props)
 
         {/* User info */}
         {isLoggedIn && (
-          <div className="flex shrink-0 items-center gap-3 border-b border-slate-200 px-5 py-4">
+          <div className="flex shrink-0 items-center gap-3 border-b border-slate-300 px-5 py-4">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">
               {initial}
             </div>
@@ -386,7 +386,7 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props)
         </nav>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-slate-200 p-4">
+        <div className="shrink-0 border-t border-slate-300 p-4">
           {isLoggedIn ? (
             <button
               type="button"

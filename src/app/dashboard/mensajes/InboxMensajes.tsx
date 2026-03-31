@@ -268,7 +268,7 @@ export default function InboxMensajes({
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex items-start gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-lg"
+            className="pointer-events-auto flex items-start gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 shadow-lg"
             style={{ animation: 'toast-in 0.25s ease' }}
           >
             <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600">
@@ -293,12 +293,12 @@ export default function InboxMensajes({
         {/* ══ PANEL IZQUIERDO ════════════════════════════════════ */}
         <aside
           className={[
-            'flex w-full flex-col border-r border-slate-200 bg-white',
+            'flex w-full flex-col border-r border-slate-300 bg-white',
             'md:flex md:w-80 lg:w-96',
             vistaMovil === 'detalle' ? 'hidden md:flex' : 'flex',
           ].join(' ')}
         >
-          <div className="shrink-0 border-b border-slate-200 px-5 py-4">
+          <div className="shrink-0 border-b border-slate-300 px-5 py-4">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <h1 className="text-sm font-semibold text-slate-900">Mensajes recibidos</h1>
@@ -321,7 +321,7 @@ export default function InboxMensajes({
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder="Buscar por nombre o propiedad..."
                 aria-label="Buscar conversaciones"
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-8 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-slate-300 bg-slate-50 py-2 pl-8 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
               />
               {busqueda && (
                 <button
@@ -396,7 +396,7 @@ export default function InboxMensajes({
           {selected ? (
             <>
               {/* Header fijo */}
-              <div className="shrink-0 border-b border-slate-200">
+              <div className="shrink-0 border-b border-slate-300">
 
                 {/* Card de propiedad */}
                 <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
@@ -444,7 +444,7 @@ export default function InboxMensajes({
 
                     <Link
                       href={`/propiedades/${selected.property_id}`}
-                      className="shrink-0 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+                      className="shrink-0 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
                     >
                       Ver propiedad
                     </Link>
@@ -477,7 +477,7 @@ export default function InboxMensajes({
                       {selected.sender_name[0]?.toUpperCase()}
                     </div>
                     <div className="flex max-w-[75%] flex-col gap-1">
-                      <div className="rounded-2xl rounded-bl-sm bg-white border border-slate-200 px-4 py-3 text-sm leading-relaxed text-slate-800 whitespace-pre-wrap shadow-sm">
+                      <div className="rounded-2xl rounded-bl-sm bg-white border border-slate-300 px-4 py-3 text-sm leading-relaxed text-slate-800 whitespace-pre-wrap shadow-sm">
                         {selected.message}
                       </div>
                       <span className="ml-1 text-xs text-slate-400">{fechaChat(selected.created_at)}</span>
@@ -504,7 +504,7 @@ export default function InboxMensajes({
                           {selected.sender_name[0]?.toUpperCase()}
                         </div>
                         <div className="flex max-w-[75%] flex-col gap-1">
-                          <div className="rounded-2xl rounded-bl-sm bg-white border border-slate-200 px-4 py-3 text-sm leading-relaxed text-slate-800 whitespace-pre-wrap shadow-sm">
+                          <div className="rounded-2xl rounded-bl-sm bg-white border border-slate-300 px-4 py-3 text-sm leading-relaxed text-slate-800 whitespace-pre-wrap shadow-sm">
                             {r.contenido}
                           </div>
                           <span className="ml-1 text-xs text-slate-400">{fechaChat(r.created_at)}</span>
@@ -517,7 +517,7 @@ export default function InboxMensajes({
               </div>
 
               {/* Caja de respuesta */}
-              <div className="shrink-0 border-t border-slate-200 bg-white px-6 py-4">
+              <div className="shrink-0 border-t border-slate-300 bg-white px-6 py-4">
                 {errorMsg && (
                   <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-600">
                     {errorMsg}
@@ -530,7 +530,7 @@ export default function InboxMensajes({
                     rows={3}
                     disabled={enviando}
                     placeholder="Escribí tu respuesta..."
-                    className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50"
+                    className="flex-1 resize-none rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) enviar()
                     }}

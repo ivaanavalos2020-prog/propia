@@ -87,7 +87,7 @@ function CardBeneficio({
 }) {
   if (!items || items.length === 0) return null
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-xl border border-slate-300 bg-white p-4">
       <div className="mb-3 flex items-center gap-2">
         <span className="text-xl">{icono}</span>
         <span className="text-sm font-bold text-slate-800">{titulo}</span>
@@ -206,7 +206,7 @@ export default function VentajasUbicacion({ propertyId, address, neighborhood, c
         ¿Por qué vivir acá?
       </h2>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-xl border border-slate-300 bg-white p-5 shadow-sm">
         <p className="mb-5 text-xs text-slate-400">
           Información generada automáticamente basada en la ubicación
         </p>
@@ -267,7 +267,7 @@ export default function VentajasUbicacion({ propertyId, address, neighborhood, c
             {/* Perfil del barrio */}
             {info.perfil_vecinos && (
               <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700">
+                <span className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="14"

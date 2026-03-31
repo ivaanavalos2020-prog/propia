@@ -75,7 +75,7 @@ function CardGrilla({ p }: { p: Propiedad }) {
   return (
     <Link
       href={`/propiedades/${p.id}`}
-      className="group flex h-full cursor-pointer flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md overflow-hidden"
+      className="group flex h-full cursor-pointer flex-col rounded-xl border border-slate-300 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md overflow-hidden"
     >
       {/* Foto */}
       <div className="relative h-44 w-full shrink-0 overflow-hidden bg-slate-100">
@@ -139,7 +139,7 @@ function CardLista({ p }: { p: Propiedad }) {
   return (
     <Link
       href={`/propiedades/${p.id}`}
-      className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-slate-300"
+      className="flex items-center gap-4 rounded-xl border border-slate-300 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-slate-300"
     >
       <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-slate-100">
         {foto ? (
@@ -249,7 +249,7 @@ export default function ListadoConBuscador({
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscá por dirección o barrio..."
             aria-label="Buscar propiedades"
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-base text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+            className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-10 text-base text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
           />
           {busqueda && (
             <button
@@ -266,7 +266,7 @@ export default function ListadoConBuscador({
         </div>
 
         {/* Toggle grilla / lista */}
-        <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="flex items-center rounded-xl border border-slate-300 bg-white shadow-sm overflow-hidden">
           <button
             type="button"
             onClick={() => setVista('grilla')}
@@ -335,7 +335,7 @@ export default function ListadoConBuscador({
           </ul>
         )
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white py-20 text-center">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400" aria-hidden="true">
               <circle cx="11" cy="11" r="8" />

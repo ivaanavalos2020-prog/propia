@@ -54,7 +54,7 @@ function GrupoFiltro({
             className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
               actual === value
                 ? 'border-blue-600 bg-blue-50 text-blue-600'
-                : 'border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600'
+                : 'border-slate-300 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600'
             }`}
           >
             {opLabel}
@@ -86,7 +86,7 @@ function FiltroProvincia() {
       <select
         value={actual}
         onChange={(e) => seleccionar(e.target.value)}
-        className="w-full max-w-xs rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+        className="w-full max-w-xs rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
       >
         <option value="">Todas las provincias</option>
         {PROVINCIAS.map((p) => (

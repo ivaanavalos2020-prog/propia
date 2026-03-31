@@ -27,7 +27,7 @@ export default function SelectorOrden() {
     <select
       value={actual}
       onChange={cambiar}
-      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 shadow-sm focus:border-blue-500 focus:outline-none"
+      className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-600 shadow-sm focus:border-blue-500 focus:outline-none"
     >
       {OPCIONES.map(({ value, label }) => (
         <option key={value} value={value}>

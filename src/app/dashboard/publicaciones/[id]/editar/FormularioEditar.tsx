@@ -427,7 +427,7 @@ export default function FormularioEditar({
         <div className="w-full space-y-8 lg:w-[55%]">
 
           {/* Tipo */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
             <SectionTitle>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
               Tipo de propiedad
@@ -441,7 +441,7 @@ export default function FormularioEditar({
                   className={`flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-sm font-semibold transition-all ${
                     tipo === t.value
                       ? 'border-blue-600 bg-blue-50 text-blue-700'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'
+                      : 'border-slate-300 bg-white text-slate-600 hover:border-blue-300'
                   }`}
                 >
                   {t.icono}
@@ -452,7 +452,7 @@ export default function FormularioEditar({
           </section>
 
           {/* Ubicación */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
             <SectionTitle>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
               Ubicación
@@ -513,7 +513,7 @@ export default function FormularioEditar({
           </section>
 
           {/* Precio */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
             <SectionTitle>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               Precio
@@ -544,7 +544,7 @@ export default function FormularioEditar({
           </section>
 
           {/* Descripción */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
             <SectionTitle>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
               Descripción
@@ -584,7 +584,7 @@ export default function FormularioEditar({
           </section>
 
           {/* Características */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
             <SectionTitle>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
               Características
@@ -670,7 +670,7 @@ export default function FormularioEditar({
                       className={`flex items-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-semibold transition-all ${
                         val
                           ? 'border-blue-600 bg-blue-50 text-blue-700'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'
+                          : 'border-slate-300 bg-white text-slate-600 hover:border-blue-300'
                       }`}
                     >
                       <span className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-colors ${val ? 'border-blue-600 bg-blue-600' : 'border-slate-300'}`}>
@@ -687,7 +687,7 @@ export default function FormularioEditar({
           </section>
 
           {/* Fotos */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
             <SectionTitle>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
               Fotos ({fotos.length})
@@ -702,7 +702,7 @@ export default function FormularioEditar({
                     draggable
                     onDragStart={() => onDragStart(i)}
                     onDragOver={(e) => onDragOver(e, i)}
-                    className="group relative aspect-square cursor-grab overflow-hidden rounded-xl border-2 border-slate-200 bg-slate-100 active:cursor-grabbing"
+                    className="group relative aspect-square cursor-grab overflow-hidden rounded-xl border-2 border-slate-300 bg-slate-100 active:cursor-grabbing"
                   >
                     <Image src={url} alt={`Foto ${i + 1}`} fill className="object-cover" />
                     {i === 0 && (
@@ -757,7 +757,7 @@ export default function FormularioEditar({
           </section>
 
           {/* Videos */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
             <SectionTitle>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
               Videos ({videos.length}/2)
@@ -767,7 +767,7 @@ export default function FormularioEditar({
             {videos.length > 0 && (
               <div className="mt-4 space-y-3">
                 {videos.map((url, i) => (
-                  <div key={url} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div key={url} className="flex items-center gap-3 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-slate-400"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                     <span className="flex-1 truncate text-sm text-slate-700">Video {i + 1}</span>
                     <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-600 hover:underline">Ver</a>
@@ -821,7 +821,7 @@ export default function FormularioEditar({
           </section>
 
           {/* Estado */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
             <SectionTitle>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Estado de la publicación
@@ -833,7 +833,7 @@ export default function FormularioEditar({
                 className={`flex items-center gap-2 rounded-xl border-2 px-5 py-3 text-sm font-semibold transition-all ${
                   estado === 'active'
                     ? 'border-green-600 bg-green-50 text-green-700'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-green-400'
+                    : 'border-slate-300 bg-white text-slate-600 hover:border-green-400'
                 }`}
               >
                 <span className={`h-2.5 w-2.5 rounded-full ${estado === 'active' ? 'bg-green-500' : 'bg-slate-300'}`} />
@@ -845,7 +845,7 @@ export default function FormularioEditar({
                 className={`flex items-center gap-2 rounded-xl border-2 px-5 py-3 text-sm font-semibold transition-all ${
                   estado === 'paused'
                     ? 'border-amber-500 bg-amber-50 text-amber-700'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-amber-400'
+                    : 'border-slate-300 bg-white text-slate-600 hover:border-amber-400'
                 }`}
               >
                 <span className={`h-2.5 w-2.5 rounded-full ${estado === 'paused' ? 'bg-amber-400' : 'bg-slate-300'}`} />
@@ -893,7 +893,7 @@ export default function FormularioEditar({
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
               Vista previa
             </p>
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
+            <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-md">
               <div className="relative h-52 bg-slate-100">
                 {fotos[0] ? (
                   <Image src={fotos[0]} alt="Foto principal" fill className="object-cover" />
@@ -978,7 +978,7 @@ export default function FormularioEditar({
               <button
                 type="button"
                 onClick={() => setModalIA(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
               >
                 Cancelar
               </button>

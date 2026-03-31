@@ -58,7 +58,7 @@ export default async function PropiedadesPage({
             </Suspense>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm">
             <Suspense>
               <Filtros />
             </Suspense>

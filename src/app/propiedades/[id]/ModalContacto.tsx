@@ -11,7 +11,7 @@ interface Props {
   mensajeInicial?: string
 }
 
-const inputCls = 'rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50'
+const inputCls = 'rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50'
 
 export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail, mensajeInicial = '' }: Props) {
   const [nombre, setNombre] = useState('')
@@ -71,7 +71,7 @@ export default function ModalContacto({ abierto, onCerrar, propertyId, userEmail
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) cerrar() }}
     >
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl border border-slate-300 bg-white p-6 shadow-xl">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-900">Contactar al dueño</h2>
           <button

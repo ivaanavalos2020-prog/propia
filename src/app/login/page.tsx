@@ -43,7 +43,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       {/* Header simple */}
-      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
+      <header className="flex items-center justify-between border-b border-slate-300 bg-white px-6 py-4">
         <Link href="/" className="flex flex-col leading-none">
           <span className="text-base font-bold tracking-widest text-slate-900">PROPIA</span>
           <span className="text-[9px] font-semibold uppercase tracking-widest text-blue-600">
@@ -61,7 +61,7 @@ export default function LoginPage() {
             visible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'
           }`}
         >
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="rounded-2xl border border-slate-300 bg-white p-8 shadow-sm">
             {/* Logo animado */}
             <div className="mb-8 text-center">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
@@ -131,7 +131,7 @@ export default function LoginPage() {
                     required
                     disabled={estado === 'cargando'}
                     autoComplete="email"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50 transition-colors"
+                    className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50 transition-colors"
                   />
                 </div>
 

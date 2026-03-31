@@ -11,7 +11,7 @@ interface Props {
 
 type Estado = 'idle' | 'guardando' | 'guardado' | 'error'
 
-const inputCls = 'rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50'
+const inputCls = 'rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:opacity-50'
 
 export default function FormularioPerfil({ userId, nombreInicial, telefonoInicial }: Props) {
   const [nombre, setNombre] = useState(nombreInicial)

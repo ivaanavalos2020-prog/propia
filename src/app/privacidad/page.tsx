@@ -33,7 +33,7 @@ export default function PrivacidadPage() {
             <span className="text-slate-600">Política de Privacidad</span>
           </nav>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-12">
+          <div className="rounded-2xl border border-slate-300 bg-white p-8 shadow-sm md:p-12">
             <div className="mb-8 flex flex-col gap-2 border-b border-slate-100 pb-8">
               <p className="text-xs font-bold uppercase tracking-widest text-blue-600">Legal</p>
               <h1 className="text-3xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>

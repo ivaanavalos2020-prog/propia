@@ -59,7 +59,7 @@ export default async function FavoritosPage() {
                 <li key={p.id}>
                   <Link
                     href={`/propiedades/${p.id}`}
-                    className="flex h-full flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                    className="flex h-full flex-col gap-4 rounded-xl border border-slate-300 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                   >
                     <div className="flex flex-col gap-1">
                       <span className="inline-flex w-fit rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
@@ -87,7 +87,7 @@ export default async function FavoritosPage() {
               ))}
             </ul>
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 border-dashed bg-white py-20 text-center">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-300 border-dashed bg-white py-20 text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>

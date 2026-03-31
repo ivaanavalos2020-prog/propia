@@ -69,7 +69,7 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-3">
               <Link
                 href="/dashboard/mensajes"
-                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
+                className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -154,7 +154,7 @@ export default async function DashboardPage() {
               ].map((stat) => (
                 <div
                   key={stat.label}
-                  className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                  className="flex flex-col gap-3 rounded-xl border border-slate-300 bg-white p-4 shadow-sm"
                 >
                   <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${stat.bg} ${stat.color}`}>
                     {stat.icon}
@@ -222,7 +222,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             /* Onboarding empty state */
-            <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="mt-8 overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
               <div className="px-8 py-10 text-center">
                 <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50">
                   <svg

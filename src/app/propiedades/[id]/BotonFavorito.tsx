@@ -50,7 +50,7 @@ export default function BotonFavorito({ propertyId, userId, esFavorito: inicial 
       className={`flex h-12 w-12 items-center justify-center rounded-xl border transition-colors disabled:opacity-40 ${
         esFavorito
           ? 'border-red-300 bg-red-50 text-red-500 hover:bg-red-100'
-          : 'border-slate-200 bg-white text-slate-400 hover:border-red-200 hover:bg-red-50 hover:text-red-400'
+          : 'border-slate-300 bg-white text-slate-400 hover:border-red-200 hover:bg-red-50 hover:text-red-400'
       }`}
     >
       {esFavorito ? (

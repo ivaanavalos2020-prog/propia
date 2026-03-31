@@ -62,3 +62,30 @@ body {
     background-image: none;
   }
 }
+
+/* ── Mobile typography ────────────────────────────────── */
+@media (max-width: 767px) {
+  body {
+    font-size: 16px;
+  }
+
+  /* Inputs, selects, textareas: mínimo 52px alto y 16px font para evitar zoom en iOS */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    min-height: 52px;
+    font-size: 16px !important;
+  }
+
+  /* Labels */
+  label {
+    font-size: 15px;
+  }
+
+  /* Botones principales */
+  button[type='submit'],
+  button[type='button']:not([data-sm]) {
+    min-height: 48px;
+    font-size: 16px;
+  }
+}
