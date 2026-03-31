@@ -36,3 +36,29 @@ body {
   animation: dropdown-in 0.15s ease-out forwards;
   transform-origin: top right;
 }
+
+/* ── Hero: líneas diagonales animadas ─────────────────── */
+@keyframes hero-lines-drift {
+  0%   { background-position: 0 0; }
+  100% { background-position: 80px 80px; }
+}
+
+.hero-lines {
+  background-image:
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0px,
+      transparent 38px,
+      #E2E8F0 38px,
+      #E2E8F0 39px
+    );
+  background-size: 56px 56px;
+  animation: hero-lines-drift 12s linear infinite;
+}
+
+@media (max-width: 767px) {
+  .hero-lines {
+    animation: none;
+    background-image: none;
+  }
+}

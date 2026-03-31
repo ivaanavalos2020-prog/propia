@@ -3,7 +3,6 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import HeroBusqueda from './HeroBusqueda'
 import AnimarAlEntrar from '@/components/AnimarAlEntrar'
-import HeroCanvas from '@/components/HeroCanvas'
 import ContadorAnimado from '@/components/ContadorAnimado'
 
 const TIPO_LABEL: Record<string, string> = {
@@ -16,10 +15,10 @@ const TIPO_LABEL: Record<string, string> = {
 const PASOS = [
   {
     num: '01',
-    titulo: 'Publicá tu propiedad',
-    desc: 'Cargá fotos, precio y datos en menos de 5 minutos. Sin formularios interminables.',
+    titulo: 'Publicá en 5 minutos',
+    desc: 'Subí fotos, precio y datos básicos de tu propiedad. Sin trámites ni papelería. Tu publicación queda activa al instante y la ven miles de personas.',
     icono: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/>
       </svg>
     ),
@@ -27,20 +26,20 @@ const PASOS = [
   {
     num: '02',
     titulo: 'Recibí consultas directas',
-    desc: 'Los interesados te escriben directo desde la plataforma. Sin filtros ni intermediarios.',
+    desc: 'Los interesados te escriben directamente a vos, sin pasar por ningún intermediario. Ves su nombre, email y mensaje completo desde tu dashboard.',
     icono: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
       </svg>
     ),
   },
   {
     num: '03',
-    titulo: 'Cerrá el trato vos',
-    desc: 'Coordiná la visita, acordá las condiciones y firmá el contrato. Tus tiempos, tus reglas.',
+    titulo: 'Cerrá el trato a tu manera',
+    desc: 'Coordinás la visita, negociás las condiciones y firmás el contrato. Vos decidís a quién alquilarle, sin que nadie te presione ni te cobre comisión.',
     icono: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="20 6 9 17 4 12"/>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 7H4"/><path d="M20 12H4"/><path d="M20 17H4"/><path d="M16 3l4 4-4 4"/>
       </svg>
     ),
   },
@@ -87,9 +86,13 @@ export default async function LandingPage() {
       <Navbar />
 
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[90vh] flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-16 text-center bg-gradient-to-b from-white to-blue-50/60">
-        <HeroCanvas />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-5%,rgba(37,99,235,0.06),transparent)]" />
+      <section className="relative flex min-h-[90vh] flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-16 text-center bg-gradient-to-b from-white to-blue-50/40">
+        {/* Fondo animado: líneas diagonales tenues */}
+        <div className="hero-lines pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
+        {/* Gradiente radial encima para difuminar el centro */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_40%,rgba(255,255,255,0.92),transparent)]" aria-hidden="true" />
+        {/* Gradiente azul sutil arriba */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_40%_at_50%_-5%,rgba(37,99,235,0.05),transparent)]" aria-hidden="true" />
 
         <AnimarAlEntrar>
           <span className="inline-block rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-blue-600">
@@ -162,32 +165,64 @@ export default async function LandingPage() {
       </section>
 
       {/* ── Cómo funciona ────────────────────────────────────── */}
-      <section id="como-funciona" className="bg-white px-6 py-20 md:px-10">
+      <section id="como-funciona" className="bg-white px-6 py-24 md:px-10">
         <div className="mx-auto max-w-5xl">
           <AnimarAlEntrar>
-            <div className="mb-12 text-center">
-              <h2 className="text-3xl font-extrabold text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+            <div className="mb-16 text-center">
+              <span className="inline-block rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-600">
+                Simple y directo
+              </span>
+              <h2 className="mt-4 text-4xl font-extrabold text-slate-900 md:text-5xl" style={{ letterSpacing: '-0.025em' }}>
                 Cómo funciona
               </h2>
-              <p className="mt-3 text-slate-500">Tres pasos para cerrar tu alquiler sin intermediarios</p>
+              <p className="mt-3 text-lg text-slate-500">Tres pasos para cerrar tu alquiler sin intermediarios</p>
             </div>
           </AnimarAlEntrar>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {PASOS.map((paso, i) => (
-              <AnimarAlEntrar key={paso.num} delay={i * 100}>
-                <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition-shadow hover:shadow-md">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    {paso.icono}
+          {/* Grid con línea conectora en desktop */}
+          <div className="relative">
+            {/* Línea conectora horizontal — solo desktop */}
+            <div
+              className="absolute top-[52px] left-[calc(16.67%+24px)] right-[calc(16.67%+24px)] hidden h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent md:block"
+              aria-hidden="true"
+            />
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {PASOS.map((paso, i) => (
+                <AnimarAlEntrar key={paso.num} delay={i * 120}>
+                  <div className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg overflow-hidden">
+                    {/* Cabecera: número grande + ícono */}
+                    <div className="flex items-start justify-between px-8 pt-8 pb-5">
+                      <span
+                        className="text-7xl font-extrabold leading-none text-blue-600 select-none"
+                        style={{ letterSpacing: '-0.04em', fontVariantNumeric: 'tabular-nums' }}
+                      >
+                        {paso.num}
+                      </span>
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                        {paso.icono}
+                      </div>
+                    </div>
+
+                    {/* Separador */}
+                    <div className="mx-8 h-px bg-slate-100" />
+
+                    {/* Contenido */}
+                    <div className="flex flex-1 flex-col gap-3 px-8 pt-6 pb-8">
+                      <h3
+                        className="text-xl font-bold text-slate-900"
+                        style={{ letterSpacing: '-0.01em' }}
+                      >
+                        {paso.titulo}
+                      </h3>
+                      <p className="text-base leading-relaxed text-slate-500">
+                        {paso.desc}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <span className="text-xs font-bold uppercase tracking-widest text-blue-600">{paso.num}</span>
-                    <h3 className="text-base font-semibold text-slate-900">{paso.titulo}</h3>
-                    <p className="text-sm leading-relaxed text-slate-500">{paso.desc}</p>
-                  </div>
-                </div>
-              </AnimarAlEntrar>
-            ))}
+                </AnimarAlEntrar>
+              ))}
+            </div>
           </div>
         </div>
       </section>
