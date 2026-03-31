@@ -78,42 +78,42 @@ const CATEGORIAS: Categoria[] = [
   {
     id: 'frente',
     label: 'Frente del edificio o casa',
-    instruccion: 'Sacá desde la vereda de enfrente, con el edificio entero visible y buena luz.',
+    instruccion: 'Sacá desde la vereda de enfrente, mostrando toda la fachada. Incluí la entrada principal. Mejor en hora dorada (temprano a la mañana o al atardecer).',
     obligatoria: true,
     icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" /><path d="M9 21V12h6v9" /></svg>),
   },
   {
     id: 'living',
     label: 'Living o entrada principal',
-    instruccion: 'Sacá desde la esquina del ambiente con luz natural, sin objetos personales.',
+    instruccion: 'Desde la esquina más alejada de la entrada, mostrando toda la habitación. Asegurate de que haya buena luz y que esté ordenado.',
     obligatoria: true,
     icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" /><line x1="12" y1="12" x2="12" y2="16" /><line x1="10" y1="14" x2="14" y2="14" /></svg>),
   },
   {
     id: 'cocina',
     label: 'Cocina',
-    instruccion: 'Mostrá la mesada, los muebles y los electrodomésticos. Limpia y sin platos.',
+    instruccion: 'Mostrá la mesada, los muebles y los electrodomésticos. Limpia y sin platos ni utensilios. Abrí las persianas para aprovechar la luz natural.',
     obligatoria: true,
     icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4" /><path d="M12 2v4" /><path d="M16 2v4" /><rect x="2" y="6" width="20" height="16" rx="2" /><path d="M6 14h.01" /><path d="M12 14h.01" /><path d="M18 14h.01" /><path d="M6 18h.01" /><path d="M12 18h.01" /><path d="M18 18h.01" /></svg>),
   },
   {
     id: 'dormitorio',
     label: 'Dormitorio',
-    instruccion: 'Cama prolija, desde el pie. Si hay más de uno, subí el principal.',
+    instruccion: 'Cama tendida prolija, desde el pie hacia la cabecera. Mostrá las ventanas y el placard si es posible.',
     obligatoria: true,
     icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 9V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v5" /><path d="M2 9h20v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z" /><path d="M6 9v4" /><path d="M18 9v4" /><path d="M2 15h20" /></svg>),
   },
   {
     id: 'bano',
     label: 'Baño',
-    instruccion: 'Desde la puerta, mostrá el inodoro, ducha o bañadera. Limpio y ordenado.',
+    instruccion: 'Desde la puerta, mostrando el inodoro, ducha o bañadera. Limpio y ordenado, sin artículos personales visibles.',
     obligatoria: true,
     icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6a3 3 0 0 1 6 0v8H9V6z" /><path d="M3 14h18v2a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5v-2z" /><path d="M5 14V8" /></svg>),
   },
   {
     id: 'extras',
     label: 'Espacios extras',
-    instruccion: 'Balcón, patio, terraza o cochera. Omitir si no aplica.',
+    instruccion: 'Mostrá el balcón, terraza, jardín, cochera o cualquier espacio adicional que sume valor. Omitir si no aplica.',
     obligatoria: false,
     icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="1" /><path d="M3 11V8a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3" /><path d="M12 7V3" /><path d="M8 7l4-4 4 4" /></svg>),
   },
@@ -141,9 +141,9 @@ const CONTRACT_LABEL: Record<string, string> = {
 }
 
 const PASOS = [
-  { label: 'Tipo' },
-  { label: 'Contrato' },
-  { label: 'Detalles' },
+  { label: 'Tipo', fullLabel: 'Tipo de propiedad', minutes: 1 },
+  { label: 'Contrato', fullLabel: 'Contrato y precio', minutes: 2 },
+  { label: 'Detalles', fullLabel: 'Detalles y fotos', minutes: 3 },
 ]
 
 const INICIAL: FormData = {
@@ -151,7 +151,7 @@ const INICIAL: FormData = {
   calle: '', barrio: '', provincia: '', referencias: '',
   precio: '', hasExpenses: false, expensesAmount: '', expensesIncluded: false,
   depositMonths: 'a_negociar',
-  contractType: 'tradicional', contractDurationMonths: '24', updateIndex: 'a_negociar',
+  contractType: 'tradicional', contractDurationMonths: '24', updateIndex: 'ipc_trimestral',
   pricePerNight: '', minNights: '', maxNights: '',
   pricePerMonth: '', minMonths: '', maxMonths: '',
   guarantees: [], services: [],
@@ -232,8 +232,8 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
   return (
     <button type="button" onClick={() => onChange(!checked)}
       className="flex items-center gap-3 text-sm text-slate-700">
-      <span className={`relative h-6 w-11 rounded-full transition-colors ${checked ? 'bg-blue-600' : 'bg-slate-200'}`}>
-        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
+      <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ${checked ? 'bg-blue-600' : 'bg-slate-200'}`}>
+        <span className={`absolute top-[2px] left-[2px] h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${checked ? 'translate-x-[20px]' : 'translate-x-0'}`} />
       </span>
       {label}
     </button>
@@ -259,12 +259,21 @@ export default function PublicarPage() {
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const router = useRouter()
 
+  const [draftDate, setDraftDate] = useState<string | null>(null)
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem(DRAFT_KEY)
       if (saved) {
-        const parsed = JSON.parse(saved) as FormData
-        if (parsed.tipo || parsed.calle || parsed.precio) setMostrarRestaurar(true)
+        const parsed = JSON.parse(saved) as { data: FormData; savedAt: string }
+        const data = parsed.data ?? (parsed as unknown as FormData)
+        if (data.tipo || data.calle || data.precio) {
+          setMostrarRestaurar(true)
+          if (parsed.savedAt) {
+            const d = new Date(parsed.savedAt)
+            setDraftDate(d.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }))
+          }
+        }
       }
     } catch { /* noop */ }
   }, [])
@@ -274,7 +283,7 @@ export default function PublicarPage() {
       const isEmpty = !form.tipo && !form.calle && !form.precio
       if (isEmpty) return
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(form))
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ data: form, savedAt: new Date().toISOString() }))
         setDraftToast('guardado')
         setTimeout(() => setDraftToast(null), 2500)
       } catch { /* noop */ }
@@ -286,7 +295,8 @@ export default function PublicarPage() {
     try {
       const saved = localStorage.getItem(DRAFT_KEY)
       if (saved) {
-        setForm(JSON.parse(saved) as FormData)
+        const parsed = JSON.parse(saved) as { data: FormData; savedAt: string }
+        setForm(parsed.data ?? (parsed as unknown as FormData))
         setDraftToast('restaurado')
         setTimeout(() => setDraftToast(null), 2500)
       }
@@ -482,7 +492,7 @@ export default function PublicarPage() {
       {/* Banner restaurar */}
       {mostrarRestaurar && (
         <div className="fixed inset-x-0 top-0 z-[60] flex items-center justify-between gap-4 bg-blue-600 px-6 py-3">
-          <p className="text-sm font-medium text-white">Tenés un borrador guardado. ¿Continuás?</p>
+          <p className="text-sm font-medium text-white">Tenés un borrador guardado{draftDate ? ` del ${draftDate}` : ''}. ¿Continuás?</p>
           <div className="flex shrink-0 gap-2">
             <button type="button" onClick={restaurarBorrador} className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-blue-600">Continuar</button>
             <button type="button" onClick={descartarBorrador} className="rounded-lg border border-blue-400 px-3 py-1.5 text-xs font-medium text-blue-100">Descartar</button>
@@ -524,45 +534,92 @@ export default function PublicarPage() {
 
         {/* ── Left: Form ── */}
         <div className="flex w-full flex-col overflow-hidden lg:w-[45%] lg:border-r lg:border-slate-100">
-          <div className="flex shrink-0 gap-1.5 px-6 pb-0 pt-4 lg:hidden">
-            {PASOS.map((p, i) => (
-              <div key={p.label} className={`h-1 flex-1 rounded-full transition-colors ${i <= paso ? 'bg-blue-600' : 'bg-slate-200'}`} />
-            ))}
+          <div className="flex shrink-0 flex-col gap-2 px-6 pb-0 pt-4 lg:hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                Paso {paso + 1} de {PASOS.length} · {PASOS[paso].fullLabel}
+              </span>
+              <span className="text-xs text-slate-400">~{PASOS[paso].minutes} min</span>
+            </div>
+            <div className="flex gap-1.5">
+              {PASOS.map((p, i) => (
+                <div key={p.label} className={`h-1 flex-1 rounded-full transition-colors ${i <= paso ? 'bg-blue-600' : 'bg-slate-200'}`} />
+              ))}
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
             <div className="mb-6">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-blue-600">
-                Paso {paso + 1} de {PASOS.length}
+              <p className="mb-1 hidden text-xs font-semibold uppercase tracking-wider text-blue-600 lg:block">
+                Paso {paso + 1} de {PASOS.length} · {PASOS[paso].fullLabel}
               </p>
               <h2 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
                 {paso === 0 ? '¿Qué vas a alquilar?' : paso === 1 ? 'Ubicación, precio y contrato' : 'Detalles completos y fotos'}
               </h2>
+              {paso === 0 && (
+                <div className="mt-3 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-relaxed text-blue-700">
+                  Elegí el tipo que mejor describe tu propiedad. Esto es lo primero que ven los interesados al buscar.
+                </div>
+              )}
+              {paso === 1 && (
+                <div className="mt-3 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-relaxed text-blue-700">
+                  El precio y la ubicación son los dos factores más importantes para recibir consultas. Sé claro y transparente.
+                </div>
+              )}
+              {paso === 2 && (
+                <div className="mt-3 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-relaxed text-blue-700">
+                  ¡Casi listo! Completá los detalles y subí fotos de calidad. Las publicaciones completas se alquilan 3 veces más rápido.
+                </div>
+              )}
             </div>
 
             <div key={animKey} className={animDir === 'forward' ? 'anim-fwd' : 'anim-bwd'}>
 
               {/* ── Paso 1: Tipo ── */}
               {paso === 0 && (
-                <div className="grid grid-cols-2 gap-3">
-                  {TIPOS_INFO.map(({ value, label, desc, emoji }) => {
-                    const activo = form.tipo === value
-                    return (
-                      <button key={value} type="button" onClick={() => set('tipo', value)}
-                        className={`relative flex flex-col items-center gap-3 rounded-2xl border-2 p-5 text-left transition-all ${activo ? 'border-blue-600 bg-blue-50 shadow-sm' : 'border-slate-300 hover:border-blue-200 hover:bg-blue-50/40'}`}>
-                        {activo && (
-                          <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    {TIPOS_INFO.map(({ value, label, desc, emoji }) => {
+                      const activo = form.tipo === value
+                      return (
+                        <button key={value} type="button" onClick={() => set('tipo', value)}
+                          className={`relative flex flex-col items-center gap-3 rounded-2xl border-2 p-5 text-left transition-all ${activo ? 'border-blue-600 bg-blue-50 shadow-sm' : 'border-slate-300 hover:border-blue-200 hover:bg-blue-50/40'}`}>
+                          {activo && (
+                            <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                          )}
+                          <span className="text-4xl">{emoji}</span>
+                          <div className="text-center">
+                            <p className={`text-sm font-semibold ${activo ? 'text-blue-700' : 'text-slate-800'}`}>{label}</p>
+                            <p className={`mt-0.5 text-xs ${activo ? 'text-blue-400' : 'text-slate-400'}`}>{desc}</p>
                           </div>
-                        )}
-                        <span className="text-4xl">{emoji}</span>
-                        <div className="text-center">
-                          <p className={`text-sm font-semibold ${activo ? 'text-blue-700' : 'text-slate-800'}`}>{label}</p>
-                          <p className={`mt-0.5 text-xs ${activo ? 'text-blue-400' : 'text-slate-400'}`}>{desc}</p>
-                        </div>
-                      </button>
-                    )
-                  })}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Contextual help */}
+                  <div className="rounded-xl px-4 py-4" style={{ background: '#F0F4FF' }}>
+                    {!form.tipo ? (
+                      <>
+                        <p className="mb-2.5 text-xs font-semibold text-slate-600">¿No sabés cuál elegir?</p>
+                        <ul className="flex flex-col gap-2 text-xs leading-relaxed text-slate-600">
+                          <li className="flex gap-2"><span className="mt-0.5 shrink-0">🏢</span><span><strong>Departamento o PH:</strong> unidad dentro de un edificio con áreas comunes</span></li>
+                          <li className="flex gap-2"><span className="mt-0.5 shrink-0">🏠</span><span><strong>Casa:</strong> vivienda independiente con entrada propia</span></li>
+                          <li className="flex gap-2"><span className="mt-0.5 shrink-0">🛏️</span><span><strong>Habitación:</strong> ambiente dentro de una propiedad compartida</span></li>
+                        </ul>
+                      </>
+                    ) : form.tipo === 'departamento' ? (
+                      <p className="text-xs leading-relaxed text-slate-600">🏢 <strong>Tip:</strong> Los departamentos son los más buscados en CABA y GBA. Destacá el piso, la luminosidad y si tiene balcón.</p>
+                    ) : form.tipo === 'casa' ? (
+                      <p className="text-xs leading-relaxed text-slate-600">🏠 <strong>Tip:</strong> Las casas con jardín o patio tienen mucha demanda. Mencioná si tiene cochera y espacios al aire libre.</p>
+                    ) : form.tipo === 'habitacion' ? (
+                      <p className="text-xs leading-relaxed text-slate-600">🛏️ <strong>Tip:</strong> Indicá claramente qué espacios son compartidos (cocina, baño, living) y qué está incluido en el precio.</p>
+                    ) : (
+                      <p className="text-xs leading-relaxed text-slate-600">🏪 <strong>Tip:</strong> Especificá los m² totales, si tiene depósito, baño propio y habilitación municipal.</p>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -611,6 +668,9 @@ export default function PublicarPage() {
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">USD</span>
                         <input type="number" value={form.precio} onChange={(e) => set('precio', e.target.value)} placeholder="0" min={0} className={`${inputCls} pl-14`} />
                       </div>
+                      <p className="mt-0.5 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-700">
+                        💡 <strong>Tip:</strong> Las propiedades con precio actualizado reciben 40% más consultas. Revisá precios similares en tu zona antes de publicar.
+                      </p>
                     </div>
 
                     {/* Expensas */}
@@ -678,10 +738,15 @@ export default function PublicarPage() {
                           <div className="flex flex-col gap-1.5">
                             <label className="text-sm font-medium text-slate-700">Índice de actualización</label>
                             <select value={form.updateIndex} onChange={(e) => set('updateIndex', e.target.value)} className={inputCls}>
-                              <option value="ich">ICH</option>
-                              <option value="ipc">IPC</option>
-                              <option value="a_negociar">A negociar</option>
+                              <option value="ipc_trimestral">IPC trimestral (cada 3 meses)</option>
+                              <option value="ipc_semestral">IPC semestral (cada 6 meses)</option>
+                              <option value="ipc_anual">IPC anual (cada 12 meses)</option>
+                              <option value="icl_trimestral">ICL trimestral (cada 3 meses)</option>
+                              <option value="icl_semestral">ICL semestral (cada 6 meses)</option>
+                              <option value="cvs_trimestral">CVS trimestral (cada 3 meses)</option>
+                              <option value="a_negociar">A negociar con el inquilino</option>
                             </select>
+                            <p className="mt-1 text-xs leading-relaxed text-slate-400">El índice de actualización determina cómo se ajusta el precio del alquiler. El más común en Argentina es el IPC trimestral.</p>
                           </div>
                         </div>
                       </div>
@@ -909,6 +974,10 @@ export default function PublicarPage() {
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                       <span className="text-sm font-bold text-slate-700">Descripción</span>
                     </div>
+                    <div className="rounded-lg border-l-4 border-blue-400 bg-blue-50 px-4 py-3 text-xs leading-relaxed text-blue-800">
+                      ✍️ <strong>Una buena descripción puede duplicar tus consultas.</strong> Mencioná: luminosidad, estado del inmueble, qué hay cerca (transporte, comercios, colegios) y cualquier detalle que lo haga especial.
+                      <p className="mt-1.5 text-blue-600 opacity-80">Ej: &ldquo;Departamento luminoso con vista al parque, cocina renovada, a 2 cuadras del subte B. Edificio con portería 24hs y gimnasio.&rdquo;</p>
+                    </div>
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-medium text-slate-700">Descripción de la propiedad</label>
                       <span className={`text-xs font-medium ${form.descripcion.length < 80 ? 'text-amber-500' : form.descripcion.length > 800 ? 'text-red-500' : 'text-slate-400'}`}>
@@ -932,6 +1001,21 @@ export default function PublicarPage() {
 
                   {/* Fotos */}
                   <div className="flex flex-col gap-3">
+                    {/* Photo importance banner */}
+                    <div className="rounded-lg px-5 py-5" style={{ background: '#F0FDF4', borderLeft: '4px solid #16A34A' }}>
+                      <p className="mb-3 text-sm font-bold text-green-900">📸 Las fotos son lo más importante de tu publicación</p>
+                      <p className="mb-3 text-xs leading-relaxed text-green-800">El 87% de los interesados decide si contactar al dueño basándose únicamente en las fotos. Una propiedad con fotos profesionales recibe 3 veces más consultas que una con fotos de baja calidad.</p>
+                      <p className="mb-2 text-xs font-semibold text-green-800">Nuestras recomendaciones:</p>
+                      <ul className="flex flex-col gap-1.5 text-xs leading-relaxed text-green-800">
+                        <li className="flex gap-2"><span className="shrink-0 font-bold text-green-600">✓</span><span>Sacá las fotos de día con luz natural — abrí todas las persianas y cortinas</span></li>
+                        <li className="flex gap-2"><span className="shrink-0 font-bold text-green-600">✓</span><span>Ordená y limpiá cada ambiente antes de fotografiar — menos es más</span></li>
+                        <li className="flex gap-2"><span className="shrink-0 font-bold text-green-600">✓</span><span>Fotografiá desde la esquina del ambiente para mostrar la mayor superficie posible</span></li>
+                        <li className="flex gap-2"><span className="shrink-0 font-bold text-green-600">✓</span><span>Evitá tener personas, mascotas o objetos personales en las fotos</span></li>
+                        <li className="flex gap-2"><span className="shrink-0 font-bold text-green-600">✓</span><span>Para el exterior, elegí un día soleado y sacá desde la vereda de enfrente</span></li>
+                      </ul>
+                      <p className="mt-3 text-xs italic text-green-700">Las propiedades que siguen estas recomendaciones cierran el alquiler en promedio 3 semanas antes.</p>
+                    </div>
+
                     <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                       <span className="text-sm font-bold text-slate-700">Fotos</span>
@@ -992,15 +1076,31 @@ export default function PublicarPage() {
                 </button>
               )}
               {paso < PASOS.length - 1 ? (
-                <button type="button" onClick={() => irAlPaso(paso + 1)} disabled={!puedeAvanzar()}
-                  className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-30">
-                  Siguiente
-                </button>
+                <div className="group relative flex-1">
+                  <button type="button" onClick={() => irAlPaso(paso + 1)} disabled={!puedeAvanzar()}
+                    className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-30">
+                    Siguiente
+                  </button>
+                  {!puedeAvanzar() && (
+                    <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden w-56 -translate-x-1/2 rounded-lg bg-slate-800 px-3 py-2 text-center text-xs text-white shadow-lg group-hover:block">
+                      {paso === 0 ? 'Seleccioná un tipo de propiedad para continuar' : 'Completá la dirección, provincia y precio para continuar'}
+                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                    </div>
+                  )}
+                </div>
               ) : (
-                <button type="button" onClick={handlePublicar} disabled={publicando || !puedeAvanzar()}
-                  className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-40">
-                  {publicando ? 'Publicando...' : 'Publicar propiedad'}
-                </button>
+                <div className="group relative flex-1">
+                  <button type="button" onClick={handlePublicar} disabled={publicando || !puedeAvanzar()}
+                    className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40">
+                    {publicando ? 'Publicando...' : 'Publicar propiedad'}
+                  </button>
+                  {!puedeAvanzar() && !publicando && (
+                    <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden w-56 -translate-x-1/2 rounded-lg bg-slate-800 px-3 py-2 text-center text-xs text-white shadow-lg group-hover:block">
+                      Subí las fotos obligatorias para publicar
+                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
