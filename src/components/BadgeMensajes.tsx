@@ -3,15 +3,18 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 
-export default function BadgeMensajes() {
+interface Props {
+  isDueno: boolean
+}
+
+export default function BadgeMensajes({ isDueno }: Props) {
   const [count, setCount] = useState(0)
 
   useEffect(() => {
     const supabase = createClient()
-    // propertyIds se resuelve async y queda en closure para los handlers
     let propertyIds: string[] = []
 
-    async function refetch() {
+    async function refetchDueno() {
       if (propertyIds.length === 0) return
       const { count: fresh } = await supabase
         .from('mensajes')
@@ -21,29 +24,49 @@ export default function BadgeMensajes() {
       setCount(fresh ?? 0)
     }
 
-    async function init() {
+    async function refetchInquilino() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
+      // Cuenta respuestas de dueños para los mensajes del inquilino
+      // RLS garantiza que solo ve las de sus propios mensajes
+      const { count: fresh } = await supabase
+        .from('respuestas_mensajes')
+        .select('id', { count: 'exact', head: true })
+        .eq('autor', 'dueno')
+      setCount(fresh ?? 0)
+    }
 
-      const { data: props } = await supabase
-        .from('properties')
-        .select('id')
-        .eq('owner_id', session.user.id)
-
-      propertyIds = props?.map((p) => p.id) ?? []
-      await refetch()
+    async function init() {
+      if (isDueno) {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return
+        const { data: props } = await supabase
+          .from('properties')
+          .select('id')
+          .eq('owner_id', session.user.id)
+        propertyIds = props?.map((p) => p.id) ?? []
+        await refetchDueno()
+      } else {
+        await refetchInquilino()
+      }
     }
 
     init()
 
-    const channel = supabase
-      .channel('badge-mensajes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes' }, refetch)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'mensajes' }, refetch)
-      .subscribe()
+    const channel = isDueno
+      ? supabase
+          .channel('badge-mensajes-dueno')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes' }, refetchDueno)
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'mensajes' }, refetchDueno)
+          .subscribe()
+      : supabase
+          .channel('badge-mensajes-inquilino')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'respuestas_mensajes' }, refetchInquilino)
+          .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDueno])
 
   if (count === 0) return null
 

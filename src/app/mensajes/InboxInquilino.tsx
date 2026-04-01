@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
 
-// ── Tipos ─────────────────────────────────────────────────────
+// ── Tipos ──────────────────────────────────────────────────────
 
 export type RespuestaType = {
   id: string
@@ -14,7 +14,7 @@ export type RespuestaType = {
   created_at: string
 }
 
-export type MensajeType = {
+export type MensajeInquilinoType = {
   id: string
   sender_name: string
   sender_email: string
@@ -25,10 +25,7 @@ export type MensajeType = {
   property_type: string
   price_usd: number
   photo_url: string | null
-  leido: boolean
 }
-
-type Toast = { id: string; text: string }
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -63,21 +60,9 @@ function fechaChat(dateStr: string): string {
   return `${fecha.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })} a las ${hora}`
 }
 
-function avatarColor(name: string): string {
-  const palettes = [
-    'bg-blue-100 text-blue-700',
-    'bg-violet-100 text-violet-700',
-    'bg-amber-100 text-amber-700',
-    'bg-rose-100 text-rose-700',
-    'bg-teal-100 text-teal-700',
-    'bg-sky-100 text-sky-700',
-  ]
-  return palettes[name.charCodeAt(0) % palettes.length]
-}
-
 function playNotificationSound() {
   try {
-    const ctx = new AudioContext()
+    const ctx  = new AudioContext()
     const osc  = ctx.createOscillator()
     const gain = ctx.createGain()
     osc.connect(gain)
@@ -104,46 +89,62 @@ function IconSobre({ className }: { className?: string }) {
   )
 }
 
+function IconReloj({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  )
+}
+
+// ── Helpers de último mensaje ─────────────────────────────────
+
+function ultimoMensaje(m: MensajeInquilinoType, hilo: RespuestaType[]): string {
+  if (hilo.length === 0) return m.message
+  return hilo[hilo.length - 1].contenido
+}
+
+function ultimaFecha(m: MensajeInquilinoType, hilo: RespuestaType[]): string {
+  if (hilo.length === 0) return m.created_at
+  return hilo[hilo.length - 1].created_at
+}
+
 // ── Componente principal ──────────────────────────────────────
 
 interface Props {
-  mensajes: MensajeType[]
+  mensajes: MensajeInquilinoType[]
   respuestasPorMensaje: Record<string, RespuestaType[]>
-  ownerEmail: string
-  propertyIds: string[]
+  userEmail: string
+  mensajeIds: string[]
 }
 
-export default function InboxMensajes({
+export default function InboxInquilino({
   mensajes: initial,
   respuestasPorMensaje: initialRespuestas,
-  ownerEmail,
-  propertyIds,
+  userEmail,
+  mensajeIds: initialMensajeIds,
 }: Props) {
-  const [mensajes,   setMensajes]   = useState<MensajeType[]>(initial)
+  const [mensajes,   setMensajes]   = useState<MensajeInquilinoType[]>(initial)
   const [respuestas, setRespuestas] = useState<Record<string, RespuestaType[]>>(initialRespuestas)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [vistaMovil, setVistaMovil] = useState<'lista' | 'detalle'>('lista')
   const [texto,    setTexto]    = useState('')
   const [enviando, setEnviando] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [toasts,   setToasts]   = useState<Toast[]>([])
-  const [busqueda, setBusqueda] = useState('')
   const [, setTick] = useState(0)
   const chatRef = useRef<HTMLDivElement>(null)
 
-  const terminoBusqueda = busqueda.trim().toLowerCase()
-  const mensajesFiltrados = terminoBusqueda
-    ? mensajes.filter(
-        (m) =>
-          m.sender_name.toLowerCase().includes(terminoBusqueda) ||
-          m.sender_email.toLowerCase().includes(terminoBusqueda) ||
-          m.address.toLowerCase().includes(terminoBusqueda)
-      )
-    : mensajes
+  const selected   = mensajes.find((m) => m.id === selectedId) ?? null
+  const hiloActual = selectedId ? (respuestas[selectedId] ?? []) : []
+  const hayRespuestaDueno = hiloActual.some((r) => r.autor === 'dueno')
 
-  const selected    = mensajes.find((m) => m.id === selectedId) ?? null
-  const hiloActual  = selectedId ? (respuestas[selectedId] ?? []) : []
-  const ownerInitial = ownerEmail[0]?.toUpperCase() ?? 'V'
+  // Ordenar conversaciones por última actividad
+  const mensajesOrdenados = [...mensajes].sort((a, b) => {
+    const fa = ultimaFecha(a, respuestas[a.id] ?? [])
+    const fb = ultimaFecha(b, respuestas[b.id] ?? [])
+    return new Date(fb).getTime() - new Date(fa).getTime()
+  })
 
   useEffect(() => {
     const timer = setInterval(() => setTick((t) => t + 1), 60_000)
@@ -154,85 +155,44 @@ export default function InboxMensajes({
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight
     }
-  }, [selectedId, respuestas, mensajes])
+  }, [selectedId, respuestas])
 
+  // Suscripción real-time a nuevas respuestas del dueño
   useEffect(() => {
-    if (propertyIds.length === 0) return
+    if (initialMensajeIds.length === 0) return
     const supabase = createClient()
 
-    type PropRow = { address: string; type: string; price_usd: number; photo_urls: string[] | null } | null
-
     const channel = supabase
-      .channel('inbox-realtime')
+      .channel('inbox-inquilino-realtime')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'mensajes' },
-        async (payload) => {
-          const raw = payload.new as { id: string; property_id: string }
-          if (!propertyIds.includes(raw.property_id)) return
+        { event: 'INSERT', schema: 'public', table: 'respuestas_mensajes' },
+        (payload) => {
+          const raw = payload.new as RespuestaType
+          if (!initialMensajeIds.includes(raw.mensaje_id)) return
 
-          const { data } = await supabase
-            .from('mensajes')
-            .select('id, sender_name, sender_email, message, created_at, property_id, leido, properties(address, type, price_usd, photo_urls)')
-            .eq('id', raw.id)
-            .single()
-
-          if (!data) return
-
-          const prop = data.properties as unknown as PropRow
-          const newMsg: MensajeType = {
-            id:            data.id,
-            sender_name:   data.sender_name,
-            sender_email:  data.sender_email,
-            message:       data.message,
-            created_at:    data.created_at,
-            property_id:   data.property_id,
-            leido:         data.leido ?? false,
-            address:       prop?.address ?? '',
-            property_type: prop?.type ?? '',
-            price_usd:     prop?.price_usd ?? 0,
-            photo_url:     prop?.photo_urls?.[0] ?? null,
-          }
-
-          setMensajes((prev) => {
-            if (prev.some((m) => m.id === newMsg.id)) return prev
-            return [newMsg, ...prev]
+          setRespuestas((prev) => {
+            const hilo = prev[raw.mensaje_id] ?? []
+            if (hilo.some((r) => r.id === raw.id)) return prev
+            return { ...prev, [raw.mensaje_id]: [...hilo, raw] }
           })
 
-          addToast(`Nuevo mensaje de ${newMsg.sender_name}${newMsg.address ? ` sobre ${newMsg.address}` : ''}`)
-          playNotificationSound()
+          if (raw.autor === 'dueno') {
+            playNotificationSound()
+          }
         },
       )
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [propertyIds.join(',')])
+  }, [initialMensajeIds.join(',')])
 
-  function addToast(text: string) {
-    const id = Math.random().toString(36).slice(2)
-    setToasts((prev) => [...prev, { id, text }])
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id))
-    }, 4000)
-  }
-
-  async function seleccionar(id: string) {
+  function seleccionar(id: string) {
     setSelectedId(id)
     setVistaMovil('detalle')
     setTexto('')
     setErrorMsg(null)
-
-    setMensajes((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, leido: true } : m)),
-    )
-
-    createClient()
-      .from('mensajes')
-      .update({ leido: true, leido_en: new Date().toISOString() })
-      .eq('id', id)
-      .eq('leido', false)
-      .then(() => {})
   }
 
   async function enviar() {
@@ -241,7 +201,7 @@ export default function InboxMensajes({
     setEnviando(true)
     setErrorMsg(null)
 
-    const res = await fetch('/api/responder-mensaje', {
+    const res = await fetch('/api/responder-inquilino', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mensajeId: selected.id, contenido }),
@@ -264,24 +224,6 @@ export default function InboxMensajes({
 
   return (
     <>
-      {/* ── Toasts ───────────────────────────────────────────── */}
-      <div className="fixed right-4 top-20 z-50 flex flex-col gap-2 pointer-events-none">
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            className="pointer-events-auto flex items-start gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 shadow-lg"
-            style={{ animation: 'toast-in 0.25s ease' }}
-          >
-            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600">
-              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-              </svg>
-            </div>
-            <p className="max-w-[260px] text-sm text-slate-700">{t.text}</p>
-          </div>
-        ))}
-      </div>
-
       <style>{`
         @keyframes toast-in {
           from { opacity: 0; transform: translateY(-8px); }
@@ -300,42 +242,16 @@ export default function InboxMensajes({
           ].join(' ')}
         >
           <div className="shrink-0 border-b border-slate-300 px-5 py-4">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-sm font-semibold text-slate-900">Mensajes recibidos</h1>
+                <h1 className="text-sm font-semibold text-slate-900">Mis conversaciones</h1>
                 <p className="mt-0.5 text-xs text-slate-400">
-                  {mensajesFiltrados.length}/{mensajes.length} conversación{mensajes.length !== 1 ? 'es' : ''}
+                  {mensajes.length} conversación{mensajes.length !== 1 ? 'es' : ''}
                 </p>
               </div>
-              <Link href="/dashboard" className="text-xs text-slate-400 transition-colors hover:text-slate-700">
-                ← Volver
+              <Link href="/propiedades" className="text-xs text-slate-400 transition-colors hover:text-slate-700">
+                Buscar propiedades →
               </Link>
-            </div>
-            {/* Búsqueda */}
-            <div className="relative">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="text"
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Buscar por nombre o propiedad..."
-                aria-label="Buscar conversaciones"
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 py-2 pl-8 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
-              />
-              {busqueda && (
-                <button
-                  type="button"
-                  onClick={() => setBusqueda('')}
-                  aria-label="Limpiar búsqueda"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              )}
             </div>
           </div>
 
@@ -344,45 +260,76 @@ export default function InboxMensajes({
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
                 <IconSobre className="h-5 w-5 text-slate-400" />
               </div>
-              <p className="text-sm text-slate-500">No recibiste mensajes todavía</p>
-              <p className="text-xs text-slate-400">Aparecerán aquí cuando alguien te contacte.</p>
+              <p className="text-sm text-slate-500">No enviaste mensajes todavía</p>
+              <p className="text-xs text-slate-400">Cuando contactes a un dueño, la conversación aparecerá aquí.</p>
+              <Link
+                href="/propiedades"
+                className="mt-1 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+              >
+                Buscar propiedades
+              </Link>
             </div>
           ) : (
             <ul className="flex-1 divide-y divide-slate-100 overflow-y-auto">
-              {mensajesFiltrados.map((m) => (
-                <li key={m.id}>
-                  <button
-                    type="button"
-                    onClick={() => seleccionar(m.id)}
-                    className={[
-                      'w-full px-5 py-4 text-left transition-colors hover:bg-slate-50',
-                      m.id === selectedId ? 'bg-blue-50' : '',
-                    ].join(' ')}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={['flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold', avatarColor(m.sender_name)].join(' ')}>
-                        {m.sender_name[0]?.toUpperCase()}
-                      </div>
+              {mensajesOrdenados.map((m) => {
+                const hilo    = respuestas[m.id] ?? []
+                const ultimo  = ultimoMensaje(m, hilo)
+                const fecha   = ultimaFecha(m, hilo)
+                const tieneRespDueno = hilo.some((r) => r.autor === 'dueno')
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <span className="truncate text-sm font-semibold text-slate-900">{m.sender_name}</span>
-                            {!m.leido && (
-                              <span className="h-2 w-2 shrink-0 rounded-full bg-blue-600" />
-                            )}
+                return (
+                  <li key={m.id}>
+                    <button
+                      type="button"
+                      onClick={() => seleccionar(m.id)}
+                      className={[
+                        'w-full px-5 py-4 text-left transition-colors hover:bg-slate-50',
+                        m.id === selectedId ? 'bg-blue-50' : '',
+                      ].join(' ')}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Foto de la propiedad */}
+                        {m.photo_url ? (
+                          <img
+                            src={m.photo_url}
+                            alt={m.address}
+                            className="h-11 w-11 shrink-0 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
+                              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                              <polyline points="9 22 9 12 15 12 15 22" />
+                            </svg>
                           </div>
-                          <span className="shrink-0 text-xs text-slate-400">{fechaRelativa(m.created_at)}</span>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex min-w-0 items-center gap-1.5">
+                              <span className="truncate text-sm font-semibold text-slate-900">
+                                {m.address || '—'}
+                              </span>
+                              {tieneRespDueno && (
+                                <span className="h-2 w-2 shrink-0 rounded-full bg-blue-600" />
+                              )}
+                            </div>
+                            <span className="shrink-0 text-xs text-slate-400">{fechaRelativa(fecha)}</span>
+                          </div>
+                          {m.price_usd > 0 && (
+                            <p className="mt-0.5 text-xs font-medium text-blue-600">
+                              USD {Number(m.price_usd).toLocaleString('es-AR')}/mes
+                            </p>
+                          )}
+                          <p className="mt-1 truncate text-xs text-slate-500">
+                            {ultimo.length > 60 ? `${ultimo.slice(0, 60)}…` : ultimo}
+                          </p>
                         </div>
-                        <p className="mt-0.5 truncate text-xs text-slate-400">{m.address || '—'}</p>
-                        <p className="mt-1 truncate text-xs text-slate-500">
-                          {m.message.length > 60 ? `${m.message.slice(0, 60)}…` : m.message}
-                        </p>
                       </div>
-                    </div>
-                  </button>
-                </li>
-              ))}
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </aside>
@@ -452,19 +399,9 @@ export default function InboxMensajes({
                   </div>
                 </div>
 
-                {/* Datos del inquilino */}
+                {/* Subtítulo */}
                 <div className="bg-white px-6 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
-                      {selected.sender_name[0]?.toUpperCase()}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0">
-                      <span className="text-sm font-semibold text-slate-900">{selected.sender_name}</span>
-                      <a href={`mailto:${selected.sender_email}`} className="text-sm text-slate-400 transition-colors hover:text-slate-700">
-                        {selected.sender_email}
-                      </a>
-                    </div>
-                  </div>
+                  <p className="text-xs font-medium text-slate-500">Conversación con el dueño</p>
                 </div>
               </div>
 
@@ -472,22 +409,33 @@ export default function InboxMensajes({
               <div ref={chatRef} className="flex-1 overflow-y-auto bg-slate-50 px-6 py-6">
                 <div className="flex flex-col gap-4">
 
-                  {/* Mensaje original */}
-                  <div className="flex items-end gap-3">
-                    <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
-                      {selected.sender_name[0]?.toUpperCase()}
-                    </div>
-                    <div className="flex max-w-[75%] flex-col gap-1">
-                      <div className="rounded-2xl rounded-bl-sm bg-white border border-slate-300 px-4 py-3 text-sm leading-relaxed text-slate-800 whitespace-pre-wrap shadow-sm">
+                  {/* Mensaje original del inquilino — derecha, azul */}
+                  <div className="flex items-end justify-end gap-3">
+                    <div className="flex max-w-[75%] flex-col items-end gap-1">
+                      <div className="rounded-2xl rounded-br-sm bg-blue-600 px-4 py-3 text-sm leading-relaxed text-white whitespace-pre-wrap">
                         {selected.message}
                       </div>
-                      <span className="ml-1 text-xs text-slate-400">{fechaChat(selected.created_at)}</span>
+                      <span className="mr-1 text-xs text-slate-400">{fechaChat(selected.created_at)}</span>
+                    </div>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
+                      {selected.sender_name[0]?.toUpperCase() ?? 'V'}
                     </div>
                   </div>
 
+                  {/* Si no hay respuestas del dueño aún */}
+                  {!hayRespuestaDueno && hiloActual.length === 0 && (
+                    <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                      <IconReloj className="h-4 w-4 shrink-0 text-amber-500" />
+                      <p className="text-sm text-amber-700">
+                        Tu mensaje fue enviado. El dueño todavía no respondió.
+                      </p>
+                    </div>
+                  )}
+
                   {/* Respuestas del hilo */}
                   {hiloActual.map((r) =>
-                    r.autor === 'dueno' ? (
+                    r.autor === 'inquilino' ? (
+                      /* Respuesta del inquilino — derecha, azul */
                       <div key={r.id} className="flex items-end justify-end gap-3">
                         <div className="flex max-w-[75%] flex-col items-end gap-1">
                           <div className="rounded-2xl rounded-br-sm bg-blue-600 px-4 py-3 text-sm leading-relaxed text-white whitespace-pre-wrap">
@@ -496,13 +444,14 @@ export default function InboxMensajes({
                           <span className="mr-1 text-xs text-slate-400">{fechaChat(r.created_at)}</span>
                         </div>
                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
-                          {ownerInitial}
+                          {selected.sender_name[0]?.toUpperCase() ?? 'V'}
                         </div>
                       </div>
                     ) : (
+                      /* Respuesta del dueño — izquierda, gris */
                       <div key={r.id} className="flex items-end gap-3">
-                        <div className={['flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold', avatarColor(selected.sender_name)].join(' ')}>
-                          {selected.sender_name[0]?.toUpperCase()}
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-600">
+                          D
                         </div>
                         <div className="flex max-w-[75%] flex-col gap-1">
                           <div className="rounded-2xl rounded-bl-sm bg-white border border-slate-300 px-4 py-3 text-sm leading-relaxed text-slate-800 whitespace-pre-wrap shadow-sm">

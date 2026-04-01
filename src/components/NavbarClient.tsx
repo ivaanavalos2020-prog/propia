@@ -10,6 +10,7 @@ interface Props {
   isLoggedIn: boolean
   userEmail: string | null
   userName: string | null
+  isDueno: boolean
 }
 
 // ── Icons ──────────────────────────────────────────────────────────────────
@@ -59,16 +60,22 @@ const NAV_LINKS = [
   { label: 'Cómo funciona',  href: '/#como-funciona',  matchPath: '',             exact: false, noActive: true  },
 ]
 
-const DROPDOWN_LINKS = [
+const DROPDOWN_LINKS_DUENO = [
   { label: 'Mi dashboard', href: '/dashboard'          },
   { label: 'Mis mensajes', href: '/dashboard/mensajes' },
   { label: 'Favoritos',    href: '/favoritos'          },
   { label: 'Mi perfil',    href: '/perfil'             },
 ]
 
+const DROPDOWN_LINKS_INQUILINO = [
+  { label: 'Mis mensajes', href: '/mensajes'  },
+  { label: 'Favoritos',    href: '/favoritos' },
+  { label: 'Mi perfil',    href: '/perfil'    },
+]
+
 // ── Component ───────────────────────────────────────────────────────────────
 
-export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props) {
+export default function NavbarClient({ isLoggedIn, userEmail, userName, isDueno }: Props) {
   const [scrolled,     setScrolled]     = useState(false)
   const [drawerOpen,   setDrawerOpen]   = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -126,6 +133,8 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props)
   }
 
   const initial = userEmail?.charAt(0).toUpperCase() ?? '?'
+  const mensajesHref   = isDueno ? '/dashboard/mensajes' : '/mensajes'
+  const dropdownLinks  = isDueno ? DROPDOWN_LINKS_DUENO : DROPDOWN_LINKS_INQUILINO
 
   return (
     <>
@@ -184,13 +193,13 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props)
 
                 {/* Mensajes */}
                 <Link
-                  href="/dashboard/mensajes"
+                  href={mensajesHref}
                   aria-label="Mensajes"
                   className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900"
                 >
                   <IconSobre />
                   <span className="absolute -top-0.5 -right-0.5">
-                    <BadgeMensajes />
+                    <BadgeMensajes isDueno={isDueno} />
                   </span>
                 </Link>
 
@@ -226,7 +235,7 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props)
                       </div>
 
                       <div className="py-1" role="none">
-                        {DROPDOWN_LINKS.map(({ label, href }) => (
+                        {dropdownLinks.map(({ label, href }) => (
                           <Link
                             key={href}
                             href={href}
@@ -267,13 +276,13 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props)
           <div className="flex items-center gap-2 md:hidden">
             {isLoggedIn && (
               <Link
-                href="/dashboard/mensajes"
+                href={mensajesHref}
                 aria-label="Mensajes"
                 className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:text-slate-900"
               >
                 <IconSobre />
                 <span className="absolute -top-0.5 -right-0.5">
-                  <BadgeMensajes />
+                  <BadgeMensajes isDueno={isDueno} />
                 </span>
               </Link>
             )}
@@ -369,7 +378,7 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName }: Props)
                 <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                   Mi cuenta
                 </p>
-                {DROPDOWN_LINKS.map(({ label, href }) => (
+                {dropdownLinks.map(({ label, href }) => (
                   <Link
                     key={href}
                     href={href}

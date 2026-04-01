@@ -8,9 +8,10 @@ const MENSAJE_VISITA = 'Hola, estoy interesado/a en esta propiedad y me gustarí
 interface Props {
   propertyId: string
   userEmail?: string | null
+  yaConsulto?: boolean
 }
 
-export default function BotonesContacto({ propertyId, userEmail }: Props) {
+export default function BotonesContacto({ propertyId, userEmail, yaConsulto = false }: Props) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [mensajeInicial, setMensajeInicial] = useState('')
 
@@ -47,6 +48,7 @@ export default function BotonesContacto({ propertyId, userEmail }: Props) {
         propertyId={propertyId}
         userEmail={userEmail}
         mensajeInicial={mensajeInicial}
+        yaConsulto={yaConsulto}
       />
     </>
   )
