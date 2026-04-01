@@ -8,6 +8,10 @@ import GaleriaFotos from './GaleriaFotos'
 import BotonesContacto from './BotonesContacto'
 import ContadorVistas from './ContadorVistas'
 import VentajasUbicacion from './VentajasUbicacion'
+import StarRating from '@/components/StarRating'
+import BadgeVerificado from '@/components/BadgeVerificado'
+import TrustScoreCircle from '@/components/TrustScoreCircle'
+import { calcularTrustScore } from '@/lib/trustScore'
 
 const BASE_URL = 'https://propia-kappa.vercel.app'
 
@@ -191,6 +195,88 @@ export default async function PropiedadPage({
       .eq('sender_email', userEmail)
       .maybeSingle()
     yaConsulto = !!data
+  }
+
+  // ── Owner profile + reviews + trust score ───────────────────────
+  type OwnerData = {
+    nombre: string | null
+    identity_verified: boolean
+    verification_status: string
+    telefono: string | null
+    avatar_url: string | null
+    created_at: string | null
+    avgRating: number
+    reviewCount: number
+    trustScore: ReturnType<typeof calcularTrustScore>
+    totalMensajes: number
+    totalRespondidos: number
+  }
+
+  let ownerData: OwnerData | null = null
+
+  if (propiedad?.owner_id) {
+    const ownerId = propiedad.owner_id as string
+
+    // Mensajes para calcular tasa de respuesta
+    const [ownerPerfilResult, ownerReviewsResult, propMensajesResult] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('nombre, identity_verified, verification_status, telefono, avatar_url, created_at')
+        .eq('id', ownerId)
+        .single(),
+      supabase
+        .from('reviews')
+        .select('rating')
+        .eq('reviewed_id', ownerId),
+      supabase
+        .from('mensajes')
+        .select('id')
+        .in('property_id', [propiedad.id]),
+    ])
+
+    const ownerPerfil = ownerPerfilResult.data
+    const rawReviews  = ownerReviewsResult.data ?? []
+    const rawMensajes = propMensajesResult.data ?? []
+
+    // Contar cuántos mensajes tienen al menos una respuesta
+    let respondidos = 0
+    if (rawMensajes.length > 0) {
+      const { data: respuestas } = await supabase
+        .from('respuestas_mensajes')
+        .select('mensaje_id')
+        .in('mensaje_id', rawMensajes.map((m) => m.id))
+        .eq('autor', 'dueno')
+      const respondidosSet = new Set((respuestas ?? []).map((r) => r.mensaje_id))
+      respondidos = respondidosSet.size
+    }
+
+    const avgRating = rawReviews.length > 0
+      ? rawReviews.reduce((s, r) => s + (r.rating as number), 0) / rawReviews.length
+      : 0
+    const responseRate = rawMensajes.length > 0 ? respondidos / rawMensajes.length : 0
+
+    const trustScore = calcularTrustScore({
+      identityVerified: (ownerPerfil?.identity_verified as boolean) ?? false,
+      phone:            (ownerPerfil?.telefono as string) ?? null,
+      avatarUrl:        (ownerPerfil?.avatar_url as string) ?? null,
+      createdAt:        (ownerPerfil?.created_at as string) ?? null,
+      avgRating,
+      responseRate,
+    })
+
+    ownerData = {
+      nombre:               (ownerPerfil?.nombre as string) ?? null,
+      identity_verified:    (ownerPerfil?.identity_verified as boolean) ?? false,
+      verification_status:  (ownerPerfil?.verification_status as string) ?? 'unverified',
+      telefono:             (ownerPerfil?.telefono as string) ?? null,
+      avatar_url:           (ownerPerfil?.avatar_url as string) ?? null,
+      created_at:           (ownerPerfil?.created_at as string) ?? null,
+      avgRating,
+      reviewCount:          rawReviews.length,
+      trustScore,
+      totalMensajes:        rawMensajes.length,
+      totalRespondidos:     respondidos,
+    }
   }
 
   if (!propiedad) {
@@ -685,6 +771,93 @@ export default async function PropiedadPage({
                 <BotonesContacto propertyId={propiedad.id} userEmail={userEmail} yaConsulto={yaConsulto} />
               </div>
 
+              {/* ── Por qué confiar en esta publicación ──────────── */}
+              {ownerData && (
+                <div className="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
+                  <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-500">
+                    Por qué confiar en esta publicación
+                  </h2>
+
+                  <div className="flex flex-col gap-3">
+                    {/* Antigüedad */}
+                    {propiedad.created_at && (
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                        <p className="text-sm text-slate-600">
+                          Publicado hace{' '}
+                          {Math.max(1, Math.round((Date.now() - new Date(propiedad.created_at as string).getTime()) / 86_400_000))}{' '}
+                          días
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Verificación */}
+                    {ownerData.identity_verified ? (
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                        <p className="text-sm text-slate-600">Dueño verificado por PROPIA</p>
+                      </div>
+                    ) : ownerData.verification_status === 'pending' ? (
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </span>
+                        <p className="text-sm text-slate-600">Verificación del dueño pendiente</p>
+                      </div>
+                    ) : null}
+
+                    {/* Consultas respondidas */}
+                    {ownerData.totalMensajes > 0 && (
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                        <p className="text-sm text-slate-600">
+                          {ownerData.totalRespondidos} de {ownerData.totalMensajes} consultas respondidas
+                          {' '}({Math.round((ownerData.totalRespondidos / ownerData.totalMensajes) * 100)}%)
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Reviews positivas */}
+                    {ownerData.reviewCount > 0 && (
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm text-slate-600">{ownerData.reviewCount} reviews del dueño</p>
+                          <StarRating value={ownerData.avgRating} size={12} />
+                          <Link
+                            href={`/reviews/${propiedad.owner_id}`}
+                            className="text-xs font-medium text-blue-600 hover:underline"
+                          >
+                            Ver →
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Trust score del dueño */}
+                  {ownerData && (
+                    <div className="mt-5 flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                      <TrustScoreCircle result={ownerData.trustScore} size="sm" />
+                      <div>
+                        <p className="text-xs font-semibold text-slate-700">Score de confianza del dueño</p>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          Calculado en base a verificación, reviews y actividad
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
             </div>
 
             {/* Columna derecha — card sticky (desktop) */}
@@ -723,6 +896,28 @@ export default async function PropiedadPage({
                     Sin comisiones ni intermediarios
                   </p>
                 </div>
+
+                {/* Owner badge + rating */}
+                {ownerData && (ownerData.identity_verified || ownerData.reviewCount > 0) && (
+                  <div className="flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                    {ownerData.identity_verified && (
+                      <div className="flex justify-center">
+                        <BadgeVerificado label="Dueño verificado" />
+                      </div>
+                    )}
+                    {ownerData.reviewCount > 0 && (
+                      <div className="flex flex-col items-center gap-1">
+                        <StarRating value={ownerData.avgRating} size={14} />
+                        <Link
+                          href={`/reviews/${propiedad.owner_id}`}
+                          className="text-xs text-slate-500 hover:text-blue-600"
+                        >
+                          Ver {ownerData.reviewCount} review{ownerData.reviewCount !== 1 ? 's' : ''} del dueño
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {(propiedad.views_count ?? 0) > 0 && (
                   <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400">

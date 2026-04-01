@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import ListadoPropiedades from './ListadoPropiedades'
+import VerificationBanner from '@/components/VerificationBanner'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -14,11 +15,18 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const { data: propiedades } = await supabase
-    .from('properties')
-    .select('id, type, address, price_usd, includes_expenses, status')
-    .eq('owner_id', session.user.id)
-    .order('created_at', { ascending: false })
+  const [{ data: propiedades }, { data: perfil }] = await Promise.all([
+    supabase
+      .from('properties')
+      .select('id, type, address, price_usd, includes_expenses, status')
+      .eq('owner_id', session.user.id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('profiles')
+      .select('telefono, identity_verified, verification_status')
+      .eq('id', session.user.id)
+      .single(),
+  ])
 
   const propertyIds = propiedades?.map((p) => p.id) ?? []
 
@@ -51,6 +59,7 @@ export default async function DashboardPage() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-slate-50">
       <Navbar />
+      {!(perfil?.identity_verified as boolean | null) && <VerificationBanner />}
 
       <main className="flex flex-1 flex-col px-6 pt-24 pb-12 md:px-10">
         <div className="mx-auto w-full max-w-4xl">
@@ -206,6 +215,64 @@ export default async function DashboardPage() {
               <span className="shrink-0 text-sm font-semibold text-red-600">Ver mensajes →</span>
             </Link>
           )}
+
+          {/* Completá tu perfil — checklist */}
+          {(() => {
+            const tieneTelefono     = !!(perfil?.telefono as string | null)
+            const estaVerificado    = !!(perfil?.identity_verified as boolean | null)
+            const tienePropiedad    = total > 0
+            const { data: { session: _s } } = { data: { session } }
+            const items = [
+              { label: 'Cuenta creada',           done: true,           href: null              },
+              { label: 'Teléfono de contacto',    done: tieneTelefono,  href: '/perfil'         },
+              { label: 'Identidad verificada',    done: estaVerificado, href: '/verificar-identidad' },
+              { label: 'Primera propiedad publicada', done: tienePropiedad, href: '/publicar'   },
+            ]
+            const completados = items.filter((i) => i.done).length
+            const todoCompleto = completados === items.length
+            if (todoCompleto) return null
+            return (
+              <div className="mt-6 rounded-xl border border-slate-300 bg-white p-5 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-slate-900">Completá tu perfil</h2>
+                  <span className="text-xs text-slate-400">{completados}/{items.length}</span>
+                </div>
+                <div className="mb-3 h-1.5 w-full rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-blue-600 transition-all"
+                    style={{ width: `${(completados / items.length) * 100}%` }}
+                  />
+                </div>
+                <ul className="flex flex-col gap-2">
+                  {items.map((item) => (
+                    <li key={item.label} className="flex items-center gap-3">
+                      <span className={[
+                        'flex h-5 w-5 shrink-0 items-center justify-center rounded-full',
+                        item.done ? 'bg-green-100 text-green-600' : 'border border-slate-300 text-slate-300',
+                      ].join(' ')}>
+                        {item.done ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        ) : (
+                          <span className="h-1.5 w-1.5 rounded-full bg-slate-200" />
+                        )}
+                      </span>
+                      {item.href && !item.done ? (
+                        <Link href={item.href} className="text-sm text-blue-600 hover:underline">
+                          {item.label}
+                        </Link>
+                      ) : (
+                        <span className={`text-sm ${item.done ? 'text-slate-700' : 'text-slate-400'}`}>
+                          {item.label}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })()}
 
           {/* Sección título */}
           {total > 0 && (

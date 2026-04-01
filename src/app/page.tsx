@@ -400,6 +400,68 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* ── Tu seguridad es lo primero ───────────────────────── */}
+      <section className="bg-[#F0F4FF] px-6 py-20 md:px-10">
+        <AnimarAlEntrar>
+          <div className="mx-auto max-w-5xl">
+            <div className="mb-10 text-center">
+              <span className="inline-block rounded-full border border-blue-200 bg-blue-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-600">
+                Confianza y seguridad
+              </span>
+              <h2 className="mt-4 text-3xl font-extrabold text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+                Tu seguridad es lo primero
+              </h2>
+              <p className="mt-3 text-slate-500">Herramientas para que dueños e inquilinos confíen entre sí</p>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-3">
+              {[
+                {
+                  icono: (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  ),
+                  titulo: 'Identidades verificadas',
+                  desc:   'Los usuarios pueden verificar su identidad subiendo su DNI. El badge verificado aparece en su perfil y en cada publicación.',
+                },
+                {
+                  icono: (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  ),
+                  titulo: 'Reviews reales',
+                  desc:   'Dueños e inquilinos pueden calificarse mutuamente. Las reseñas son públicas y verificadas para que puedas tomar decisiones informadas.',
+                },
+                {
+                  icono: (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  ),
+                  titulo: 'Soporte directo',
+                  desc:   'Si algo no sale como esperás, estamos para ayudarte. Podés contactarnos directamente y te respondemos a la brevedad.',
+                },
+              ].map((card, i) => (
+                <div
+                  key={card.titulo}
+                  className="flex flex-col gap-4 rounded-2xl border border-[#CBD5E1] bg-white p-6 shadow-sm"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    {card.icono}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">{card.titulo}</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{card.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </AnimarAlEntrar>
+      </section>
+
       {/* ── CTA final ────────────────────────────────────────── */}
       <section className="bg-slate-900 px-6 py-20 md:px-10">
         <AnimarAlEntrar>
