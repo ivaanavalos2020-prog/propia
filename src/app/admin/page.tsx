@@ -188,42 +188,41 @@ export default function AdminPage() {
   // ── Abrir modal y cargar fotos firmadas ───────────────────────────────────
 
   async function abrirModal(v: VerifRow) {
-    const displayName = v.email ?? v.full_name ?? v.id
+    // Email > nombre > id truncado como display
+    const displayName = v.email ?? v.full_name ?? `${v.id.slice(0, 8)}...`
     const LABELS = ['DNI Frente', 'DNI Dorso', 'Selfie con DNI']
+    const userId = v.id  // siempre el profile.id
 
-    // Inicializar modal con fotos en loading
+    // Abrir modal inmediatamente con fotos en estado loading
     const fotosIniciales: FotoState[] = LABELS.map((label) => ({
       label, url: null, loading: true, error: false,
     }))
-    setModalVerif({ userId: v.id, displayName, fotos: fotosIniciales, fase: 'fotos', motivoRechazo: '', loadingAccion: false })
+    setModalVerif({ userId, displayName, fotos: fotosIniciales, fase: 'fotos', motivoRechazo: '', loadingAccion: false })
 
-    // Usar los paths almacenados en DB o construir desde userId como fallback
-    const rawPaths = [
-      v.verification_dni_front_url,
-      v.verification_dni_back_url,
-      v.verification_selfie_url,
+    // Paths exactos en Storage: {userId}/dni-frente.jpg, etc.
+    const PATHS = [
+      `${userId}/dni-frente.jpg`,
+      `${userId}/dni-dorso.jpg`,
+      `${userId}/selfie.jpg`,
     ]
-    const paths = rawPaths.map((p, i) => {
-      if (p) return p
-      const nombres = ['dni-frente.jpg', 'dni-dorso.jpg', 'selfie.jpg']
-      return `${v.id}/${nombres[i]}`
-    })
 
-    // Generar las 3 URLs firmadas de forma individual con manejo de error por foto
+    console.log('[admin] Generando signed URLs para userId:', userId)
+    console.log('[admin] Paths a firmar:', PATHS)
+
+    // Generar las 3 URLs firmadas individualmente con try/catch por foto
     const fotosResueltas: FotoState[] = await Promise.all(
-      paths.map(async (path, i) => {
+      PATHS.map(async (path, i) => {
         try {
-          const res = await fetch('/api/admin/signed-urls', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ paths: [path] }),
-          })
-          if (!res.ok) return { label: LABELS[i], url: null, loading: false, error: true }
-          const data = await res.json()
-          const item = data.urls?.[0]
-          if (!item || item.error || !item.url) return { label: LABELS[i], url: null, loading: false, error: true }
-          return { label: LABELS[i], url: item.url as string, loading: false, error: false }
-        } catch {
+          const result = await supabase.storage
+            .from('verificaciones')
+            .createSignedUrl(path, 3600)
+
+          console.log(`[admin] ${LABELS[i]} →`, result.error ? `ERROR: ${result.error.message}` : result.data?.signedUrl)
+
+          const url = result.error ? null : (result.data?.signedUrl ?? null)
+          return { label: LABELS[i], url, loading: false, error: !url }
+        } catch (e) {
+          console.error(`[admin] Excepción generando URL para ${path}:`, e)
           return { label: LABELS[i], url: null, loading: false, error: true }
         }
       })
@@ -570,28 +569,24 @@ export default function AdminPage() {
                 <div key={foto.label} className="flex flex-col gap-2">
                   <p className="text-xs font-semibold text-slate-600">{foto.label}</p>
                   {foto.loading ? (
-                    <div className="flex h-[300px] items-center justify-center rounded-lg border border-[#CBD5E1] bg-slate-50">
+                    <div style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: '1px solid #CBD5E1', background: '#F8F9FA' }}>
                       <div className="h-6 w-6 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
                     </div>
-                  ) : foto.error || !foto.url ? (
-                    <div className="flex h-[300px] flex-col items-center justify-center gap-2 rounded-lg border border-[#CBD5E1] bg-[#F8F9FA]">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                      </svg>
-                      <p className="text-xs text-slate-400">Foto no disponible</p>
-                    </div>
-                  ) : (
+                  ) : foto.url ? (
                     <a href={foto.url} target="_blank" rel="noopener noreferrer">
                       <img
                         src={foto.url}
                         alt={foto.label}
-                        className="h-[300px] w-full rounded-lg border border-[#CBD5E1] object-cover hover:opacity-90"
-                        onError={(e) => {
-                          const el = e.currentTarget.parentElement?.parentElement
-                          if (el) el.innerHTML = '<div class="flex h-[300px] flex-col items-center justify-center gap-2 rounded-lg border border-[#CBD5E1] bg-[#F8F9FA]"><p class="text-xs text-slate-400">Foto no disponible</p></div>'
-                        }}
+                        style={{ width: '100%', height: 300, objectFit: 'cover', borderRadius: 8, border: '1px solid #CBD5E1', display: 'block' }}
                       />
                     </a>
+                  ) : (
+                    <div style={{ height: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 8, border: '1px solid #CBD5E1', background: '#F8F9FA' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#CBD5E1' }}>
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                      </svg>
+                      <p style={{ fontSize: 12, color: '#94A3B8' }}>Foto no disponible</p>
+                    </div>
                   )}
                 </div>
               ))}
