@@ -11,6 +11,17 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
+      // Guardar email en profiles para que el admin pueda verlo
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user?.id && user?.email) {
+          await supabase.from('profiles').upsert(
+            { id: user.id, email: user.email },
+            { onConflict: 'id' }
+          )
+        }
+      } catch { /* no bloquear el login si falla */ }
+
       return NextResponse.redirect(`${origin}/dashboard`)
     }
   }
