@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
+import { createAdminSupabaseClient } from '@/lib/supabase-admin'
 
 const ADMIN_EMAIL = 'ivaan.avalos2020@gmail.com'
 
 export async function POST(req: NextRequest) {
+  // ── Auth: verificar que el caller es el admin ─────────────────
   const supabase = await createServerSupabaseClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session || session.user.email !== ADMIN_EMAIL) {
+  if (!user || user.email !== ADMIN_EMAIL) {
     return NextResponse.json({ error: 'No autorizado.' }, { status: 403 })
   }
 
@@ -20,19 +22,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Parámetros inválidos.' }, { status: 400 })
   }
 
+  // ── Usar service role para bypassar RLS al actualizar otro usuario ──
+  const admin = createAdminSupabaseClient()
+
   const updates =
     accion === 'aprobar'
       ? {
-          identity_verified:      true,
-          verification_status:    'verified',
-          identity_verified_at:   new Date().toISOString(),
+          identity_verified:    true,
+          verification_status:  'verified',
+          identity_verified_at: new Date().toISOString(),
         }
       : {
           identity_verified:   false,
           verification_status: 'rejected',
         }
 
-  const { error } = await supabase
+  const { error } = await admin
     .from('profiles')
     .update(updates)
     .eq('id', userId)

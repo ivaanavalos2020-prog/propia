@@ -7,50 +7,103 @@ const ADMIN_EMAIL = 'ivaan.avalos2020@gmail.com'
 
 export const metadata = { title: 'Admin — PROPIA' }
 
-// Forzar render dinámico (no cachear datos del admin)
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
   // ── Auth: solo el admin puede acceder ─────────────────────────
   const supabase = await createServerSupabaseClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session || session.user.email !== ADMIN_EMAIL) {
+  if (!user || user.email !== ADMIN_EMAIL) {
     redirect('/')
   }
 
-  const admin = createAdminSupabaseClient()
+  // ── Admin client (service role, bypasa RLS) ───────────────────
+  let admin: ReturnType<typeof createAdminSupabaseClient>
+  try {
+    admin = createAdminSupabaseClient()
+  } catch {
+    throw new Error(
+      'SUPABASE_SERVICE_ROLE_KEY no está configurada en .env.local. ' +
+      'Copiá la "service_role" key desde Supabase Dashboard → Settings → API.'
+    )
+  }
 
   // ── 1. Usuarios (via service role) ────────────────────────────
-  const { data: authUsers } = await admin.auth.admin.listUsers({ perPage: 1000 })
-  const usuarios = authUsers?.users ?? []
+  let usuarios: Awaited<ReturnType<typeof admin.auth.admin.listUsers>>['data']['users'] = []
+  try {
+    const { data, error } = await admin.auth.admin.listUsers({ perPage: 1000 })
+    if (error) console.error('[admin] listUsers error:', error.message)
+    else usuarios = data?.users ?? []
+  } catch (e) {
+    console.error('[admin] listUsers exception:', e)
+  }
 
-  // ── 2. Profiles (verificación + datos) ────────────────────────
-  const { data: profiles } = await admin
-    .from('profiles')
-    .select('id, nombre, identity_verified, verification_status, verification_dni_front_url, verification_dni_back_url, verification_selfie_url, created_at, telefono')
+  // ── 2. Profiles ───────────────────────────────────────────────
+  let profiles: Array<{
+    id: string
+    nombre: string | null
+    identity_verified: boolean | null
+    verification_status: string | null
+    verification_dni_front_url: string | null
+    verification_dni_back_url: string | null
+    verification_selfie_url: string | null
+    created_at: string | null
+    telefono: string | null
+  }> = []
+  try {
+    const { data, error } = await admin
+      .from('profiles')
+      .select('id, nombre, identity_verified, verification_status, verification_dni_front_url, verification_dni_back_url, verification_selfie_url, created_at, telefono')
+    if (error) console.error('[admin] profiles error:', error.message)
+    else profiles = (data ?? []) as typeof profiles
+  } catch (e) {
+    console.error('[admin] profiles exception:', e)
+  }
 
-  const profileMap = new Map((profiles ?? []).map((p) => [p.id as string, p]))
+  const profileMap = new Map(profiles.map((p) => [p.id, p]))
 
   // ── 3. Propiedades ────────────────────────────────────────────
-  const { data: propiedades } = await admin
-    .from('properties')
-    .select('id, address, owner_id, status, created_at, price_usd, type')
-    .order('created_at', { ascending: false })
+  let propiedades: Array<{
+    id: string
+    address: string | null
+    owner_id: string | null
+    status: string | null
+    created_at: string | null
+    price_usd: number | null
+    type: string | null
+  }> = []
+  try {
+    const { data, error } = await admin
+      .from('properties')
+      .select('id, address, owner_id, status, created_at, price_usd, type')
+      .order('created_at', { ascending: false })
+    if (error) console.error('[admin] properties error:', error.message)
+    else propiedades = (data ?? []) as typeof propiedades
+  } catch (e) {
+    console.error('[admin] properties exception:', e)
+  }
 
   // ── 4. Propiedades por usuario ────────────────────────────────
   const propsPorUsuario = new Map<string, number>()
-  for (const p of propiedades ?? []) {
-    const ownerId = p.owner_id as string
-    propsPorUsuario.set(ownerId, (propsPorUsuario.get(ownerId) ?? 0) + 1)
+  for (const p of propiedades) {
+    if (!p.owner_id) continue
+    propsPorUsuario.set(p.owner_id, (propsPorUsuario.get(p.owner_id) ?? 0) + 1)
   }
 
   // ── 5. Mensajes hoy ───────────────────────────────────────────
-  const hoyISO = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
-  const { count: mensajesHoy } = await admin
-    .from('mensajes')
-    .select('*', { count: 'exact', head: true })
-    .gte('created_at', `${hoyISO}T00:00:00.000Z`)
+  let mensajesHoy = 0
+  try {
+    const hoyISO = new Date().toISOString().slice(0, 10)
+    const { count, error } = await admin
+      .from('mensajes')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', `${hoyISO}T00:00:00.000Z`)
+    if (error) console.error('[admin] mensajes error:', error.message)
+    else mensajesHoy = count ?? 0
+  } catch (e) {
+    console.error('[admin] mensajes exception:', e)
+  }
 
   // ── Armar datos para el cliente ───────────────────────────────
 
@@ -71,9 +124,9 @@ export default async function AdminPage() {
       email:               u.email ?? '',
       createdAt:           u.created_at ?? '',
       propiedadesCount:    propsPorUsuario.get(u.id) ?? 0,
-      nombre:              (p?.nombre as string) ?? null,
-      isVerified:          (p?.identity_verified as boolean) ?? false,
-      verificationStatus:  (p?.verification_status as string) ?? 'unverified',
+      nombre:              p?.nombre ?? null,
+      isVerified:          p?.identity_verified ?? false,
+      verificationStatus:  p?.verification_status ?? 'unverified',
     }
   })
 
@@ -88,20 +141,17 @@ export default async function AdminPage() {
   }
 
   const verificacionesPendientes: VerifRow[] = usuarios
-    .filter((u) => {
-      const p = profileMap.get(u.id)
-      return (p?.verification_status as string) === 'pending'
-    })
+    .filter((u) => profileMap.get(u.id)?.verification_status === 'pending')
     .map((u) => {
       const p = profileMap.get(u.id)
       return {
         userId:       u.id,
         email:        u.email ?? '',
-        nombre:       (p?.nombre as string) ?? null,
-        dniFrontPath: (p?.verification_dni_front_url as string) ?? null,
-        dniBackPath:  (p?.verification_dni_back_url as string) ?? null,
-        selfiePath:   (p?.verification_selfie_url as string) ?? null,
-        submittedAt:  (p?.created_at as string) ?? null,
+        nombre:       p?.nombre ?? null,
+        dniFrontPath: p?.verification_dni_front_url ?? null,
+        dniBackPath:  p?.verification_dni_back_url ?? null,
+        selfiePath:   p?.verification_selfie_url ?? null,
+        submittedAt:  p?.created_at ?? null,
       }
     })
 
@@ -116,26 +166,26 @@ export default async function AdminPage() {
     priceUsd: number
   }
 
-  const propiedadesRows: PropiedadRow[] = (propiedades ?? []).map((p) => {
-    const owner = usuarios.find((u) => u.id === (p.owner_id as string))
-    const ownerProfile = profileMap.get(p.owner_id as string)
+  const propiedadesRows: PropiedadRow[] = propiedades.map((p) => {
+    const owner = usuarios.find((u) => u.id === p.owner_id)
+    const ownerProfile = p.owner_id ? profileMap.get(p.owner_id) : undefined
     return {
-      id:          p.id as string,
-      address:     (p.address as string) ?? '—',
-      type:        (p.type as string) ?? '',
+      id:          p.id,
+      address:     p.address ?? '—',
+      type:        p.type ?? '',
       ownerEmail:  owner?.email ?? '—',
-      ownerNombre: (ownerProfile?.nombre as string) ?? null,
-      status:      (p.status as string) ?? '',
-      createdAt:   (p.created_at as string) ?? '',
-      priceUsd:    (p.price_usd as number) ?? 0,
+      ownerNombre: ownerProfile?.nombre ?? null,
+      status:      p.status ?? '',
+      createdAt:   p.created_at ?? '',
+      priceUsd:    p.price_usd ?? 0,
     }
   })
 
   const resumen = {
-    totalUsuarios:             usuarios.length,
-    propiedadesActivas:        (propiedades ?? []).filter((p) => p.status === 'active').length,
-    mensajesHoy:               mensajesHoy ?? 0,
-    verificacionesPendientes:  verificacionesPendientes.length,
+    totalUsuarios:            usuarios.length,
+    propiedadesActivas:       propiedades.filter((p) => p.status === 'active').length,
+    mensajesHoy,
+    verificacionesPendientes: verificacionesPendientes.length,
   }
 
   return (
