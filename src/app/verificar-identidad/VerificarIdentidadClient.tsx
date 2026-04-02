@@ -203,47 +203,102 @@ export default function VerificarIdentidadClient({ userId, currentStatus, isVeri
     setEnviando(true)
     setError(null)
 
+    const supabase = createClient()
+
+    // ── Upload DNI frente ─────────────────────────────────────────
+    const pathFront = `${userId}/dni-frente.jpg`
     try {
-      const supabase = createClient()
-
-      async function upload(file: File, name: string): Promise<string> {
-        const ext  = file.name.split('.').pop() ?? 'jpg'
-        const path = `${userId}/${name}.${ext}`
-        const { error: upErr } = await supabase.storage
-          .from('verificaciones')
-          .upload(path, file, { upsert: true })
-        if (upErr) throw upErr
-        const { data: { publicUrl } } = supabase.storage
-          .from('verificaciones')
-          .getPublicUrl(path)
-        return publicUrl
-      }
-
-      const [frontUrl, backUrl, selfieUrl] = await Promise.all([
-        upload(archivos.dniFront!, 'dni_front'),
-        upload(archivos.dniBack!,  'dni_back'),
-        upload(archivos.selfie!,   'selfie'),
-      ])
-
-      const { error: updateErr } = await supabase
-        .from('profiles')
-        .update({
-          verification_status:       'pending',
-          verification_dni_front_url: frontUrl,
-          verification_dni_back_url:  backUrl,
-          verification_selfie_url:    selfieUrl,
+      const { error: upErr } = await supabase.storage
+        .from('verificaciones')
+        .upload(pathFront, archivos.dniFront, {
+          upsert: true,
+          contentType: archivos.dniFront.type || 'image/jpeg',
         })
-        .eq('id', userId)
-
-      if (updateErr) throw updateErr
-
-      setEnviado(true)
+      if (upErr) {
+        console.error('[verificación] Error subiendo DNI frente:', upErr)
+        setError(`Error al subir el DNI frente: ${upErr.message}`)
+        setEnviando(false)
+        return
+      }
     } catch (err) {
-      console.error(err)
-      setError('Ocurrió un error al enviar. Revisá tu conexión e intentá de nuevo.')
-    } finally {
+      console.error('[verificación] Excepción subiendo DNI frente:', err)
+      setError(`Error inesperado al subir el DNI frente. Revisá tu conexión.`)
       setEnviando(false)
+      return
     }
+
+    // ── Upload DNI dorso ──────────────────────────────────────────
+    const pathBack = `${userId}/dni-dorso.jpg`
+    try {
+      const { error: upErr } = await supabase.storage
+        .from('verificaciones')
+        .upload(pathBack, archivos.dniBack, {
+          upsert: true,
+          contentType: archivos.dniBack.type || 'image/jpeg',
+        })
+      if (upErr) {
+        console.error('[verificación] Error subiendo DNI dorso:', upErr)
+        setError(`Error al subir el DNI dorso: ${upErr.message}`)
+        setEnviando(false)
+        return
+      }
+    } catch (err) {
+      console.error('[verificación] Excepción subiendo DNI dorso:', err)
+      setError(`Error inesperado al subir el DNI dorso. Revisá tu conexión.`)
+      setEnviando(false)
+      return
+    }
+
+    // ── Upload selfie ─────────────────────────────────────────────
+    const pathSelfie = `${userId}/selfie.jpg`
+    try {
+      const { error: upErr } = await supabase.storage
+        .from('verificaciones')
+        .upload(pathSelfie, archivos.selfie, {
+          upsert: true,
+          contentType: archivos.selfie.type || 'image/jpeg',
+        })
+      if (upErr) {
+        console.error('[verificación] Error subiendo selfie:', upErr)
+        setError(`Error al subir la selfie: ${upErr.message}`)
+        setEnviando(false)
+        return
+      }
+    } catch (err) {
+      console.error('[verificación] Excepción subiendo selfie:', err)
+      setError(`Error inesperado al subir la selfie. Revisá tu conexión.`)
+      setEnviando(false)
+      return
+    }
+
+    // ── Upsert en profiles ────────────────────────────────────────
+    try {
+      const { error: upsertErr } = await supabase
+        .from('profiles')
+        .upsert({
+          id:                          userId,
+          verification_status:         'pending',
+          identity_verified:           false,
+          verification_dni_front_url:  pathFront,
+          verification_dni_back_url:   pathBack,
+          verification_selfie_url:     pathSelfie,
+        })
+
+      if (upsertErr) {
+        console.error('[verificación] Error guardando en profiles:', upsertErr)
+        setError(`Error al guardar la verificación: ${upsertErr.message}`)
+        setEnviando(false)
+        return
+      }
+    } catch (err) {
+      console.error('[verificación] Excepción guardando en profiles:', err)
+      setError(`Error inesperado al guardar. Intentá de nuevo.`)
+      setEnviando(false)
+      return
+    }
+
+    setEnviando(false)
+    setEnviado(true)
   }
 
   return (
