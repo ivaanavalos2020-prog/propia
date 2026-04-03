@@ -10,6 +10,7 @@ interface Props {
   isLoggedIn: boolean
   userEmail: string | null
   userName: string | null
+  avatarUrl?: string | null
   isDueno: boolean
 }
 
@@ -75,7 +76,7 @@ const DROPDOWN_LINKS_INQUILINO = [
 
 // ── Component ───────────────────────────────────────────────────────────────
 
-export default function NavbarClient({ isLoggedIn, userEmail, userName, isDueno }: Props) {
+export default function NavbarClient({ isLoggedIn, userEmail, userName, avatarUrl, isDueno }: Props) {
   const [scrolled,     setScrolled]     = useState(false)
   const [drawerOpen,   setDrawerOpen]   = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -132,7 +133,7 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName, isDueno 
     return pathname === link.matchPath || pathname.startsWith(link.matchPath + '/')
   }
 
-  const initial = userEmail?.charAt(0).toUpperCase() ?? '?'
+  const initial = (userName ?? userEmail)?.charAt(0).toUpperCase() ?? '?'
   const mensajesHref   = isDueno ? '/dashboard/mensajes' : '/mensajes'
   const dropdownLinks  = isDueno ? DROPDOWN_LINKS_DUENO : DROPDOWN_LINKS_INQUILINO
 
@@ -215,9 +216,15 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName, isDueno 
                     aria-label="Menú de usuario"
                     aria-expanded={dropdownOpen}
                     aria-haspopup="menu"
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600 transition-opacity duration-200 hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"
+                    className="h-8 w-8 overflow-hidden rounded-full transition-opacity duration-200 hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"
                   >
-                    {initial}
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">
+                        {initial}
+                      </span>
+                    )}
                   </button>
 
                   {/* Dropdown */}
@@ -333,8 +340,14 @@ export default function NavbarClient({ isLoggedIn, userEmail, userName, isDueno 
         {/* User info */}
         {isLoggedIn && (
           <div className="flex shrink-0 items-center gap-3 border-b border-slate-300 px-5 py-4">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">
-              {initial}
+            <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="h-9 w-9 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">
+                  {initial}
+                </span>
+              )}
             </div>
             <div className="min-w-0 flex flex-col">
               {userName && <span className="truncate text-sm font-semibold text-slate-800">{userName}</span>}

@@ -12,14 +12,14 @@ import { calcularTrustScore } from '@/lib/trustScore'
 export default async function PerfilPage() {
   const supabase = await createServerSupabaseClient()
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  if (!session) redirect('/login')
+  if (!user) redirect('/login')
 
-  const userId = session.user.id
-  const userEmail = session.user.email ?? ''
-  const emailVerificado = !!session.user.email_confirmed_at
+  const userId = user.id
+  const userEmail = user.email ?? ''
+  const emailVerificado = !!user.email_confirmed_at
 
   // ── Parallel: profile + properties + reviews ──────────────────
   const [{ data: perfil }, { data: propiedades }, { data: rawReviews }] = await Promise.all([

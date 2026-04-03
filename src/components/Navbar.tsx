@@ -8,13 +8,16 @@ export default async function Navbar() {
   let userName: string | null = null
   let isDueno = false
 
+  let avatarUrl: string | null = null
+
   if (session) {
     const [perfilResult, propResult] = await Promise.all([
-      supabase.from('profiles').select('nombre').eq('id', session.user.id).single(),
+      supabase.from('profiles').select('full_name, avatar_url').eq('id', session.user.id).single(),
       supabase.from('properties').select('id', { count: 'exact', head: true }).eq('owner_id', session.user.id).limit(1),
     ])
-    userName = (perfilResult.data?.nombre as string) ?? null
-    isDueno  = (propResult.count ?? 0) > 0
+    userName  = (perfilResult.data?.full_name as string) ?? null
+    avatarUrl = (perfilResult.data?.avatar_url as string) ?? null
+    isDueno   = (propResult.count ?? 0) > 0
   }
 
   return (
@@ -22,6 +25,7 @@ export default async function Navbar() {
       isLoggedIn={!!session}
       userEmail={session?.user.email ?? null}
       userName={userName}
+      avatarUrl={avatarUrl}
       isDueno={isDueno}
     />
   )

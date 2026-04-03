@@ -280,6 +280,7 @@ function TabCuenta({
     const supabase = createClient()
     const { error } = await supabase.from('profiles').upsert({
       id: userId,
+      email: userEmail,
       full_name: nombre.trim() || null,
       phone: telefono.trim() || null,
       dni: dni.trim() || null,
@@ -289,15 +290,16 @@ function TabCuenta({
       show_whatsapp: showWhatsapp,
       notify_messages: notifyMessages,
       updated_at: new Date().toISOString(),
-    })
+    }, { onConflict: 'id' })
     setGuardando(false)
     if (error) {
-      setToast('Error al guardar. Intentá de nuevo.')
+      console.error('Error guardando perfil:', error)
+      setToast(`Error: ${error.message}`)
     } else {
       setToast('¡Cambios guardados correctamente!')
       setTimeout(() => setToast(''), 3000)
     }
-  }, [userId, nombre, telefono, dni, fechaNac, whatsapp, showPhone, showWhatsapp, notifyMessages])
+  }, [userId, userEmail, nombre, telefono, dni, fechaNac, whatsapp, showPhone, showWhatsapp, notifyMessages])
 
   return (
     <div className="space-y-5">

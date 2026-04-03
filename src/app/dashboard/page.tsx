@@ -23,7 +23,7 @@ export default async function DashboardPage() {
       .order('created_at', { ascending: false }),
     supabase
       .from('profiles')
-      .select('telefono, identity_verified, verification_status')
+      .select('phone, identity_verified, verification_status')
       .eq('id', session.user.id)
       .single(),
   ])
@@ -218,7 +218,7 @@ export default async function DashboardPage() {
 
           {/* Completá tu perfil — checklist */}
           {(() => {
-            const tieneTelefono     = !!(perfil?.telefono as string | null)
+            const tieneTelefono     = !!(perfil?.phone as string | null)
             const estaVerificado    = !!(perfil?.identity_verified as boolean | null)
             const tienePropiedad    = total > 0
             const { data: { session: _s } } = { data: { session } }
