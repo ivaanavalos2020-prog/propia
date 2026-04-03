@@ -26,7 +26,7 @@ export default async function PerfilPage() {
     supabase
       .from('profiles')
       .select(
-        'nombre, telefono, whatsapp, show_phone, show_whatsapp, notify_messages, cuit, razon_social, condicion_afip, created_at, identity_verified, verification_status, avatar_url'
+        'full_name, phone, whatsapp, show_phone, show_whatsapp, notify_messages, cuit, razon_social, condicion_afip, created_at, identity_verified, verification_status, avatar_url, dni, fecha_nacimiento'
       )
       .eq('id', userId)
       .single(),
@@ -97,7 +97,7 @@ export default async function PerfilPage() {
     : 0
   const trustResult = calcularTrustScore({
     identityVerified: (perfil?.identity_verified as boolean) ?? false,
-    phone:            (perfil?.telefono as string) ?? null,
+    phone:            (perfil?.phone as string) ?? null,
     avatarUrl:        (perfil?.avatar_url as string) ?? null,
     createdAt:        (perfil?.created_at as string) ?? null,
     avgRating,
@@ -149,8 +149,8 @@ export default async function PerfilPage() {
             userEmail={userEmail}
             emailVerificado={emailVerificado}
             perfil={{
-              nombre:          (perfil?.nombre as string)          ?? null,
-              telefono:        (perfil?.telefono as string)        ?? null,
+              full_name:       (perfil?.full_name as string)       ?? null,
+              phone:           (perfil?.phone as string)           ?? null,
               whatsapp:        (perfil?.whatsapp as string)        ?? null,
               show_phone:      (perfil?.show_phone as boolean)     ?? false,
               show_whatsapp:   (perfil?.show_whatsapp as boolean)  ?? false,
@@ -159,6 +159,9 @@ export default async function PerfilPage() {
               razon_social:    (perfil?.razon_social as string)    ?? null,
               condicion_afip:  (perfil?.condicion_afip as string)  ?? null,
               created_at:      (perfil?.created_at as string)      ?? null,
+              dni:             (perfil?.dni as string)             ?? null,
+              fecha_nacimiento:(perfil?.fecha_nacimiento as string) ?? null,
+              avatar_url:      (perfil?.avatar_url as string)      ?? null,
             }}
             propiedades={props}
             mensajes={mensajes}

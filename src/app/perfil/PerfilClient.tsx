@@ -7,8 +7,8 @@ import { createClient } from '@/lib/supabase-client'
 // ── Types ──────────────────────────────────────────────────────────────────
 
 interface PerfilData {
-  nombre: string | null
-  telefono: string | null
+  full_name: string | null
+  phone: string | null
   whatsapp: string | null
   show_phone: boolean
   show_whatsapp: boolean
@@ -17,6 +17,9 @@ interface PerfilData {
   razon_social: string | null
   condicion_afip: string | null
   created_at: string | null
+  dni: string | null
+  fecha_nacimiento: string | null
+  avatar_url: string | null
 }
 
 interface Propiedad {
@@ -221,22 +224,52 @@ function TabCuenta({
   emailVerificado: boolean
   perfil: PerfilData
 }) {
-  const [nombre, setNombre] = useState(perfil.nombre ?? '')
-  const [telefono, setTelefono] = useState(perfil.telefono ?? '')
+  const [nombre, setNombre]               = useState(perfil.full_name ?? '')
+  const [telefono, setTelefono]           = useState(perfil.phone ?? '')
+  const [dni, setDni]                     = useState(perfil.dni ?? '')
+  const [fechaNac, setFechaNac]           = useState(perfil.fecha_nacimiento ?? '')
   const [notifyMessages, setNotifyMessages] = useState(perfil.notify_messages)
-  const [showPhone, setShowPhone] = useState(perfil.show_phone)
-  const [showWhatsapp, setShowWhatsapp] = useState(perfil.show_whatsapp)
-  const [whatsapp, setWhatsapp] = useState(perfil.whatsapp ?? '')
-  const [guardando, setGuardando] = useState(false)
-  const [toast, setToast] = useState('')
+  const [showPhone, setShowPhone]         = useState(perfil.show_phone)
+  const [showWhatsapp, setShowWhatsapp]   = useState(perfil.show_whatsapp)
+  const [whatsapp, setWhatsapp]           = useState(perfil.whatsapp ?? '')
+  const [avatarUrl, setAvatarUrl]         = useState(perfil.avatar_url ?? '')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [guardando, setGuardando]         = useState(false)
+  const [toast, setToast]                 = useState('')
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAvatar(true)
+    const supabase = createClient()
+    const ext = file.name.split('.').pop() ?? 'jpg'
+    const path = `${userId}/avatar.${ext}`
+    const { error: upErr } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type })
+    if (upErr) {
+      setToast('Error al subir la foto. Intentá de nuevo.')
+      setUploadingAvatar(false)
+      return
+    }
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+    const newUrl = urlData.publicUrl
+    await supabase.from('profiles').upsert({ id: userId, avatar_url: newUrl, updated_at: new Date().toISOString() })
+    setAvatarUrl(newUrl)
+    setUploadingAvatar(false)
+    setToast('Foto actualizada')
+    setTimeout(() => setToast(''), 3000)
+  }
 
   const guardar = useCallback(async () => {
     setGuardando(true)
     const supabase = createClient()
     const { error } = await supabase.from('profiles').upsert({
       id: userId,
-      nombre: nombre.trim() || null,
-      telefono: telefono.trim() || null,
+      full_name: nombre.trim() || null,
+      phone: telefono.trim() || null,
+      dni: dni.trim() || null,
+      fecha_nacimiento: fechaNac || null,
       whatsapp: whatsapp.trim() || null,
       show_phone: showPhone,
       show_whatsapp: showWhatsapp,
@@ -250,12 +283,37 @@ function TabCuenta({
       setToast('¡Cambios guardados correctamente!')
       setTimeout(() => setToast(''), 3000)
     }
-  }, [userId, nombre, telefono, whatsapp, showPhone, showWhatsapp, notifyMessages])
+  }, [userId, nombre, telefono, dni, fechaNac, whatsapp, showPhone, showWhatsapp, notifyMessages])
 
   return (
     <div className="space-y-5">
       <SectionCard title="Información personal">
         <div className="space-y-4">
+          {/* Foto de perfil */}
+          <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16 shrink-0">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-slate-200" />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-extrabold text-white">
+                  {(nombre || userEmail).charAt(0).toUpperCase()}
+                </div>
+              )}
+              {uploadingAvatar && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-semibold text-slate-700">Foto de perfil</p>
+              <label className="cursor-pointer rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100">
+                {uploadingAvatar ? 'Subiendo...' : 'Cambiar foto'}
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={uploadingAvatar} />
+              </label>
+            </div>
+          </div>
+
           <InputField
             label="Nombre completo"
             id="nombre"
@@ -271,6 +329,22 @@ function TabCuenta({
             type="tel"
             placeholder="+54 9 11 XXXX-XXXX"
           />
+          <div className="grid grid-cols-2 gap-4">
+            <InputField
+              label="DNI / CUIL"
+              id="dni"
+              value={dni}
+              onChange={setDni}
+              placeholder="Ej: 38123456"
+            />
+            <InputField
+              label="Fecha de nacimiento"
+              id="fecha_nacimiento"
+              value={fechaNac}
+              onChange={setFechaNac}
+              type="date"
+            />
+          </div>
           <InputField
             label="Email"
             id="email"
@@ -875,10 +949,10 @@ export default function PerfilClient({
   const router = useRouter()
   const [tabActiva, setTabActiva] = useState<Tab>('cuenta')
   const [editandoNombre, setEditandoNombre] = useState(false)
-  const [nombreSidebar, setNombreSidebar] = useState(perfil.nombre ?? '')
+  const [nombreSidebar, setNombreSidebar] = useState(perfil.full_name ?? '')
   const [guardandoNombre, setGuardandoNombre] = useState(false)
 
-  const initial = (perfil.nombre ?? userEmail).charAt(0).toUpperCase()
+  const initial = (perfil.full_name ?? userEmail).charAt(0).toUpperCase()
   const totalVistas = propiedades.reduce((s, p) => s + p.views_count, 0)
 
   const cerrarSesion = useCallback(async () => {
@@ -892,7 +966,7 @@ export default function PerfilClient({
     const supabase = createClient()
     await supabase.from('profiles').upsert({
       id: userId,
-      nombre: nombreSidebar.trim() || null,
+      full_name: nombreSidebar.trim() || null,
       updated_at: new Date().toISOString(),
     })
     setGuardandoNombre(false)
@@ -942,7 +1016,7 @@ export default function PerfilClient({
                 className="group flex items-center gap-1.5 text-base font-bold text-slate-900 transition-colors hover:text-blue-600"
                 title="Clic para editar"
               >
-                {perfil.nombre ?? 'Sin nombre'}
+                {perfil.full_name ?? 'Sin nombre'}
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300 group-hover:text-blue-400" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
             )}

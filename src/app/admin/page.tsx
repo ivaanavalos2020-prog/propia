@@ -40,6 +40,7 @@ interface VerifModal {
   fase: 'fotos' | 'rechazando'
   motivoRechazo: string
   loadingAccion: boolean
+  errorMsg: string | null
 }
 
 interface PropiedadRow {
@@ -55,8 +56,12 @@ interface UsuarioRow {
   id: string
   full_name: string | null
   email: string | null
+  phone: string | null
+  dni: string | null
   identity_verified: boolean | null
+  verification_status: string | null
   updated_at: string | null
+  propiedadesCount: number
 }
 
 interface ToastState {
@@ -149,16 +154,27 @@ export default function AdminPage() {
         .select('id, full_name, email, verification_status, verification_dni_front_url, verification_dni_back_url, verification_selfie_url, updated_at')
         .eq('verification_status', 'pending'),
       supabase.from('properties').select('id, type, address, status, created_at, owner_id').order('created_at', { ascending: false }),
-      supabase.from('profiles').select('id, full_name, email, identity_verified, updated_at').order('updated_at', { ascending: false }),
+      supabase.from('profiles').select('id, full_name, email, phone, dni, identity_verified, verification_status, updated_at').order('updated_at', { ascending: false }),
     ])
 
     const totalUsuarios      = totalUsuariosRes.status === 'fulfilled' ? (totalUsuariosRes.value.count ?? 0) : 0
     const propiedadesActivas = propActivasRes.status === 'fulfilled'   ? (propActivasRes.value.count ?? 0)  : 0
     const mensajesHoy        = mensajesHoyRes.status === 'fulfilled'   ? (mensajesHoyRes.value.count ?? 0)  : 0
 
-    const verifsData   = verifsRes.status === 'fulfilled'  ? ((verifsRes.value.data   ?? []) as VerifRow[])    : []
-    const propsData    = propsRes.status === 'fulfilled'   ? ((propsRes.value.data    ?? []) as PropiedadRow[]) : []
-    const usuariosData = usuariosRes.status === 'fulfilled' ? ((usuariosRes.value.data ?? []) as UsuarioRow[])  : []
+    const verifsData = verifsRes.status === 'fulfilled'  ? ((verifsRes.value.data ?? []) as VerifRow[])    : []
+    const propsData  = propsRes.status === 'fulfilled'   ? ((propsRes.value.data  ?? []) as PropiedadRow[]) : []
+    const rawUsers   = usuariosRes.status === 'fulfilled' ? ((usuariosRes.value.data ?? []) as Omit<UsuarioRow, 'propiedadesCount'>[]) : []
+
+    // Contar propiedades por owner usando los datos ya obtenidos
+    const propsPorOwner = new Map<string, number>()
+    propsData.forEach((p) => {
+      if (p.owner_id) propsPorOwner.set(p.owner_id, (propsPorOwner.get(p.owner_id) ?? 0) + 1)
+    })
+
+    const usuariosData: UsuarioRow[] = rawUsers.map((u) => ({
+      ...u,
+      propiedadesCount: propsPorOwner.get(u.id) ?? 0,
+    }))
 
     setResumen({ totalUsuarios, propiedadesActivas, mensajesHoy, verificacionesPendientes: verifsData.length })
     setVerifs(verifsData)
@@ -197,7 +213,7 @@ export default function AdminPage() {
     const fotosIniciales: FotoState[] = LABELS.map((label) => ({
       label, url: null, loading: true, error: false,
     }))
-    setModalVerif({ userId, displayName, fotos: fotosIniciales, fase: 'fotos', motivoRechazo: '', loadingAccion: false })
+    setModalVerif({ userId, displayName, fotos: fotosIniciales, fase: 'fotos', motivoRechazo: '', loadingAccion: false, errorMsg: null })
 
     // Paths exactos en Storage: {userId}/dni-frente.jpg, etc.
     const PATHS = [
@@ -235,54 +251,58 @@ export default function AdminPage() {
 
   async function aprobar() {
     if (!modalVerif) return
-    setModalVerif((prev) => prev ? { ...prev, loadingAccion: true } : null)
+    const userId = modalVerif.userId
+    setModalVerif((prev) => prev ? { ...prev, loadingAccion: true, errorMsg: null } : null)
 
-    try {
-      const res = await fetch('/api/admin/verificacion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: modalVerif.userId, accion: 'aprobar' }),
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        identity_verified: true,
+        verification_status: 'verified',
+        identity_verified_at: new Date().toISOString(),
       })
-      if (res.ok) {
-        setVerifs((prev) => prev.filter((v) => v.id !== modalVerif.userId))
-        setResumen((prev) => ({ ...prev, verificacionesPendientes: Math.max(0, prev.verificacionesPendientes - 1) }))
-        setModalVerif(null)
-        setToast({ msg: 'Usuario verificado correctamente', tipo: 'ok' })
-      } else {
-        setModalVerif((prev) => prev ? { ...prev, loadingAccion: false } : null)
-        setToast({ msg: 'Error al aprobar. Intentá de nuevo.', tipo: 'error' })
-      }
-    } catch {
-      setModalVerif((prev) => prev ? { ...prev, loadingAccion: false } : null)
-      setToast({ msg: 'Error de red. Intentá de nuevo.', tipo: 'error' })
+      .eq('id', userId)
+
+    if (error) {
+      console.error('[admin] Error aprobando verificación:', error)
+      const msg = `Error: ${error.message} (code: ${error.code})`
+      setModalVerif((prev) => prev ? { ...prev, loadingAccion: false, errorMsg: msg } : null)
+      return
     }
+
+    console.log('[admin] Verificación aprobada para userId:', userId)
+    setVerifs((prev) => prev.filter((v) => v.id !== userId))
+    setResumen((prev) => ({ ...prev, verificacionesPendientes: Math.max(0, prev.verificacionesPendientes - 1) }))
+    setModalVerif(null)
+    setToast({ msg: 'Usuario verificado correctamente', tipo: 'ok' })
   }
 
   // ── Rechazar verificación ─────────────────────────────────────────────────
 
   async function rechazar() {
     if (!modalVerif) return
-    setModalVerif((prev) => prev ? { ...prev, loadingAccion: true } : null)
+    const userId = modalVerif.userId
+    setModalVerif((prev) => prev ? { ...prev, loadingAccion: true, errorMsg: null } : null)
 
-    try {
-      const res = await fetch('/api/admin/verificacion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: modalVerif.userId, accion: 'rechazar' }),
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        verification_status: 'rejected',
       })
-      if (res.ok) {
-        setVerifs((prev) => prev.filter((v) => v.id !== modalVerif.userId))
-        setResumen((prev) => ({ ...prev, verificacionesPendientes: Math.max(0, prev.verificacionesPendientes - 1) }))
-        setModalVerif(null)
-        setToast({ msg: 'Verificación rechazada', tipo: 'ok' })
-      } else {
-        setModalVerif((prev) => prev ? { ...prev, loadingAccion: false } : null)
-        setToast({ msg: 'Error al rechazar. Intentá de nuevo.', tipo: 'error' })
-      }
-    } catch {
-      setModalVerif((prev) => prev ? { ...prev, loadingAccion: false } : null)
-      setToast({ msg: 'Error de red. Intentá de nuevo.', tipo: 'error' })
+      .eq('id', userId)
+
+    if (error) {
+      console.error('[admin] Error rechazando verificación:', error)
+      const msg = `Error: ${error.message} (code: ${error.code})`
+      setModalVerif((prev) => prev ? { ...prev, loadingAccion: false, errorMsg: msg } : null)
+      return
     }
+
+    console.log('[admin] Verificación rechazada para userId:', userId)
+    setVerifs((prev) => prev.filter((v) => v.id !== userId))
+    setResumen((prev) => ({ ...prev, verificacionesPendientes: Math.max(0, prev.verificacionesPendientes - 1) }))
+    setModalVerif(null)
+    setToast({ msg: 'Verificación rechazada', tipo: 'ok' })
   }
 
   // ── Acciones propiedad ────────────────────────────────────────────────────
@@ -506,29 +526,49 @@ export default function AdminPage() {
                   <tr className="border-b border-[#CBD5E1] bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
                     <th className="px-4 py-3 text-left">Email</th>
                     <th className="px-4 py-3 text-left">Nombre</th>
-                    <th className="px-4 py-3 text-left">Última actividad</th>
-                    <th className="px-4 py-3 text-left">Verificado</th>
+                    <th className="px-4 py-3 text-left">Teléfono</th>
+                    <th className="px-4 py-3 text-left">DNI</th>
+                    <th className="px-4 py-3 text-left">Verificación</th>
+                    <th className="px-4 py-3 text-center">Props</th>
+                    <th className="px-4 py-3 text-left">Actividad</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#CBD5E1]">
-                  {usuarios.map((u) => (
-                    <tr key={u.id} className="bg-white hover:bg-slate-50">
-                      <td className="max-w-[220px] truncate px-4 py-3 font-mono text-xs text-slate-700">
-                        {u.email ?? <span className="text-slate-400">—</span>}
-                      </td>
-                      <td className="px-4 py-3 text-slate-700">
-                        {u.full_name ?? <span className="text-slate-400">—</span>}
-                      </td>
-                      <td className="px-4 py-3 text-slate-500">{fecha(u.updated_at)}</td>
-                      <td className="px-4 py-3">
-                        {u.identity_verified ? (
-                          <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">Verificado</span>
-                        ) : (
-                          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-500">No verificado</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {usuarios.map((u) => {
+                    const vs = u.verification_status ?? 'unverified'
+                    const vsBadge =
+                      vs === 'verified'   ? { label: 'Verificado',  cls: 'bg-green-100 text-green-700' } :
+                      vs === 'pending'    ? { label: 'Pendiente',   cls: 'bg-amber-100 text-amber-700' } :
+                      vs === 'rejected'   ? { label: 'Rechazado',   cls: 'bg-red-100 text-red-700'    } :
+                                           { label: 'Sin verif.',   cls: 'bg-slate-100 text-slate-500' }
+                    return (
+                      <tr key={u.id} className="bg-white hover:bg-slate-50">
+                        <td className="max-w-[200px] truncate px-4 py-3 font-mono text-xs text-slate-700">
+                          {u.email ?? <span className="text-slate-400">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-slate-700">
+                          {u.full_name ?? <span className="text-slate-400">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">
+                          {u.phone ?? <span className="text-slate-400">—</span>}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs text-slate-600">
+                          {u.dni ?? <span className="text-slate-400">—</span>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${vsBadge.cls}`}>
+                            {vsBadge.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`font-semibold ${u.propiedadesCount > 0 ? 'text-blue-600' : 'text-slate-400'}`}>
+                            {u.propiedadesCount}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">{fecha(u.updated_at)}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -594,6 +634,13 @@ export default function AdminPage() {
 
             {/* Separador */}
             <div className="border-t border-[#CBD5E1]" />
+
+            {/* Error en pantalla */}
+            {modalVerif.errorMsg && (
+              <div className="mx-6 mb-1 mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                <p className="text-xs font-mono text-red-700">{modalVerif.errorMsg}</p>
+              </div>
+            )}
 
             {/* Fase fotos: botones aprobar/rechazar */}
             {modalVerif.fase === 'fotos' && (
