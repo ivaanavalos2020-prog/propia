@@ -233,6 +233,7 @@ function TabCuenta({
   const [showWhatsapp, setShowWhatsapp]   = useState(perfil.show_whatsapp)
   const [whatsapp, setWhatsapp]           = useState(perfil.whatsapp ?? '')
   const [avatarUrl, setAvatarUrl]         = useState(perfil.avatar_url ?? '')
+  const [previewUrl, setPreviewUrl]       = useState<string | null>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [guardando, setGuardando]         = useState(false)
   const [toast, setToast]                 = useState('')
@@ -240,14 +241,16 @@ function TabCuenta({
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    const localUrl = URL.createObjectURL(file)
+    setPreviewUrl(localUrl)
     setUploadingAvatar(true)
     const supabase = createClient()
-    const ext = file.name.split('.').pop() ?? 'jpg'
-    const path = `${userId}/avatar.${ext}`
+    const path = `${userId}/avatar.jpg`
     const { error: upErr } = await supabase.storage
       .from('avatars')
       .upload(path, file, { upsert: true, contentType: file.type })
     if (upErr) {
+      setPreviewUrl(null)
       setToast('Error al subir la foto. Intentá de nuevo.')
       setUploadingAvatar(false)
       return
@@ -256,8 +259,19 @@ function TabCuenta({
     const newUrl = urlData.publicUrl
     await supabase.from('profiles').upsert({ id: userId, avatar_url: newUrl, updated_at: new Date().toISOString() })
     setAvatarUrl(newUrl)
+    setPreviewUrl(null)
     setUploadingAvatar(false)
     setToast('Foto actualizada')
+    setTimeout(() => setToast(''), 3000)
+  }
+
+  async function eliminarFoto() {
+    const supabase = createClient()
+    const path = `${userId}/avatar.jpg`
+    await supabase.storage.from('avatars').remove([path])
+    await supabase.from('profiles').upsert({ id: userId, avatar_url: null, updated_at: new Date().toISOString() })
+    setAvatarUrl('')
+    setToast('Foto eliminada')
     setTimeout(() => setToast(''), 3000)
   }
 
@@ -292,8 +306,8 @@ function TabCuenta({
           {/* Foto de perfil */}
           <div className="flex items-center gap-4">
             <div className="relative h-16 w-16 shrink-0">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-slate-200" />
+              {(previewUrl || avatarUrl) ? (
+                <img src={previewUrl ?? avatarUrl} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-slate-200" />
               ) : (
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-extrabold text-white">
                   {(nombre || userEmail).charAt(0).toUpperCase()}
@@ -308,9 +322,18 @@ function TabCuenta({
             <div className="flex flex-col gap-1">
               <p className="text-sm font-semibold text-slate-700">Foto de perfil</p>
               <label className="cursor-pointer rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100">
-                {uploadingAvatar ? 'Subiendo...' : 'Cambiar foto'}
+                {uploadingAvatar ? 'Subiendo...' : avatarUrl ? 'Cambiar foto' : 'Subir foto'}
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={uploadingAvatar} />
               </label>
+              {avatarUrl && !uploadingAvatar && (
+                <button
+                  type="button"
+                  onClick={eliminarFoto}
+                  className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                >
+                  Eliminar foto
+                </button>
+              )}
             </div>
           </div>
 

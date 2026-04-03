@@ -15,13 +15,21 @@ interface Propiedad {
 const PAGE_SIZE = 10
 
 export default function ListadoPropiedades({ propiedades }: { propiedades: Propiedad[] }) {
+  const [lista, setLista] = useState(propiedades)
   const [busqueda, setBusqueda] = useState('')
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'active' | 'paused'>('todos')
   const [pagina, setPagina] = useState(1)
+  const [toast, setToast] = useState('')
+
+  function eliminarPropiedad(id: string) {
+    setLista((prev) => prev.filter((p) => p.id !== id))
+    setToast('Propiedad eliminada')
+    setTimeout(() => setToast(''), 3000)
+  }
 
   const termino = busqueda.trim().toLowerCase()
 
-  const filtradas = propiedades.filter((p) => {
+  const filtradas = lista.filter((p) => {
     const coincideTexto = !termino ||
       p.address.toLowerCase().includes(termino) ||
       p.type.toLowerCase().includes(termino)
@@ -46,6 +54,12 @@ export default function ListadoPropiedades({ propiedades }: { propiedades: Propi
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-green-200 bg-green-50 px-5 py-3 text-sm font-medium text-green-700 shadow-lg">
+          {toast}
+        </div>
+      )}
       {/* Búsqueda + filtro estado */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
@@ -118,7 +132,7 @@ export default function ListadoPropiedades({ propiedades }: { propiedades: Propi
         <>
           <ul className="flex flex-col gap-3">
             {visibles.map((p) => (
-              <PropiedadItem key={p.id} {...p} />
+              <PropiedadItem key={p.id} {...p} onEliminar={() => eliminarPropiedad(p.id)} />
             ))}
           </ul>
 
