@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
+import { PROVINCIAS_ORDENADAS } from '@/app/propiedades/ubicaciones'
 
 const ADMIN_EMAIL = 'ivaan.avalos2020@gmail.com'
 
@@ -393,8 +394,6 @@ export default function AdminPage() {
   ]
 
   // ── Derivados: propiedades filtradas + paginadas ───────────────────────────
-  const ciudadesProp = [...new Set(propiedades.map((p) => p.city).filter((c): c is string => !!c))].sort()
-
   const filteredProps = propiedades.filter((p) => {
     if (busquedaProp) {
       const q = busquedaProp.toLowerCase()
@@ -599,7 +598,7 @@ export default function AdminPage() {
                   <select value={filtroCiudadProp} onChange={(e) => cambiarFiltroProp(setFiltroCiudadProp, e.target.value)}
                     className="rounded-lg border border-[#CBD5E1] py-2 px-3 text-sm text-slate-700 focus:border-blue-500 focus:outline-none">
                     <option value="all">Todas</option>
-                    {ciudadesProp.map((c) => <option key={c} value={c}>{c}</option>)}
+                    {PROVINCIAS_ORDENADAS.map((p) => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
 

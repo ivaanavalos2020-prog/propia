@@ -102,33 +102,38 @@ export default async function LandingPage() {
 
         <AnimarAlEntrar delay={80}>
           <h1 className="mt-6 max-w-3xl text-5xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-7xl" style={{ letterSpacing: '-0.02em' }}>
-            Alquilá directo,<br />
+            Encontrá tu próximo hogar<br />
             <span className="text-blue-600">sin pagar comisión</span>
           </h1>
         </AnimarAlEntrar>
 
         <AnimarAlEntrar delay={160}>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-500">
-            En Argentina los intermediarios se llevan miles de pesos. PROPIA conecta dueños e
-            inquilinos directamente, sin costos ocultos ni burocracia innecesaria.
+            Miles de propiedades publicadas directamente por sus dueños.
+            Sin intermediarios, sin comisiones ocultas.
           </p>
         </AnimarAlEntrar>
 
         <AnimarAlEntrar delay={240}>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/publicar"
-              className="rounded-xl bg-blue-600 px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-blue-700"
-            >
-              Publicar propiedad gratis
-            </Link>
-            <Link
               href="/propiedades"
-              className="rounded-xl border-2 border-slate-900 px-7 py-3.5 text-base font-semibold text-slate-900 transition-colors hover:bg-slate-900 hover:text-white"
+              className="rounded-xl bg-blue-600 px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-blue-700"
             >
               Buscar alquiler
             </Link>
+            <Link
+              href="/publicar"
+              className="rounded-xl border-2 border-slate-900 px-7 py-3.5 text-base font-semibold text-slate-900 transition-colors hover:bg-slate-900 hover:text-white"
+            >
+              Publicar mi propiedad gratis
+            </Link>
           </div>
+          <p className="mt-3 text-sm text-slate-400">
+            <Link href="/publicar" className="hover:text-blue-600 hover:underline">
+              ¿Sos dueño? Publicá gratis →
+            </Link>
+          </p>
         </AnimarAlEntrar>
 
         <AnimarAlEntrar delay={320} className="w-full max-w-2xl">

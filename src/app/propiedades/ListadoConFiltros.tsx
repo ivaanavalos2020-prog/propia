@@ -11,6 +11,7 @@ import {
 } from './ubicaciones'
 
 const PAGE_SIZE = 12
+const ARS_TO_USD = 1000
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -56,7 +57,10 @@ interface InitialFilters {
   barrio?: string
   busqueda?: string
   orden?: string
-  precio?: string
+  precioMin?: string
+  precioMax?: string
+  moneda?: string
+  ambientes?: string
 }
 
 // ── Icon helpers ─────────────────────────────────────────────────────────────
@@ -367,7 +371,10 @@ export default function ListadoConFiltros({
   const [localidadTexto, setLocalidadTexto] = useState('')
   const [busqueda, setBusqueda] = useState(initialFilters.busqueda ?? '')
   const [orden, setOrden] = useState(initialFilters.orden ?? 'recientes')
-  const [precioMax, setPrecioMax] = useState(initialFilters.precio ?? '')
+  const [precioMin, setPrecioMin] = useState(initialFilters.precioMin ?? '')
+  const [precioMax, setPrecioMax] = useState(initialFilters.precioMax ?? '')
+  const [moneda, setMoneda] = useState(initialFilters.moneda ?? 'usd')
+  const [ambientes, setAmbientes] = useState(initialFilters.ambientes ?? '')
   const [vista, setVista] = useState<'grilla' | 'lista'>('grilla')
   const [ubicacionOpen, setUbicacionOpen] = useState(false)
   const [mobileModalOpen, setMobileModalOpen] = useState(false)
@@ -391,7 +398,7 @@ export default function ListadoConFiltros({
   const mostrarTextInput = !!(zona && zonaConfig && !zonaConfig.filterCity)
 
   // Reset pagination when filters change
-  useEffect(() => { setPagina(1) }, [tipo, provincia, zona, barrio, localidadTexto, busqueda, orden, precioMax])
+  useEffect(() => { setPagina(1) }, [tipo, provincia, zona, barrio, localidadTexto, busqueda, orden, precioMin, precioMax, moneda, ambientes])
 
   // URL sync
   useEffect(() => {
@@ -402,10 +409,13 @@ export default function ListadoConFiltros({
     if (barrio) params.set('barrio', barrio)
     if (busqueda.trim()) params.set('q', busqueda.trim())
     if (orden !== 'recientes') params.set('orden', orden)
-    if (precioMax) params.set('precio', precioMax)
+    if (precioMin) params.set('precioMin', precioMin)
+    if (precioMax) params.set('precioMax', precioMax)
+    if (moneda !== 'usd') params.set('moneda', moneda)
+    if (ambientes) params.set('ambientes', ambientes)
     const qs = params.toString()
     window.history.replaceState(null, '', `/propiedades${qs ? `?${qs}` : ''}`)
-  }, [tipo, provincia, zona, barrio, busqueda, orden, precioMax])
+  }, [tipo, provincia, zona, barrio, busqueda, orden, precioMin, precioMax, moneda, ambientes])
 
   const resultado = useMemo(() => {
     let list = [...propiedades]
@@ -420,7 +430,23 @@ export default function ListadoConFiltros({
     }
 
     if (tipo) list = list.filter(p => p.type === tipo)
-    if (precioMax) list = list.filter(p => p.price_usd <= Number(precioMax))
+
+    if (precioMin) {
+      const minUSD = moneda === 'ars' ? Number(precioMin) / ARS_TO_USD : Number(precioMin)
+      list = list.filter(p => p.price_usd >= minUSD)
+    }
+    if (precioMax) {
+      const maxUSD = moneda === 'ars' ? Number(precioMax) / ARS_TO_USD : Number(precioMax)
+      list = list.filter(p => p.price_usd <= maxUSD)
+    }
+
+    if (ambientes) {
+      if (ambientes === '5+') {
+        list = list.filter(p => p.bedrooms != null && p.bedrooms >= 5)
+      } else {
+        list = list.filter(p => p.bedrooms === Number(ambientes))
+      }
+    }
 
     // Location hierarchy
     if (barrio) {
@@ -448,7 +474,7 @@ export default function ListadoConFiltros({
         )
     }
     return list
-  }, [propiedades, busqueda, tipo, precioMax, barrio, localidadTexto, zona, zonaConfig, provincia, provinciaConfig, orden])
+  }, [propiedades, busqueda, tipo, precioMin, precioMax, moneda, ambientes, barrio, localidadTexto, zona, zonaConfig, provincia, provinciaConfig, orden])
 
   const totalPaginas = Math.ceil(resultado.length / PAGE_SIZE)
   const paginados = resultado.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE)
@@ -461,7 +487,9 @@ export default function ListadoConFiltros({
   if (zona && zonaConfig) pills.push({ key: 'zona', label: `${provincia} · ${zonaConfig.label}` })
   if (barrio) pills.push({ key: 'barrio', label: barrio })
   if (localidadTexto.trim()) pills.push({ key: 'localidad', label: localidadTexto.trim() })
-  if (precioMax) pills.push({ key: 'precio', label: `Hasta USD ${Number(precioMax).toLocaleString('es-AR')}` })
+  if (precioMin) pills.push({ key: 'precioMin', label: `Desde ${moneda.toUpperCase()} ${Number(precioMin).toLocaleString('es-AR')}` })
+  if (precioMax) pills.push({ key: 'precioMax', label: `Hasta ${moneda.toUpperCase()} ${Number(precioMax).toLocaleString('es-AR')}` })
+  if (ambientes) pills.push({ key: 'ambientes', label: ambientes === '5+' ? '5+ amb.' : `${ambientes} amb.` })
 
   function removePill(key: string) {
     if (key === 'tipo') setTipo('')
@@ -469,12 +497,14 @@ export default function ListadoConFiltros({
     if (key === 'zona') { setZona(''); setBarrio(''); setLocalidadTexto('') }
     if (key === 'barrio') setBarrio('')
     if (key === 'localidad') setLocalidadTexto('')
-    if (key === 'precio') setPrecioMax('')
+    if (key === 'precioMin') setPrecioMin('')
+    if (key === 'precioMax') setPrecioMax('')
+    if (key === 'ambientes') setAmbientes('')
   }
 
   function clearAll() {
     setTipo(''); setProvincia(''); setZona(''); setBarrio('')
-    setLocalidadTexto(''); setBusqueda(''); setPrecioMax('')
+    setLocalidadTexto(''); setBusqueda(''); setPrecioMin(''); setPrecioMax(''); setAmbientes('')
   }
 
   const hayFiltros = pills.length > 0
@@ -580,15 +610,33 @@ export default function ListadoConFiltros({
         </button>
 
         {/* Precio */}
-        <select value={precioMax} onChange={e => setPrecioMax(e.target.value)}
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none">
-          <option value="">Precio máximo</option>
-          <option value="300">Hasta USD 300</option>
-          <option value="500">Hasta USD 500</option>
-          <option value="800">Hasta USD 800</option>
-          <option value="1200">Hasta USD 1.200</option>
-          <option value="2000">Hasta USD 2.000</option>
-        </select>
+        <div className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-2 py-1.5 shadow-sm">
+          <select
+            value={moneda}
+            onChange={e => setMoneda(e.target.value)}
+            className="rounded-lg border-0 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 focus:outline-none"
+          >
+            <option value="usd">USD</option>
+            <option value="ars">ARS</option>
+          </select>
+          <input
+            type="number"
+            value={precioMin}
+            onChange={e => setPrecioMin(e.target.value)}
+            placeholder="Mínimo"
+            min={0}
+            className="w-20 rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none"
+          />
+          <span className="text-xs text-slate-400">–</span>
+          <input
+            type="number"
+            value={precioMax}
+            onChange={e => setPrecioMax(e.target.value)}
+            placeholder="Máximo"
+            min={0}
+            className="w-20 rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none"
+          />
+        </div>
 
         {/* Orden */}
         <select value={orden} onChange={e => setOrden(e.target.value)}
@@ -609,6 +657,25 @@ export default function ListadoConFiltros({
             <IconLista />
           </button>
         </div>
+      </div>
+
+      {/* ── Bedrooms pills ──────────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium text-slate-500">Ambientes:</span>
+        {(['', '1', '2', '3', '4', '5+'] as const).map((v) => (
+          <button
+            key={v || 'todos'}
+            type="button"
+            onClick={() => setAmbientes(v)}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              ambientes === v
+                ? 'border-blue-600 bg-blue-600 text-white'
+                : 'border-slate-300 bg-white text-slate-600 hover:border-slate-400'
+            }`}
+          >
+            {v === '' ? 'Todos' : v}
+          </button>
+        ))}
       </div>
 
       {/* ── Active filter pills ──────────────────────────────────────────────── */}

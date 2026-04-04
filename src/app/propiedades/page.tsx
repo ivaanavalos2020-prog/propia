@@ -12,7 +12,10 @@ export default async function PropiedadesPage({
     barrio?: string
     q?: string
     orden?: string
-    precio?: string
+    precioMin?: string
+    precioMax?: string
+    moneda?: string
+    ambientes?: string
   }>
 }) {
   const filters = await searchParams
@@ -56,7 +59,10 @@ export default async function PropiedadesPage({
               barrio: filters.barrio,
               busqueda: filters.q,
               orden: filters.orden,
-              precio: filters.precio,
+              precioMin: filters.precioMin,
+              precioMax: filters.precioMax,
+              moneda: filters.moneda,
+              ambientes: filters.ambientes,
             }}
           />
 
