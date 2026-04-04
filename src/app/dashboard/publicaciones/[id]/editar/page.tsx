@@ -27,7 +27,19 @@ export default async function EditarPropiedadPage({
   const { data: propiedad } = await supabase
     .from('properties')
     .select(
-      'id, type, address, neighborhood, city, property_references, price_usd, includes_expenses, description, bedrooms, bathrooms, area_m2, allows_pets, allows_kids, status, photo_urls, video_urls, floor_number, property_age, has_garage, has_balcony, allows_smoking, owner_id'
+      'id, type, address, neighborhood, city, property_references, ' +
+      'price_usd, has_expenses, expenses_amount, expenses_included, deposit_months, ' +
+      'contract_type, contract_duration_months, update_index, ' +
+      'price_per_night, min_nights, max_nights, ' +
+      'guarantees_accepted, services_included, ' +
+      'description, bedrooms, bathrooms, rooms, toilettes, ' +
+      'area_m2, total_area_m2, floor_number, property_age, property_condition, ' +
+      'has_garage, has_storage, has_garden, has_terrace, has_pool, has_bbq, ' +
+      'has_gym, has_laundry, has_security, has_elevator, has_heating, has_ac, ' +
+      'has_balcony, is_furnished, has_appliances, ' +
+      'allows_pets, pets_policy, allows_kids, ' +
+      'allows_smoking, allows_smoking_policy, allows_wfh, ' +
+      'photo_urls, video_urls, status, owner_id'
     )
     .eq('id', id)
     .single()
@@ -67,18 +79,7 @@ export default async function EditarPropiedadPage({
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-blue-300 hover:text-blue-600"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                 <polyline points="15 3 21 3 21 9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
@@ -89,28 +90,56 @@ export default async function EditarPropiedadPage({
 
           <FormularioEditar
             id={propiedad.id}
+            propiedadId={propiedad.id}
             tipoInicial={propiedad.type}
             calleInicial={propiedad.address ?? ''}
             barrioInicial={propiedad.neighborhood ?? ''}
             provinciaInicial={propiedad.city ?? ''}
             referenciasInicial={propiedad.property_references ?? ''}
             precioInicial={propiedad.price_usd ?? 0}
-            incluyeExpensasInicial={propiedad.includes_expenses ?? null}
-            descripcionInicial={propiedad.description ?? ''}
-            ambientesInicial={propiedad.bedrooms ?? null}
+            hasExpensesInicial={propiedad.has_expenses ?? false}
+            expensesAmountInicial={propiedad.expenses_amount ?? null}
+            expensesIncludedInicial={propiedad.expenses_included ?? false}
+            depositMonthsInicial={propiedad.deposit_months ?? 'a_negociar'}
+            contractTypeInicial={propiedad.contract_type ?? 'tradicional'}
+            contractDurationMonthsInicial={propiedad.contract_duration_months ?? null}
+            updateIndexInicial={propiedad.update_index ?? 'ipc_trimestral'}
+            pricePerNightInicial={propiedad.price_per_night ?? null}
+            minNightsInicial={propiedad.min_nights ?? null}
+            maxNightsInicial={propiedad.max_nights ?? null}
+            guaranteesInicial={(propiedad.guarantees_accepted as string[]) ?? []}
+            servicesInicial={(propiedad.services_included as string[]) ?? []}
+            ambientesInicial={propiedad.rooms ?? null}
+            dormitoriosInicial={propiedad.bedrooms ?? null}
             banosInicial={propiedad.bathrooms ?? null}
+            toilettesInicial={propiedad.toilettes ?? null}
             superficieInicial={propiedad.area_m2 ?? null}
+            totalAreaInicial={propiedad.total_area_m2 ?? null}
             pisoInicial={propiedad.floor_number ?? null}
             antiguedadInicial={propiedad.property_age ?? null}
-            aceptaMascotasInicial={propiedad.allows_pets ?? null}
-            aceptaNinosInicial={propiedad.allows_kids ?? null}
-            tieneCocheraInicial={propiedad.has_garage ?? false}
-            tieneBalconInicial={propiedad.has_balcony ?? false}
-            permiteFumarInicial={propiedad.allows_smoking ?? false}
+            propertyConditionInicial={propiedad.property_condition ?? 'bueno'}
+            hasCocheraInicial={propiedad.has_garage ?? false}
+            hasBauleraInicial={propiedad.has_storage ?? false}
+            hasJardinInicial={propiedad.has_garden ?? false}
+            hasTerrazaInicial={propiedad.has_terrace ?? propiedad.has_balcony ?? false}
+            hasPoolInicial={propiedad.has_pool ?? false}
+            hasBBQInicial={propiedad.has_bbq ?? false}
+            hasGymInicial={propiedad.has_gym ?? false}
+            hasLaundryInicial={propiedad.has_laundry ?? false}
+            hasSecurityInicial={propiedad.has_security ?? false}
+            hasElevatorInicial={propiedad.has_elevator ?? false}
+            hasHeatingInicial={propiedad.has_heating ?? false}
+            hasACInicial={propiedad.has_ac ?? false}
+            isFurnishedInicial={propiedad.is_furnished ?? false}
+            hasAppliancesInicial={propiedad.has_appliances ?? false}
+            petsPolicyInicial={propiedad.pets_policy ?? (propiedad.allows_pets ? 'si' : 'no')}
+            allowsKidsInicial={propiedad.allows_kids ?? null}
+            smokingPolicyInicial={propiedad.allows_smoking_policy ?? (propiedad.allows_smoking ? 'si' : 'no')}
+            allowsWFHInicial={propiedad.allows_wfh ?? true}
+            descripcionInicial={propiedad.description ?? ''}
             fotosInicial={(propiedad.photo_urls as string[]) ?? []}
             videosInicial={(propiedad.video_urls as string[]) ?? []}
             estadoInicial={propiedad.status ?? 'active'}
-            propiedadId={propiedad.id}
           />
 
         </div>
