@@ -3,7 +3,6 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import HeroBusqueda from './HeroBusqueda'
 import AnimarAlEntrar from '@/components/AnimarAlEntrar'
-import ContadorAnimado from '@/components/ContadorAnimado'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -35,8 +34,8 @@ const PASOS = [
   },
   {
     num: '03',
-    titulo: 'Cerrá el trato a tu manera',
-    desc: 'Coordinás la visita, negociás las condiciones y firmás el contrato. Vos decidís a quién alquilarle, sin que nadie te presione ni te cobre comisión.',
+    titulo: 'Coordiná la visita y cerrá el trato',
+    desc: 'Hablás directamente con el dueño, acordás las condiciones y firmás el contrato. Sin intermediarios que apuren ni presionen. Tus tiempos, tus reglas.',
     icono: (
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20 7H4"/><path d="M20 12H4"/><path d="M20 17H4"/><path d="M16 3l4 4-4 4"/>
@@ -46,31 +45,14 @@ const PASOS = [
 ]
 
 const COMPARATIVA = [
-  { feature: 'Comisión del dueño',     propia: '0%',     inmo: '3–5% anual',          ok: true  },
-  { feature: 'Comisión del inquilino', propia: '0%',     inmo: '1 mes de alquiler',    ok: true  },
-  { feature: 'Publicación',            propia: 'Gratis', inmo: 'Con cargo',            ok: true  },
-  { feature: 'Contacto directo',       propia: 'Sí',     inmo: 'No',                   ok: true  },
-  { feature: 'Velocidad de publicar',  propia: '5 min',  inmo: 'Días o semanas',       ok: true  },
-  { feature: 'Transparencia total',    propia: 'Sí',     inmo: 'Limitada',             ok: true  },
+  { feature: 'Publicar propiedad',          propia: 'Gratis siempre',          inmo: 'Con cargo o exclusividad'       },
+  { feature: 'Contacto dueño-inquilino',    propia: 'Directo e inmediato',     inmo: 'A través de un intermediario'  },
+  { feature: 'Comisión al inquilino',       propia: 'Sin comisión',            inmo: '1 mes de alquiler + IVA'        },
+  { feature: 'Comisión al dueño',           propia: 'Sin comisión',            inmo: '4–5% del total del contrato'    },
+  { feature: 'Tiempo para publicar',        propia: '5 minutos',               inmo: 'Días o semanas'                 },
+  { feature: 'Transparencia',               propia: 'Total · Ves todo',        inmo: 'Información filtrada'           },
 ]
 
-const TESTIMONIOS = [
-  {
-    texto: 'Publiqué mi departamento y en una semana tuve tres consultas. Sin pagar ni un peso de comisión.',
-    nombre: 'Martín G.',
-    rol: 'Dueño · CABA',
-  },
-  {
-    texto: 'Por fin encontré un lugar sin tener que pagar dos meses de honorarios. Rápido y sin vueltas.',
-    nombre: 'Lucía R.',
-    rol: 'Inquilina · Córdoba',
-  },
-  {
-    texto: 'Hablé directamente con el dueño y acordamos todo en una llamada. No lo puedo creer.',
-    nombre: 'Diego M.',
-    rol: 'Inquilino · Rosario',
-  },
-]
 
 export default async function LandingPage() {
   const supabase = await createServerSupabaseClient()
@@ -96,7 +78,7 @@ export default async function LandingPage() {
 
         <AnimarAlEntrar>
           <span className="inline-block rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-blue-600">
-            Sin comisiones · Sin intermediarios
+            Nuevo en GBA Sur · Gratis para todos
           </span>
         </AnimarAlEntrar>
 
@@ -109,8 +91,8 @@ export default async function LandingPage() {
 
         <AnimarAlEntrar delay={160}>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-500">
-            Miles de propiedades publicadas directamente por sus dueños.
-            Sin intermediarios, sin comisiones ocultas.
+            Propiedades publicadas directamente por sus dueños en el Gran Buenos Aires.
+            Sin inmobiliarias, sin costos ocultos, sin vueltas.
           </p>
         </AnimarAlEntrar>
 
@@ -152,17 +134,15 @@ export default async function LandingPage() {
         <AnimarAlEntrar>
           <div className="mx-auto grid max-w-4xl grid-cols-2 gap-6 text-center sm:grid-cols-4 sm:gap-8">
             {[
-              { target: 0,   suffix: '%',       label: 'Comisión en alquileres' },
-              { target: 5,   suffix: ' min',    label: 'Para publicar tu propiedad' },
-              { target: 1,   suffix: '%',       label: 'En ventas (vs 3–4% tradicional)' },
-              { target: 100, suffix: '% legal', label: 'Contratos con validez jurídica' },
-            ].map(({ target, suffix, label }) => (
+              { valor: 'Gratis',   label: 'Para publicar tu propiedad'              },
+              { valor: '5 min',    label: 'Para publicar y quedar en línea'         },
+              { valor: 'Directo',  label: 'Contacto dueño-inquilino sin filtros'    },
+              { valor: '100%',     label: 'Legal · Con validez jurídica'            },
+            ].map(({ valor, label }) => (
               <div key={label} className="flex flex-col gap-1.5">
-                <ContadorAnimado
-                  target={target}
-                  suffix={suffix}
-                  className="text-[48px] font-extrabold leading-none text-blue-600 md:text-[56px]"
-                />
+                <span className="text-[40px] font-extrabold leading-none text-blue-600 md:text-[48px]" style={{ letterSpacing: '-0.02em' }}>
+                  {valor}
+                </span>
                 <span className="text-[15px] font-medium leading-snug text-slate-500">{label}</span>
               </div>
             ))}
@@ -241,9 +221,9 @@ export default async function LandingPage() {
               <div className="mb-8 flex items-end justify-between gap-4">
                 <div>
                   <h2 className="text-3xl font-extrabold text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
-                    Disponibles ahora
+                    Propiedades disponibles en tu zona
                   </h2>
-                  <p className="mt-1 text-slate-500">Propiedades publicadas recientemente</p>
+                  <p className="mt-1 text-slate-500">Publicadas directamente por sus dueños · Sin comisiones</p>
                 </div>
                 <Link
                   href="/propiedades"
@@ -371,38 +351,45 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── Testimonios ──────────────────────────────────────── */}
-      <section className="border-t border-slate-100 bg-slate-50 px-6 py-20 md:px-10">
-        <div className="mx-auto max-w-5xl">
-          <AnimarAlEntrar>
-            <div className="mb-10 text-center">
-              <h2 className="text-3xl font-extrabold text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
-                Lo que dicen nuestros usuarios
-              </h2>
+      {/* ── CTA dueños ───────────────────────────────────────── */}
+      <section className="px-6 py-20 md:px-10" style={{ background: '#1A1A2E' }}>
+        <AnimarAlEntrar>
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="inline-block rounded-full border border-blue-700 bg-blue-900/50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-400">
+              Para dueños
+            </span>
+            <h2 className="mt-5 text-3xl font-extrabold text-white md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+              ¿Tenés una propiedad para alquilar?
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-slate-400">
+              Publicá gratis hoy. Sin contratos de exclusividad, sin comisiones, sin vueltas.
+              Tu propiedad visible para miles de inquilinos en minutos.
+            </p>
+            <ul className="mt-6 flex flex-col items-center gap-2 text-sm text-white">
+              <li className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Tu publicación queda activa al instante
+              </li>
+              <li className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Recibís consultas directamente en tu bandeja de entrada
+              </li>
+            </ul>
+            <div className="mt-8">
+              <Link
+                href="/publicar"
+                className="inline-block rounded-xl bg-blue-600 px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-blue-700"
+              >
+                Publicar mi propiedad gratis
+              </Link>
+              <p className="mt-3 text-xs text-slate-500">Gratis · Sin tarjeta de crédito · Sin permanencia</p>
             </div>
-          </AnimarAlEntrar>
-
-          <div className="grid gap-6 sm:grid-cols-3">
-            {TESTIMONIOS.map((t, i) => (
-              <AnimarAlEntrar key={t.nombre} delay={i * 100}>
-                <div className="flex flex-col gap-4 rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
-                  <div className="flex gap-1 text-amber-400">
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <svg key={j} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg>
-                    ))}
-                  </div>
-                  <p className="text-sm leading-relaxed text-slate-600">"{t.texto}"</p>
-                  <div className="mt-auto">
-                    <p className="text-sm font-semibold text-slate-900">{t.nombre}</p>
-                    <p className="text-xs text-slate-400">{t.rol}</p>
-                  </div>
-                </div>
-              </AnimarAlEntrar>
-            ))}
           </div>
-        </div>
+        </AnimarAlEntrar>
       </section>
 
       {/* ── Tu seguridad es lo primero ───────────────────────── */}
@@ -428,16 +415,7 @@ export default async function LandingPage() {
                     </svg>
                   ),
                   titulo: 'Identidades verificadas',
-                  desc:   'Los usuarios pueden verificar su identidad subiendo su DNI. El badge verificado aparece en su perfil y en cada publicación.',
-                },
-                {
-                  icono: (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                  ),
-                  titulo: 'Reviews reales',
-                  desc:   'Dueños e inquilinos pueden calificarse mutuamente. Las reseñas son públicas y verificadas para que puedas tomar decisiones informadas.',
+                  desc:   'Pedimos DNI a dueños e inquilinos. Cada perfil verificado lleva un badge visible para que sepas con quién estás tratando.',
                 },
                 {
                   icono: (
@@ -445,8 +423,17 @@ export default async function LandingPage() {
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                     </svg>
                   ),
-                  titulo: 'Soporte directo',
-                  desc:   'Si algo no sale como esperás, estamos para ayudarte. Podés contactarnos directamente y te respondemos a la brevedad.',
+                  titulo: 'Contacto directo, sin filtros',
+                  desc:   'Escribís directo al dueño. Sin que nadie lea tus mensajes, filtre tu consulta o te haga esperar días para una respuesta.',
+                },
+                {
+                  icono: (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  ),
+                  titulo: 'Soporte cuando lo necesitás',
+                  desc:   'Si algo no sale como esperás, estamos para ayudarte. Podés escribirnos en cualquier momento.',
                 },
               ].map((card, i) => (
                 <div
@@ -502,15 +489,15 @@ export default async function LandingPage() {
             <span className="text-base font-bold tracking-widest text-white">PROPIA</span>
             <span className="text-xs font-semibold text-blue-500">Sin intermediarios</span>
             <p className="mt-1 max-w-xs text-xs leading-relaxed text-slate-500">
-              Plataforma de alquiler directo entre dueños e inquilinos en Argentina.
+              Plataforma de alquiler directo entre dueños e inquilinos en Argentina. Gratis, sin intermediarios y con validez legal.
             </p>
           </div>
 
           <div className="grid grid-cols-3 gap-x-12 gap-y-2 text-sm text-slate-400">
             <div className="flex flex-col gap-2">
               <span className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Plataforma</span>
-              <Link href="/propiedades" className="transition-colors hover:text-white">Alquilar</Link>
-              <Link href="/publicar" className="transition-colors hover:text-white">Publicar</Link>
+              <Link href="/propiedades" className="transition-colors hover:text-white">Buscar alquiler</Link>
+              <Link href="/publicar" className="transition-colors hover:text-white">Publicar gratis</Link>
               <Link href="/#como-funciona" className="transition-colors hover:text-white">Cómo funciona</Link>
             </div>
             <div className="flex flex-col gap-2">
@@ -521,15 +508,14 @@ export default async function LandingPage() {
             </div>
             <div className="flex flex-col gap-2">
               <span className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Legal</span>
-              <Link href="/terminos" className="transition-colors hover:text-white">Términos</Link>
-              <Link href="/privacidad" className="transition-colors hover:text-white">Privacidad</Link>
+              <Link href="/terminos" className="transition-colors hover:text-white">Términos y condiciones</Link>
+              <Link href="/privacidad" className="transition-colors hover:text-white">Política de privacidad</Link>
             </div>
           </div>
         </div>
 
         <div className="mx-auto mt-8 flex max-w-5xl items-center justify-between border-t border-slate-800 pt-6 text-xs text-slate-600">
-          <span>© {new Date().getFullYear()} PROPIA. Todos los derechos reservados.</span>
-          <span>Hecho en Argentina 🇦🇷</span>
+          <span>© 2026 PROPIA · Todos los derechos reservados · Hecho en Argentina</span>
         </div>
       </footer>
     </div>
