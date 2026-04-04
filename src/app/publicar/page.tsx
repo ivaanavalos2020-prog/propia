@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase-client'
 import { PROVINCIAS } from '@/lib/provincias'
+import NavbarClient from '@/components/NavbarClient'
 
 type TipoPropiedad = 'departamento' | 'casa' | 'habitacion' | 'local'
 
@@ -141,9 +142,9 @@ const CONTRACT_LABEL: Record<string, string> = {
 }
 
 const PASOS = [
-  { label: 'Tipo', fullLabel: 'Tipo de propiedad', minutes: 1 },
-  { label: 'Contrato', fullLabel: 'Contrato y precio', minutes: 2 },
-  { label: 'Detalles', fullLabel: 'Detalles y fotos', minutes: 3 },
+  { label: 'Tipo',      fullLabel: 'Tipo de propiedad',  minutes: 1 },
+  { label: 'Ubicación', fullLabel: 'Ubicación y precio', minutes: 2 },
+  { label: 'Detalles',  fullLabel: 'Detalles y fotos',   minutes: 3 },
 ]
 
 const INICIAL: FormData = {
@@ -260,6 +261,17 @@ export default function PublicarPage() {
   const router = useRouter()
 
   const [draftDate, setDraftDate] = useState<string | null>(null)
+  const [navInfo, setNavInfo] = useState<{ email: string | null; name: string | null; avatar: string | null }>({ email: null, name: null, avatar: null })
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).single().then(({ data }) => {
+        setNavInfo({ email: user.email ?? null, name: data?.full_name ?? null, avatar: data?.avatar_url ?? null })
+      })
+    })
+  }, [])
 
   useEffect(() => {
     try {
@@ -478,18 +490,21 @@ export default function PublicarPage() {
   ].filter(Boolean) as string[]
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-white">
+    <div className="min-h-screen bg-[#F8F9FA]">
 
-      {/* Toast */}
+      {/* ── Toast (bottom-right, dark) ── */}
       {draftToast && (
-        <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 shadow-lg">
-          <p className="text-sm font-medium text-slate-700">
-            {draftToast === 'guardado' ? '💾 Borrador guardado' : '✓ Borrador restaurado'}
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-lg px-4 py-2.5 shadow-lg" style={{ background: '#1A1A2E' }}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+          </svg>
+          <p className="text-sm font-medium text-white">
+            {draftToast === 'guardado' ? 'Borrador guardado' : 'Borrador restaurado'}
           </p>
         </div>
       )}
 
-      {/* Banner restaurar */}
+      {/* ── Banner restaurar borrador ── */}
       {mostrarRestaurar && (
         <div className="fixed inset-x-0 top-0 z-[60] flex items-center justify-between gap-4 bg-blue-600 px-6 py-3">
           <p className="text-sm font-medium text-white">Tenés un borrador guardado{draftDate ? ` del ${draftDate}` : ''}. ¿Continuás?</p>
@@ -507,34 +522,52 @@ export default function PublicarPage() {
         .anim-bwd { animation: step-bwd 0.28s cubic-bezier(0.16,1,0.3,1) forwards; }
       `}</style>
 
-      {/* ── Header ── */}
-      <header className="z-10 flex shrink-0 items-center justify-between border-b border-slate-300 bg-white px-6 py-4">
-        <Link href="/" className="flex flex-col leading-none">
-          <span className="text-base font-bold tracking-widest text-slate-900">PROPIA</span>
-          <span className="text-[9px] font-semibold uppercase tracking-widest text-blue-600">Sin intermediarios</span>
-        </Link>
-        <div className="hidden items-center gap-1 lg:flex">
-          {PASOS.map((p, i) => (
-            <div key={p.label} className="flex items-center gap-1">
-              <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors ${i < paso ? 'bg-green-100 text-green-600' : i === paso ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                {i < paso ? (
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                ) : <span>{i + 1}</span>}
+      {/* ── Navbar ── */}
+      <NavbarClient
+        isLoggedIn={!!navInfo.email}
+        userName={navInfo.name}
+        userEmail={navInfo.email}
+        avatarUrl={navInfo.avatar}
+        isDueno={false}
+      />
+
+      {/* ── Progress stepper ── */}
+      <div className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-[860px] px-6">
+
+          {/* Desktop stepper */}
+          <div className="hidden items-center justify-center py-5 lg:flex">
+            {PASOS.map((p, i) => (
+              <div key={p.label} className="flex items-center">
+                <button
+                  type="button"
+                  onClick={() => { if (i < paso) irAlPaso(i) }}
+                  className={`flex items-center gap-2.5 ${i < paso ? 'cursor-pointer' : 'cursor-default'}`}
+                >
+                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all ${
+                    i <= paso ? 'bg-blue-600 text-white' : 'border-2 border-slate-300 bg-white text-slate-400'
+                  }`}>
+                    {i < paso ? (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : <span>{i + 1}</span>}
+                  </div>
+                  <span className={`text-sm transition-colors ${
+                    i === paso ? 'font-bold text-blue-600' : i < paso ? 'font-medium text-slate-500' : 'font-medium text-slate-400'
+                  }`}>
+                    {p.fullLabel}
+                  </span>
+                </button>
+                {i < PASOS.length - 1 && (
+                  <div className={`mx-6 h-px w-14 transition-colors ${i < paso ? 'bg-blue-400' : 'bg-slate-200'}`} />
+                )}
               </div>
-              <span className={`text-sm font-medium ${i === paso ? 'text-slate-900' : i < paso ? 'text-slate-500' : 'text-slate-400'}`}>{p.label}</span>
-              {i < PASOS.length - 1 && <div className={`mx-2 h-px w-8 transition-colors ${i < paso ? 'bg-green-300' : 'bg-slate-200'}`} />}
-            </div>
-          ))}
-        </div>
-        <Link href="/dashboard" className="text-sm text-slate-500 transition-colors hover:text-slate-900">Cancelar</Link>
-      </header>
+            ))}
+          </div>
 
-      {/* ── Body ── */}
-      <div className="flex flex-1 overflow-hidden">
-
-        {/* ── Left: Form ── */}
-        <div className="flex w-full flex-col overflow-hidden lg:w-[45%] lg:border-r lg:border-slate-100">
-          <div className="flex shrink-0 flex-col gap-2 px-6 pb-0 pt-4 lg:hidden">
+          {/* Mobile progress */}
+          <div className="flex flex-col gap-2 py-3 lg:hidden">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
                 Paso {paso + 1} de {PASOS.length} · {PASOS[paso].fullLabel}
@@ -547,84 +580,100 @@ export default function PublicarPage() {
               ))}
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
-            <div className="mb-6">
-              <p className="mb-1 hidden text-xs font-semibold uppercase tracking-wider text-blue-600 lg:block">
-                Paso {paso + 1} de {PASOS.length} · {PASOS[paso].fullLabel}
-              </p>
-              <h2 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
-                {paso === 0 ? '¿Qué vas a alquilar?' : paso === 1 ? 'Ubicación, precio y contrato' : 'Detalles completos y fotos'}
-              </h2>
-              {paso === 0 && (
-                <div className="mt-3 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-relaxed text-blue-700">
-                  Elegí el tipo que mejor describe tu propiedad. Esto es lo primero que ven los interesados al buscar.
-                </div>
+      {/* ── Main ── */}
+      <main className="mx-auto max-w-[860px] px-6 pb-28 pt-8 lg:pb-12">
+
+        {/* ── PASO 1: Tipo — full width ── */}
+        {paso === 0 && (
+          <div key={animKey} className={animDir === 'forward' ? 'anim-fwd' : 'anim-bwd'}>
+            <h2 className="mb-8 text-center text-[28px] font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+              ¿Qué tipo de propiedad vas a publicar?
+            </h2>
+
+            <div className="flex flex-col gap-5">
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {TIPOS_INFO.map(({ value, label, desc, emoji }) => {
+                  const activo = form.tipo === value
+                  return (
+                    <button key={value} type="button" onClick={() => set('tipo', value)}
+                      className={`relative flex flex-col items-center gap-3 rounded-2xl border-2 p-6 text-center transition-all duration-200 ${
+                        activo
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-slate-200 bg-white hover:-translate-y-0.5 hover:border-blue-600 hover:shadow-[0_4px_12px_rgba(37,99,235,0.15)]'
+                      }`}
+                    >
+                      {activo && (
+                        <div className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-600">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        </div>
+                      )}
+                      <span className="text-[40px] leading-none">{emoji}</span>
+                      <div>
+                        <p className={`text-base font-bold ${activo ? 'text-blue-700' : 'text-[#1A1A2E]'}`}>{label}</p>
+                        <p className={`mt-0.5 text-[13px] ${activo ? 'text-blue-400' : 'text-[#6B7280]'}`}>{desc}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Tip contextual */}
+              <div className="flex items-start gap-3 rounded-lg px-4 py-3 transition-all duration-200"
+                style={{ background: '#EFF6FF', borderLeft: '3px solid #2563EB' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <p className="text-sm leading-relaxed text-blue-800">
+                  {!form.tipo
+                    ? 'Elegí el tipo que mejor describe tu propiedad. Esto es lo primero que ven los interesados al buscar.'
+                    : form.tipo === 'departamento'
+                    ? '🏢 Tip: Los departamentos son los más buscados en CABA y GBA. Destacá el piso, la luminosidad y si tiene balcón.'
+                    : form.tipo === 'casa'
+                    ? '🏠 Tip: Las casas con jardín o patio tienen mucha demanda. Mencioná si tiene cochera y espacios al aire libre.'
+                    : form.tipo === 'habitacion'
+                    ? '🛏️ Tip: Indicá claramente qué espacios son compartidos (cocina, baño, living) y qué está incluido en el precio.'
+                    : '🏪 Tip: Especificá los m² totales, si tiene depósito, baño propio y habilitación municipal.'
+                  }
+                </p>
+              </div>
+
+              {error && (
+                <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-600">{error}</p>
               )}
-              {paso === 1 && (
-                <div className="mt-3 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-relaxed text-blue-700">
-                  El precio y la ubicación son los dos factores más importantes para recibir consultas. Sé claro y transparente.
-                </div>
-              )}
-              {paso === 2 && (
-                <div className="mt-3 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-relaxed text-blue-700">
-                  ¡Casi listo! Completá los detalles y subí fotos de calidad. Las publicaciones completas se alquilan 3 veces más rápido.
-                </div>
-              )}
+
+              {/* Desktop next button — right aligned */}
+              <div className="group relative hidden justify-end lg:flex">
+                <button type="button" onClick={() => irAlPaso(1)} disabled={!puedeAvanzar()}
+                  className="rounded-xl px-8 py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed"
+                  style={{ background: puedeAvanzar() ? '#2563EB' : '#CBD5E1' }}>
+                  Siguiente paso →
+                </button>
+                {!puedeAvanzar() && (
+                  <div className="pointer-events-none absolute bottom-full right-0 mb-2 hidden w-56 rounded-lg bg-slate-800 px-3 py-2 text-center text-xs text-white shadow-lg group-hover:block">
+                    Seleccioná un tipo de propiedad para continuar
+                    <div className="absolute right-6 top-full border-4 border-transparent border-t-slate-800" />
+                  </div>
+                )}
+              </div>
             </div>
+          </div>
+        )}
 
-            <div key={animKey} className={animDir === 'forward' ? 'anim-fwd' : 'anim-bwd'}>
+        {/* ── PASOS 2 y 3: two-column layout ── */}
+        {paso > 0 && (
+          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_340px] lg:items-start">
 
-              {/* ── Paso 1: Tipo ── */}
-              {paso === 0 && (
-                <div className="flex flex-col gap-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    {TIPOS_INFO.map(({ value, label, desc, emoji }) => {
-                      const activo = form.tipo === value
-                      return (
-                        <button key={value} type="button" onClick={() => set('tipo', value)}
-                          className={`relative flex flex-col items-center gap-3 rounded-2xl border-2 p-5 text-left transition-all ${activo ? 'border-blue-600 bg-blue-50 shadow-sm' : 'border-slate-300 hover:border-blue-200 hover:bg-blue-50/40'}`}>
-                          {activo && (
-                            <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600">
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                            </div>
-                          )}
-                          <span className="text-4xl">{emoji}</span>
-                          <div className="text-center">
-                            <p className={`text-sm font-semibold ${activo ? 'text-blue-700' : 'text-slate-800'}`}>{label}</p>
-                            <p className={`mt-0.5 text-xs ${activo ? 'text-blue-400' : 'text-slate-400'}`}>{desc}</p>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
+            {/* Form column */}
+            <div>
+              <div key={animKey} className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${animDir === 'forward' ? 'anim-fwd' : 'anim-bwd'}`}>
 
-                  {/* Contextual help */}
-                  <div className="rounded-xl px-4 py-4" style={{ background: '#F0F4FF' }}>
-                    {!form.tipo ? (
-                      <>
-                        <p className="mb-2.5 text-xs font-semibold text-slate-600">¿No sabés cuál elegir?</p>
-                        <ul className="flex flex-col gap-2 text-xs leading-relaxed text-slate-600">
-                          <li className="flex gap-2"><span className="mt-0.5 shrink-0">🏢</span><span><strong>Departamento o PH:</strong> unidad dentro de un edificio con áreas comunes</span></li>
-                          <li className="flex gap-2"><span className="mt-0.5 shrink-0">🏠</span><span><strong>Casa:</strong> vivienda independiente con entrada propia</span></li>
-                          <li className="flex gap-2"><span className="mt-0.5 shrink-0">🛏️</span><span><strong>Habitación:</strong> ambiente dentro de una propiedad compartida</span></li>
-                        </ul>
-                      </>
-                    ) : form.tipo === 'departamento' ? (
-                      <p className="text-xs leading-relaxed text-slate-600">🏢 <strong>Tip:</strong> Los departamentos son los más buscados en CABA y GBA. Destacá el piso, la luminosidad y si tiene balcón.</p>
-                    ) : form.tipo === 'casa' ? (
-                      <p className="text-xs leading-relaxed text-slate-600">🏠 <strong>Tip:</strong> Las casas con jardín o patio tienen mucha demanda. Mencioná si tiene cochera y espacios al aire libre.</p>
-                    ) : form.tipo === 'habitacion' ? (
-                      <p className="text-xs leading-relaxed text-slate-600">🛏️ <strong>Tip:</strong> Indicá claramente qué espacios son compartidos (cocina, baño, living) y qué está incluido en el precio.</p>
-                    ) : (
-                      <p className="text-xs leading-relaxed text-slate-600">🏪 <strong>Tip:</strong> Especificá los m² totales, si tiene depósito, baño propio y habilitación municipal.</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Paso 2: Ubicación, precio y contrato ── */}
-              {paso === 1 && (
+                {/* ── Paso 2: Ubicación, precio y contrato ── */}
+                {paso === 1 && (
                 <div className="flex flex-col gap-7">
 
                   {/* Ubicación */}
@@ -834,8 +883,8 @@ export default function PublicarPage() {
                 </div>
               )}
 
-              {/* ── Paso 3: Detalles y fotos ── */}
-              {paso === 2 && (
+                {/* ── Paso 3: Detalles y fotos ── */}
+                {paso === 2 && (
                 <div className="flex flex-col gap-7">
 
                   {/* Características físicas */}
@@ -1110,206 +1159,155 @@ export default function PublicarPage() {
                 </div>
               )}
 
-            </div>
-          </div>
+              </div>
 
-          {/* Footer navigation */}
-          <div className="shrink-0 border-t border-slate-100 bg-white px-6 py-4 lg:px-10">
-            {error && <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-600">{error}</p>}
-            <div className="flex gap-3">
-              {paso > 0 && (
+              {/* Desktop navigation */}
+              {error && (
+                <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-600">{error}</p>
+              )}
+              <div className="mt-5 hidden items-center justify-between lg:flex">
                 <button type="button" onClick={() => irAlPaso(paso - 1)} disabled={publicando}
-                  className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40">
-                  Atrás
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40">
+                  ← Atrás
                 </button>
-              )}
-              {paso < PASOS.length - 1 ? (
-                <div className="group relative flex-1">
-                  <button type="button" onClick={() => irAlPaso(paso + 1)} disabled={!puedeAvanzar()}
-                    className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-30">
-                    Siguiente
-                  </button>
-                  {!puedeAvanzar() && (
-                    <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden w-56 -translate-x-1/2 rounded-lg bg-slate-800 px-3 py-2 text-center text-xs text-white shadow-lg group-hover:block">
-                      {paso === 0 ? 'Seleccioná un tipo de propiedad para continuar' : 'Completá la dirección, provincia y precio para continuar'}
-                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
-                    </div>
+                <div className="group relative">
+                  {paso < PASOS.length - 1 ? (
+                    <button type="button" onClick={() => irAlPaso(paso + 1)} disabled={!puedeAvanzar()}
+                      className="rounded-xl px-8 py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed"
+                      style={{ background: puedeAvanzar() ? '#2563EB' : '#CBD5E1' }}>
+                      Siguiente paso →
+                    </button>
+                  ) : (
+                    <button type="button" onClick={handlePublicar} disabled={publicando || !puedeAvanzar()}
+                      className="rounded-xl px-8 py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed"
+                      style={{ background: puedeAvanzar() && !publicando ? '#2563EB' : '#CBD5E1' }}>
+                      {publicando ? 'Publicando…' : 'Publicar propiedad'}
+                    </button>
                   )}
-                </div>
-              ) : (
-                <div className="group relative flex-1">
-                  <button type="button" onClick={handlePublicar} disabled={publicando || !puedeAvanzar()}
-                    className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40">
-                    {publicando ? 'Publicando...' : 'Publicar propiedad'}
-                  </button>
                   {!puedeAvanzar() && !publicando && (
-                    <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden w-56 -translate-x-1/2 rounded-lg bg-slate-800 px-3 py-2 text-center text-xs text-white shadow-lg group-hover:block">
-                      Subí las fotos obligatorias para publicar
-                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                    <div className="pointer-events-none absolute bottom-full right-0 mb-2 hidden w-56 rounded-lg bg-slate-800 px-3 py-2 text-center text-xs text-white shadow-lg group-hover:block">
+                      {paso === 1 ? 'Completá la dirección, provincia y precio para continuar' : 'Subí las fotos obligatorias para publicar'}
+                      <div className="absolute right-6 top-full border-4 border-transparent border-t-slate-800" />
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Right: Preview ── */}
-        <div className="hidden flex-col overflow-hidden bg-slate-50 lg:flex lg:w-[55%]">
-          <div className="flex-1 overflow-y-auto px-10 py-10">
-            <div className="mb-8">
-              {paso === 0 && <><h3 className="mb-2 text-xl font-bold text-slate-900" style={{ letterSpacing: '-0.02em' }}>El primer paso es el más importante</h3><p className="text-sm leading-relaxed text-slate-500">Elegir el tipo correcto ayuda a los inquilinos a encontrar lo que buscan. Las publicaciones bien categorizadas reciben hasta un 40% más de consultas.</p></>}
-              {paso === 1 && <><h3 className="mb-2 text-xl font-bold text-slate-900" style={{ letterSpacing: '-0.02em' }}>Precio y contrato claros = más confianza</h3><p className="text-sm leading-relaxed text-slate-500">El 80% de las consultas provienen de personas que filtran por zona y precio. Detallar el tipo de contrato y garantías ahorra tiempo a los dos.</p></>}
-              {paso === 2 && <><h3 className="mb-2 text-xl font-bold text-slate-900" style={{ letterSpacing: '-0.02em' }}>Los detalles hacen la diferencia</h3><p className="text-sm leading-relaxed text-slate-500">Las propiedades con descripción completa y fotos se alquilan hasta 3 veces más rápido. ¡Ya casi terminás!</p></>}
+              </div>
             </div>
 
-            {/* Checklist */}
-            <div className="mb-8 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold text-slate-900">Tu publicación</p>
-                <span className={`text-xs font-semibold ${completedCount >= checklist.length ? 'text-green-600' : 'text-blue-600'}`}>
-                  {completedCount}/{checklist.length} completo
-                </span>
-              </div>
-              <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                <div className="h-full rounded-full bg-blue-600 transition-all duration-500" style={{ width: `${(completedCount / checklist.length) * 100}%` }} />
-              </div>
-              <div className="flex flex-col gap-2">
-                {checklist.map((item) => (
-                  <div key={item.label} className={`flex items-center gap-2.5 text-sm ${item.done ? 'text-slate-700' : 'text-slate-400'}`}>
-                    <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors ${item.done ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-300'}`}>
-                      {item.done ? (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                      ) : <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />}
-                    </div>
-                    {item.label}
+            {/* ── Sidebar ── */}
+            <aside className="hidden lg:block">
+              <div className="sticky top-6 flex flex-col gap-4">
+
+                {/* Checklist */}
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-sm font-bold text-slate-900">Tu publicación</p>
+                    <span className={`text-xs font-semibold ${completedCount >= checklist.length ? 'text-green-600' : 'text-blue-600'}`}>
+                      {completedCount} de {checklist.length}
+                    </span>
                   </div>
-                ))}
-              </div>
-            </div>
+                  <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-full rounded-full bg-blue-600 transition-all duration-500" style={{ width: `${(completedCount / checklist.length) * 100}%` }} />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {checklist.map((item) => (
+                      <div key={item.label} className={`flex items-center gap-2.5 text-sm transition-colors ${item.done ? 'text-slate-700' : 'text-slate-400'}`}>
+                        <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all ${item.done ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-300'}`}>
+                          {item.done ? (
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                          ) : <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />}
+                        </div>
+                        {item.label}
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Preview card */}
-            {form.tipo ? (
-              <div>
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Así se verá tu publicación</p>
-                <div className="rounded-2xl border border-slate-300 bg-white shadow-sm overflow-hidden">
-                  {/* Photo */}
-                  {primeraFoto ? (
-                    <div className="relative h-44 w-full bg-slate-100">
-                      <Image src={previews[primeraFoto]} alt="Foto principal" fill className="object-cover" />
-                      {Object.keys(previews).length > 1 && (
-                        <div className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
-                          +{Object.keys(previews).length - 1} fotos
+                {/* Preview */}
+                {form.tipo ? (
+                  <div>
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Así se verá tu publicación</p>
+                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                      {primeraFoto ? (
+                        <div className="relative h-32 w-full bg-slate-100">
+                          <Image src={previews[primeraFoto]} alt="Foto principal" fill className="object-cover" />
+                          {Object.keys(previews).length > 1 && (
+                            <div className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
+                              +{Object.keys(previews).length - 1} fotos
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex h-24 items-center justify-center bg-slate-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300" aria-hidden="true">
+                            <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+                          </svg>
                         </div>
                       )}
-                    </div>
-                  ) : (
-                    <div className="flex h-44 items-center justify-center bg-slate-100">
-                      <div className="text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2 text-slate-300"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
-                        <p className="text-xs text-slate-400">Las fotos aparecerán aquí</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex flex-col gap-3 p-5">
-                    {/* Tipo + contrato */}
-                    <div className="flex flex-wrap gap-1.5">
-                      <span className="inline-flex w-fit rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600">{TIPO_LABEL[form.tipo]}</span>
-                      {form.contractType && (
-                        <span className="inline-flex w-fit rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">{CONTRACT_LABEL[form.contractType]}</span>
-                      )}
-                    </div>
-
-                    {/* Address */}
-                    <p className="text-base font-semibold leading-snug text-slate-900">
-                      {form.calle ? <>{form.calle}{form.barrio ? `, ${form.barrio}` : ''}</> : <span className="text-slate-300">Dirección de la propiedad</span>}
-                    </p>
-                    {form.provincia && <p className="text-xs text-slate-400">{form.provincia}</p>}
-
-                    {/* Precio */}
-                    <div className="flex items-baseline gap-1.5 flex-wrap">
-                      {form.precio && Number(form.precio) > 0 ? (
-                        <>
-                          <span className="text-xl font-bold text-blue-600">USD {Number(form.precio).toLocaleString('es-AR')}</span>
-                          <span className="text-sm text-slate-400">/mes</span>
-                          {form.hasExpenses && form.expensesIncluded && <span className="text-xs text-green-600">· Expensas incl.</span>}
-                          {form.hasExpenses && !form.expensesIncluded && form.expensesAmount && (
-                            <span className="text-xs text-slate-400">+ ${Number(form.expensesAmount).toLocaleString('es-AR')} expensas</span>
+                      <div className="p-4">
+                        <div className="mb-2 flex flex-wrap gap-1">
+                          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">{TIPO_LABEL[form.tipo]}</span>
+                          {form.contractType && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">{CONTRACT_LABEL[form.contractType]}</span>}
+                        </div>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {form.calle ? <>{form.calle}{form.barrio ? `, ${form.barrio}` : ''}</> : <span className="text-slate-300">Dirección</span>}
+                        </p>
+                        {form.provincia && <p className="mt-0.5 text-xs text-slate-400">{form.provincia}</p>}
+                        <div className="mt-2">
+                          {form.precio && Number(form.precio) > 0 ? (
+                            <span className="text-lg font-bold text-blue-600">
+                              USD {Number(form.precio).toLocaleString('es-AR')}
+                              <span className="ml-1 text-xs font-normal text-slate-400">/mes</span>
+                            </span>
+                          ) : (
+                            <span className="text-sm text-slate-300">Precio no definido</span>
                           )}
-                        </>
-                      ) : (
-                        <span className="text-xl font-bold text-slate-300">USD —</span>
-                      )}
-                    </div>
-
-                    {/* Características */}
-                    {(Number(form.ambientes) > 0 || Number(form.banos) > 0 || form.superficie || form.totalAreaM2) && (
-                      <div className="flex flex-wrap gap-2 text-xs text-slate-500">
-                        {Number(form.ambientes) > 0 && <span className="rounded-lg bg-slate-100 px-2 py-0.5">{form.ambientes} amb.</span>}
-                        {Number(form.dormitorios) > 0 && <span className="rounded-lg bg-slate-100 px-2 py-0.5">{form.dormitorios} dorm.</span>}
-                        {Number(form.banos) > 0 && <span className="rounded-lg bg-slate-100 px-2 py-0.5">{form.banos} baño{Number(form.banos) !== 1 ? 's' : ''}</span>}
-                        {form.superficie && <span className="rounded-lg bg-slate-100 px-2 py-0.5">{form.superficie} m²</span>}
-                      </div>
-                    )}
-
-                    {/* Garantías */}
-                    {form.guarantees.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {form.guarantees.map((g) => (
-                          <span key={g} className="rounded-full border border-slate-300 px-2 py-0.5 text-xs text-slate-500">
-                            {g.replace('_', ' ')}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Servicios */}
-                    {form.services.length > 0 && !form.services.includes('ninguno') && (
-                      <div className="flex gap-1">
-                        {form.services.includes('agua') && <span title="Agua" className="text-base">💧</span>}
-                        {form.services.includes('gas') && <span title="Gas" className="text-base">🔥</span>}
-                        {form.services.includes('luz') && <span title="Luz" className="text-base">💡</span>}
-                        {form.services.includes('wifi') && <span title="WiFi" className="text-base">📶</span>}
-                        {form.services.includes('cable') && <span title="Cable" className="text-base">📺</span>}
-                      </div>
-                    )}
-
-                    {/* Amenidades */}
-                    {amenidadesPreview.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {amenidadesPreview.slice(0, 5).map((a) => (
-                          <span key={a} className="rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs text-slate-500">{a}</span>
-                        ))}
-                        {amenidadesPreview.length > 5 && (
-                          <span className="rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs text-slate-400">+{amenidadesPreview.length - 5}</span>
+                        </div>
+                        {(Number(form.ambientes) > 0 || Number(form.banos) > 0 || form.superficie) && (
+                          <div className="mt-2 flex gap-3 text-xs text-slate-400">
+                            {Number(form.ambientes) > 0 && <span>{form.ambientes} amb.</span>}
+                            {Number(form.banos) > 0 && <span>{form.banos} baño{Number(form.banos) !== 1 ? 's' : ''}</span>}
+                            {form.superficie && <span>{form.superficie} m²</span>}
+                          </div>
                         )}
                       </div>
-                    )}
-
-                    {/* Políticas */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {form.petsPolicy === 'si' && <span className="rounded-full border border-slate-300 px-2 py-0.5 text-xs text-slate-500">🐾 Mascotas</span>}
-                      {form.allowsKids === true && <span className="rounded-full border border-slate-300 px-2 py-0.5 text-xs text-slate-500">👶 Niños</span>}
-                      {form.allowsWFH && <span className="rounded-full border border-slate-300 px-2 py-0.5 text-xs text-slate-500">💻 Home office</span>}
                     </div>
-
-                    {form.descripcion && (
-                      <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">{form.descripcion}</p>
-                    )}
                   </div>
-                </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center">
+                    <p className="text-xs text-slate-400">Completá los datos para ver el preview</p>
+                  </div>
+                )}
+
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 py-16 text-center">
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
-                </div>
-                <p className="text-sm font-medium text-slate-500">La preview aparecerá aquí</p>
-                <p className="mt-1 text-xs text-slate-400">Completá el formulario para ver cómo queda</p>
-              </div>
-            )}
+            </aside>
           </div>
+        )}
+      </main>
+
+      {/* ── Mobile sticky footer ── */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-6 py-4 lg:hidden"
+        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
+        <div className="flex gap-3">
+          {paso > 0 && (
+            <button type="button" onClick={() => irAlPaso(paso - 1)} disabled={publicando}
+              className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-600 transition-colors disabled:opacity-40">
+              Atrás
+            </button>
+          )}
+          {paso < PASOS.length - 1 ? (
+            <button type="button" onClick={() => irAlPaso(paso + 1)} disabled={!puedeAvanzar()}
+              className="flex-1 rounded-xl py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed"
+              style={{ background: puedeAvanzar() ? '#2563EB' : '#CBD5E1' }}>
+              Siguiente
+            </button>
+          ) : (
+            <button type="button" onClick={handlePublicar} disabled={publicando || !puedeAvanzar()}
+              className="flex-1 rounded-xl py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed"
+              style={{ background: puedeAvanzar() && !publicando ? '#2563EB' : '#CBD5E1' }}>
+              {publicando ? 'Publicando…' : 'Publicar propiedad'}
+            </button>
+          )}
         </div>
       </div>
 
