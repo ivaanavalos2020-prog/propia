@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import ModalContacto from './ModalContacto'
-
-const MENSAJE_VISITA = 'Hola, estoy interesado/a en esta propiedad y me gustaría coordinar una visita.'
+import { COPY } from '@/lib/copy'
 
 interface Props {
   propertyId: string
@@ -16,7 +15,7 @@ export default function BotonesContacto({ propertyId, userEmail, yaConsulto = fa
   const [mensajeInicial, setMensajeInicial] = useState('')
 
   function abrirComoVisita() {
-    setMensajeInicial(MENSAJE_VISITA)
+    setMensajeInicial(COPY.contacto.mensajeVisita)
     setModalAbierto(true)
   }
 

@@ -26,22 +26,33 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .join('\n')
 
-    const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 600,
-      system:
-        'Sos un experto en bienes raíces argentino. Tu tarea es mejorar descripciones de propiedades para alquiler. ' +
-        'Escribí en español rioplatense, tono profesional pero cercano. ' +
-        'Destacá los puntos positivos, mencioná la ubicación y características principales. ' +
-        'Máximo 300 palabras. No inventés información que no te dieron. ' +
-        'Devolvé solo la descripción mejorada, sin comentarios adicionales.',
-      messages: [
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 20_000)
+
+    let message: Awaited<ReturnType<typeof client.messages.create>>
+    try {
+      message = await client.messages.create(
         {
-          role: 'user',
-          content: `Mejorá esta descripción de propiedad:\n\n"${descripcion.trim()}"\n\nDatos de la propiedad:\n${datosProp}`,
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 600,
+          system:
+            'Sos un experto en bienes raíces argentino. Tu tarea es mejorar descripciones de propiedades para alquiler. ' +
+            'Escribí en español rioplatense, tono profesional pero cercano. ' +
+            'Destacá los puntos positivos, mencioná la ubicación y características principales. ' +
+            'Máximo 300 palabras. No inventés información que no te dieron. ' +
+            'Devolvé solo la descripción mejorada, sin comentarios adicionales.',
+          messages: [
+            {
+              role: 'user',
+              content: `Mejorá esta descripción de propiedad:\n\n"${descripcion.trim()}"\n\nDatos de la propiedad:\n${datosProp}`,
+            },
+          ],
         },
-      ],
-    })
+        { signal: controller.signal }
+      )
+    } finally {
+      clearTimeout(timeoutId)
+    }
 
     const texto =
       message.content[0].type === 'text' ? message.content[0].text : ''

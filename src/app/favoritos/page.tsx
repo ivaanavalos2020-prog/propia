@@ -30,17 +30,19 @@ export default async function FavoritosPage() {
     .eq('user_id', session.user.id)
     .order('created_at', { ascending: false })
 
-  const propiedades = ((favoritos ?? [])
-    .map((f) => f.properties)
-    .filter(Boolean) as unknown) as {
-      id: string
-      type: string
-      address: string
-      price_usd: number
-      bedrooms: number | null
-      bathrooms: number | null
-      area_m2: number | null
-    }[]
+  interface PropiedadFavorita {
+    id: string
+    type: string
+    address: string
+    price_usd: number
+    bedrooms: number | null
+    bathrooms: number | null
+    area_m2: number | null
+  }
+
+  const propiedades: PropiedadFavorita[] = (favoritos ?? [])
+    .map((f) => f.properties as unknown as PropiedadFavorita | null)
+    .filter((p): p is PropiedadFavorita => p !== null)
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-slate-50">

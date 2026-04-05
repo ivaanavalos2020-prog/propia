@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase-client'
 import { PROVINCIAS } from '@/lib/provincias'
+import { parsearErrorSupabase } from '@/lib/utils'
+
+const TIPOS_PERMITIDOS_IMG = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+const TAMANIO_MAX_IMG = 10 * 1024 * 1024 // 10 MB
 
 type TipoPropiedad = 'departamento' | 'casa' | 'habitacion' | 'local'
 
@@ -380,6 +384,16 @@ export default function FormularioEditar({
 
       for (let i = 0; i < total; i++) {
         const file = archivos[i]
+
+        if (!TIPOS_PERMITIDOS_IMG.includes(file.type)) {
+          setToast({ msg: `"${file.name}": solo se permiten imágenes JPG, PNG, WebP o HEIC.`, isError: true })
+          continue
+        }
+        if (file.size > TAMANIO_MAX_IMG) {
+          setToast({ msg: `"${file.name}": la imagen no puede superar los 10 MB.`, isError: true })
+          continue
+        }
+
         const ext = file.name.split('.').pop()
         const path = `${propiedadId}/${Date.now()}-${i}.${ext}`
         const { error } = await supabase.storage
@@ -532,8 +546,9 @@ export default function FormularioEditar({
     setGuardando(false)
 
     if (error) {
-      setErrorGuardar(error.message)
-      setToast({ msg: `Error: ${error.message}`, isError: true })
+      const msg = parsearErrorSupabase(error)
+      setErrorGuardar(msg)
+      setToast({ msg, isError: true })
     } else {
       setToast({ msg: '¡Cambios guardados correctamente!' })
       router.refresh()

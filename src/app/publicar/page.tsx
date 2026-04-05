@@ -7,6 +7,10 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase-client'
 import { PROVINCIAS } from '@/lib/provincias'
 import NavbarClient from '@/components/NavbarClient'
+import { parsearErrorSupabase } from '@/lib/utils'
+
+const TIPOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+const TAMANIO_MAX = 10 * 1024 * 1024 // 10 MB
 
 type TipoPropiedad = 'departamento' | 'casa' | 'habitacion' | 'local'
 
@@ -396,12 +400,51 @@ export default function PublicarPage() {
     setPublicando(true)
     setError(null)
 
-    // Validate price before proceeding
+    // Full form validation
+    if (!form.tipo) {
+      setError('Seleccioná el tipo de propiedad.')
+      setPublicando(false)
+      return
+    }
+    if (!form.calle || form.calle.trim().length < 5) {
+      setError('Ingresá una dirección válida (mínimo 5 caracteres).')
+      setPublicando(false)
+      return
+    }
+
+    const obligatorias = CATEGORIAS.filter((c) => c.obligatoria)
+    const faltantes = obligatorias.filter((c) => !fotos[c.id])
+    if (faltantes.length > 0) {
+      setError(`Faltan fotos obligatorias: ${faltantes.map((c) => c.label).join(', ')}.`)
+      setPublicando(false)
+      return
+    }
+
+    // Validate price
     const price = parseFloat(form.precio)
     if (isNaN(price) || price <= 0) {
       setError('El precio debe ser un número mayor a cero.')
       setPublicando(false)
       return
+    }
+
+    // Validate numeric fields
+    const numericFields: Array<{ value: string; label: string }> = [
+      { value: form.ambientes, label: 'Ambientes' },
+      { value: form.dormitorios, label: 'Dormitorios' },
+      { value: form.banos, label: 'Baños' },
+      { value: form.toilettes, label: 'Toilettes' },
+      { value: form.superficie, label: 'Superficie' },
+      { value: form.totalAreaM2, label: 'Superficie total' },
+      { value: form.piso, label: 'Piso' },
+      { value: form.antiguedad, label: 'Antigüedad' },
+    ]
+    for (const field of numericFields) {
+      if (field.value && (isNaN(Number(field.value)) || Number(field.value) < 0)) {
+        setError(`El campo "${field.label}" debe ser un número válido.`)
+        setPublicando(false)
+        return
+      }
     }
 
     const supabase = createClient()
@@ -412,6 +455,19 @@ export default function PublicarPage() {
     for (const cat of CATEGORIAS) {
       const archivo = fotos[cat.id]
       if (!archivo) continue
+
+      // File type and size validation
+      if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
+        setError(`"${cat.label}": solo se permiten imágenes JPG, PNG, WebP o HEIC.`)
+        setPublicando(false)
+        return
+      }
+      if (archivo.size > TAMANIO_MAX) {
+        setError(`"${cat.label}": la imagen no puede superar los 10 MB.`)
+        setPublicando(false)
+        return
+      }
+
       const ext = archivo.name.split('.').pop()
       const path = `${user.id}/${cat.id}-${Date.now()}.${ext}`
       const { error: uploadError } = await supabase.storage.from('propiedades').upload(path, archivo, { upsert: false })
@@ -475,7 +531,7 @@ export default function PublicarPage() {
       photo_urls: photoUrls.length > 0 ? photoUrls : null,
     })
 
-    if (insertError) { setError(insertError.message); setPublicando(false); return }
+    if (insertError) { setError(parsearErrorSupabase(insertError)); setPublicando(false); return }
     try { localStorage.removeItem(DRAFT_KEY) } catch { /* noop */ }
     router.push('/dashboard')
   }

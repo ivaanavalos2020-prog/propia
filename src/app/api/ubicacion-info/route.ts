@@ -4,6 +4,23 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 
 const TREINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000
 
+// ── Rate limiting: max 10 requests per IP per hour ──────────────────────────
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT = 10
+const RATE_WINDOW_MS = 60 * 60 * 1000 // 1 hour
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return true
+  }
+  if (entry.count >= RATE_LIMIT) return false
+  entry.count++
+  return true
+}
+
 function limpiarJSON(texto: string): string {
   // Remove all possible code fence variants
   let s = texto.trim()
@@ -16,6 +33,14 @@ function limpiarJSON(texto: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json(
+      { advertencia: 'Demasiadas solicitudes. Intentá de nuevo más tarde.' },
+      { status: 429 }
+    )
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY
   console.log('[ubicacion-info] API key configured:', !!apiKey)
 
@@ -64,8 +89,9 @@ export async function POST(req: NextRequest) {
 
     // ── Call Claude with 15s timeout ───────────────────────────────
     const client = new Anthropic({ apiKey })
+    const TIMEOUT_MS = parseInt(process.env.CLAUDE_TIMEOUT_MS ?? '15000')
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 15_000)
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
 
     let texto = ''
     try {

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase-client'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -309,7 +310,7 @@ function TabCuenta({
           <div className="flex items-center gap-4">
             <div className="relative h-16 w-16 shrink-0">
               {(previewUrl || avatarUrl) ? (
-                <img src={previewUrl ?? avatarUrl} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-slate-200" />
+                <Image src={previewUrl ?? avatarUrl!} alt="Avatar" width={64} height={64} unoptimized className="h-16 w-16 rounded-full object-cover border border-slate-200" />
               ) : (
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-extrabold text-white">
                   {(nombre || userEmail).charAt(0).toUpperCase()}

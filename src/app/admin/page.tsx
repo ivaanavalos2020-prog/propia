@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase-client'
 import { PROVINCIAS_ORDENADAS } from '@/app/propiedades/ubicaciones'
 import { ADMIN_EMAIL } from '@/config'
@@ -676,7 +677,7 @@ export default function AdminPage() {
                           {/* Foto */}
                           <td className="px-4 py-3">
                             {thumb ? (
-                              <img src={thumb} alt="" className="h-12 w-12 rounded-lg object-cover border border-[#CBD5E1]" />
+                              <Image src={thumb} alt="" width={48} height={48} className="h-12 w-12 rounded-lg object-cover border border-[#CBD5E1]" />
                             ) : (
                               <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-[#CBD5E1] bg-slate-50">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>

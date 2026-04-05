@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase-client'
 import NavbarClient from '@/components/NavbarClient'
+import { parsearErrorSupabase } from '@/lib/utils'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -99,7 +101,7 @@ function InputField({ label, id, value, onChange, type = 'text', placeholder, re
       <input id={id} type={type} value={value}
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         placeholder={placeholder} readOnly={readOnly}
-        className={`rounded-xl border px-4 py-3 text-sm text-slate-800 outline-none transition-colors ${readOnly ? 'border-slate-300 bg-slate-50 text-slate-500' : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100'}`}
+        className={`rounded-xl border px-4 py-3 text-base text-slate-800 outline-none transition-colors ${readOnly ? 'border-slate-300 bg-slate-50 text-slate-500' : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100'}`}
       />
     </div>
   )
@@ -329,7 +331,7 @@ function TabFacturacion({ userId, cuitInit, razonSocialInit, condicionInit }: {
           <div className="flex flex-col gap-1.5">
             <label htmlFor="condicion-afip" className="text-sm font-semibold text-slate-700">Condición ante AFIP</label>
             <select id="condicion-afip" value={condicion} onChange={(e) => setCondicion(e.target.value)}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-800 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
               <option value="">Seleccioná una opción</option>
               <option value="consumidor_final">Consumidor final</option>
               <option value="monotributista">Monotributista</option>
@@ -648,7 +650,7 @@ export default function PerfilPage() {
       .select()
 
     if (error) {
-      setMensaje({ tipo: 'error', texto: `Error: ${error.message} (${error.code})` })
+      setMensaje({ tipo: 'error', texto: parsearErrorSupabase(error) })
     } else {
       setNombreSidebar(form.fullName)
       setMensaje({ tipo: 'ok', texto: '¡Cambios guardados correctamente!' })
@@ -787,7 +789,7 @@ export default function PerfilPage() {
                 <div className="mb-5 flex flex-col items-center gap-3 text-center">
                   <div className="relative h-20 w-20">
                     {displayAvatar ? (
-                      <img src={displayAvatar} alt="Avatar" className="h-20 w-20 rounded-full object-cover border-2 border-slate-200" />
+                      <Image src={displayAvatar} alt="Avatar" width={80} height={80} unoptimized className="h-20 w-20 rounded-full object-cover border-2 border-slate-200" />
                     ) : (
                       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 text-3xl font-extrabold text-white shadow-md">
                         {initial}
@@ -878,7 +880,7 @@ export default function PerfilPage() {
                     <div className="flex items-center gap-4">
                       <div className="relative h-16 w-16 shrink-0">
                         {displayAvatar ? (
-                          <img src={displayAvatar} alt="Avatar" className="h-16 w-16 rounded-full object-cover border border-slate-200" />
+                          <Image src={displayAvatar} alt="Avatar" width={64} height={64} unoptimized className="h-16 w-16 rounded-full object-cover border border-slate-200" />
                         ) : (
                           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-extrabold text-white">
                             {initial}
