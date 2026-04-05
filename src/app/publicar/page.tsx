@@ -1244,7 +1244,7 @@ export default function PublicarPage() {
                         ].map(({ stat, desc }) => (
                           <div key={stat} className="flex items-center gap-4 rounded-xl px-4 py-3 sm:flex-col sm:items-center sm:gap-1 sm:p-3 sm:text-center"
                             style={{ background: '#DCFCE7', borderRadius: 12 }}>
-                            <span style={{ fontSize: 48, fontWeight: 700, color: '#16A34A', lineHeight: 1, minWidth: 72, textAlign: 'center' }} className="sm:text-4xl">{stat}</span>
+                            <span className="shrink-0 sm:text-4xl" style={{ fontSize: 48, fontWeight: 700, color: '#16A34A', lineHeight: 1, minWidth: 70, textAlign: 'center' }}>{stat}</span>
                             <span style={{ fontSize: 14, color: '#166534', lineHeight: 1.4 }}>{desc}</span>
                           </div>
                         ))}
