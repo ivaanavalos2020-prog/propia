@@ -1,5 +1,7 @@
 'use client'
 
+import { getFirstPhoto } from '@/lib/utils'
+
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -213,7 +215,7 @@ function FotoPlaceholder() {
 
 function CardGrilla({ p }: { p: Propiedad }) {
   const nueva = esNueva(p.created_at)
-  const foto = p.photo_urls?.[0] ?? null
+  const foto = getFirstPhoto(p.photo_urls)
   return (
     <Link
       href={`/propiedades/${p.id}`}
@@ -274,7 +276,7 @@ function CardGrilla({ p }: { p: Propiedad }) {
 
 function CardLista({ p }: { p: Propiedad }) {
   const nueva = esNueva(p.created_at)
-  const foto = p.photo_urls?.[0] ?? null
+  const foto = getFirstPhoto(p.photo_urls)
   return (
     <Link
       href={`/propiedades/${p.id}`}

@@ -5,7 +5,7 @@ import Image from 'next/image'
 
 const CATEGORIAS = ['Frente', 'Living', 'Cocina', 'Dormitorio', 'Baño', 'Extras']
 
-export default function GaleriaFotos({ fotos }: { fotos: string[] }) {
+export default function GaleriaFotos({ fotos, address }: { fotos: string[]; address?: string | null }) {
   const [activa, setActiva] = useState(0)
   const [fadeKey, setFadeKey] = useState(0)
 
@@ -40,7 +40,7 @@ export default function GaleriaFotos({ fotos }: { fotos: string[] }) {
         <Image
           key={fadeKey}
           src={fotos[activa]}
-          alt={`Foto ${activa + 1}`}
+          alt={address ? `Foto ${activa + 1} de ${address}` : `Foto ${activa + 1}`}
           fill
           className="object-cover animate-fadein"
           priority
@@ -102,7 +102,7 @@ export default function GaleriaFotos({ fotos }: { fotos: string[] }) {
             >
               <Image
                 src={src}
-                alt={`Miniatura ${i + 1}`}
+                alt={address ? `Miniatura ${i + 1} de ${address}` : `Miniatura ${i + 1}`}
                 fill
                 className="object-cover"
                 sizes="160px"

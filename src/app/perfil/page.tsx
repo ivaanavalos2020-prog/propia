@@ -506,7 +506,7 @@ export default function PerfilPage() {
       const supabase = createClient()
       const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-      console.log('USER:', user?.id, user?.email, userError)
+      if (process.env.NODE_ENV === 'development') console.log('[perfil] cargando...')
 
       if (userError || !user) {
         router.push('/login')
@@ -523,7 +523,6 @@ export default function PerfilPage() {
         .eq('id', user.id)
         .single()
 
-      console.log('PROFILE LOADED:', profile, profileError)
 
       if (profile) {
         setForm({
@@ -615,6 +614,16 @@ export default function PerfilPage() {
 
   const guardar = async () => {
     if (!userId) return
+
+    // Validate fecha_nacimiento before sending to DB
+    if (form.fechaNacimiento) {
+      const f = new Date(form.fechaNacimiento)
+      if (isNaN(f.getTime())) {
+        setMensaje({ tipo: 'error', texto: 'Fecha de nacimiento inválida. Usá el formato AAAA-MM-DD.' })
+        return
+      }
+    }
+
     setSaving(true)
     setMensaje(null)
 
@@ -632,15 +641,11 @@ export default function PerfilPage() {
       updated_at: new Date().toISOString(),
     }
 
-    console.log('GUARDANDO:', updateData)
-
     const supabase = createClient()
     const { data, error } = await supabase
       .from('profiles')
       .upsert(updateData, { onConflict: 'id' })
       .select()
-
-    console.log('RESULTADO:', data, 'ERROR:', error)
 
     if (error) {
       setMensaje({ tipo: 'error', texto: `Error: ${error.message} (${error.code})` })

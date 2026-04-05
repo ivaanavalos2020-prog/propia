@@ -1,9 +1,15 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import ListadoPropiedades from './ListadoPropiedades'
 import VerificationBanner from '@/components/VerificationBanner'
+
+export const metadata: Metadata = {
+  title: 'Mi dashboard — PROPIA',
+  description: 'Gestioná tus publicaciones de alquiler.',
+}
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()

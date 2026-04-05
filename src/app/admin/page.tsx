@@ -1,11 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { PROVINCIAS_ORDENADAS } from '@/app/propiedades/ubicaciones'
-
-const ADMIN_EMAIL = 'ivaan.avalos2020@gmail.com'
+import { ADMIN_EMAIL } from '@/config'
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -156,9 +155,6 @@ export default function AdminPage() {
     setter(val)
     setPaginaProp(1)
   }
-
-  // Ref estable para el toast callback
-  const cerrarToast = useRef(() => setToast(null))
 
   // ── Carga de datos ────────────────────────────────────────────────────────
 
@@ -1026,7 +1022,7 @@ export default function AdminPage() {
       )}
 
       {/* ── Toast ────────────────────────────────────────────────────────────── */}
-      {toast && <Toast toast={toast} onClose={cerrarToast.current} />}
+      {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
 
     </div>
   )

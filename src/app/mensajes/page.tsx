@@ -1,7 +1,13 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import InboxInquilino, { type RespuestaType } from './InboxInquilino'
+
+export const metadata: Metadata = {
+  title: 'Mis mensajes — PROPIA',
+  description: 'Tus conversaciones con dueños de propiedades.',
+}
 
 export default async function MensajesInquilinoPage() {
   const supabase = await createServerSupabaseClient()

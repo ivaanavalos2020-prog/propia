@@ -157,11 +157,9 @@ export default function VentajasUbicacion({ propertyId, address, neighborhood, c
     })
       .then(async (r) => {
         const text = await r.text()
-        console.log('[VentajasUbicacion] response status:', r.status, 'body:', text.slice(0, 300))
         try {
           return JSON.parse(text) as LocationInfo
-        } catch (e) {
-          console.error('[VentajasUbicacion] JSON parse error:', e, 'raw:', text)
+        } catch {
           throw new Error('Respuesta no válida del servidor')
         }
       })
@@ -169,9 +167,8 @@ export default function VentajasUbicacion({ propertyId, address, neighborhood, c
         memCache.set(cacheKey, data)
         setInfo(data)
       })
-      .catch((err) => {
-        console.error('[VentajasUbicacion] fetch error:', err)
-        setInfo({ advertencia: 'No se pudo obtener información de la zona en este momento.' })
+      .catch(() => {
+        setInfo({ advertencia: 'No pudimos obtener información de esta zona.' })
       })
       .finally(() => setCargando(false))
   }, [visible, propertyId, address, neighborhood, city])

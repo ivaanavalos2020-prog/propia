@@ -12,7 +12,7 @@ export default async function Navbar() {
 
   if (session) {
     const [perfilResult, propResult] = await Promise.all([
-      supabase.from('profiles').select('full_name, avatar_url').eq('id', session.user.id).single(),
+      supabase.from('profiles').select('full_name, avatar_url').eq('id', session.user.id).maybeSingle(),
       supabase.from('properties').select('id', { count: 'exact', head: true }).eq('owner_id', session.user.id).limit(1),
     ])
     userName  = (perfilResult.data?.full_name as string) ?? null

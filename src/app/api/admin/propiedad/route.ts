@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { createAdminSupabaseClient } from '@/lib/supabase-admin'
-
-const ADMIN_EMAIL = 'ivaan.avalos2020@gmail.com'
+import { ADMIN_EMAIL } from '@/config'
 
 export async function POST(req: NextRequest) {
   // ── Auth: verificar que el caller es el admin ─────────────────

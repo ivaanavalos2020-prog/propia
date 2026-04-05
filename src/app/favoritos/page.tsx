@@ -1,7 +1,13 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
+
+export const metadata: Metadata = {
+  title: 'Mis favoritos — PROPIA',
+  description: 'Propiedades que guardaste para consultar más tarde.',
+}
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',

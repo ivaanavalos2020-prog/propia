@@ -13,7 +13,7 @@ import BadgeVerificado from '@/components/BadgeVerificado'
 import TrustScoreCircle from '@/components/TrustScoreCircle'
 import { calcularTrustScore } from '@/lib/trustScore'
 
-const BASE_URL = 'https://propia-kappa.vercel.app'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://propia-kappa.vercel.app'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -378,7 +378,7 @@ export default async function PropiedadPage({
           )}
 
           {/* Galería */}
-          <GaleriaFotos fotos={fotos} />
+          <GaleriaFotos fotos={fotos} address={propiedad.address} />
 
           {/* Contenido */}
           <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-12">
@@ -618,7 +618,7 @@ export default async function PropiedadPage({
                       <div>
                         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Garantías aceptadas</p>
                         <div className="flex flex-wrap gap-2">
-                          {(propiedad.guarantees_accepted as string[]).map((g) => (
+                          {(Array.isArray(propiedad.guarantees_accepted) ? propiedad.guarantees_accepted as string[] : []).map((g) => (
                             <span key={g} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
                               {GARANTIA_LABEL[g] ?? g}
                             </span>
@@ -631,7 +631,7 @@ export default async function PropiedadPage({
                       <div>
                         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Servicios incluidos</p>
                         <div className="flex flex-wrap gap-2">
-                          {(propiedad.services_included as string[]).map((s) => (
+                          {(Array.isArray(propiedad.services_included) ? propiedad.services_included as string[] : []).map((s) => (
                             <span key={s} className="rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
                               {SERVICIO_LABEL[s] ?? s}
                             </span>

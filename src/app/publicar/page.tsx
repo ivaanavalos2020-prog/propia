@@ -287,7 +287,10 @@ export default function PublicarPage() {
           }
         }
       }
-    } catch { /* noop */ }
+    } catch {
+      // Draft corrupted — clean it up silently
+      try { localStorage.removeItem(DRAFT_KEY) } catch { /* noop */ }
+    }
   }, [])
 
   useEffect(() => {
@@ -312,7 +315,10 @@ export default function PublicarPage() {
         setDraftToast('restaurado')
         setTimeout(() => setDraftToast(null), 2500)
       }
-    } catch { /* noop */ }
+    } catch {
+      // Draft corrupted — clean it up silently
+      try { localStorage.removeItem(DRAFT_KEY) } catch { /* noop */ }
+    }
     setMostrarRestaurar(false)
   }
 
@@ -389,6 +395,15 @@ export default function PublicarPage() {
   async function handlePublicar() {
     setPublicando(true)
     setError(null)
+
+    // Validate price before proceeding
+    const price = parseFloat(form.precio)
+    if (isNaN(price) || price <= 0) {
+      setError('El precio debe ser un número mayor a cero.')
+      setPublicando(false)
+      return
+    }
+
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
@@ -412,7 +427,7 @@ export default function PublicarPage() {
       neighborhood: form.barrio || null,
       city: form.provincia,
       property_references: form.referencias || null,
-      price_usd: Number(form.precio),
+      price_usd: price,
       has_expenses: form.hasExpenses,
       expenses_amount: form.hasExpenses && form.expensesAmount ? Number(form.expensesAmount) : null,
       expenses_included: form.hasExpenses ? form.expensesIncluded : false,

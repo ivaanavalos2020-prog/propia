@@ -60,8 +60,11 @@ export async function POST(req: NextRequest) {
   // 5. Email notification (best-effort, silent on failure)
   if (process.env.RESEND_API_KEY) {
     try {
-      const senderEmail = mensaje.sender_email as string
-      const senderName = mensaje.sender_name as string
+      const senderEmail = mensaje.sender_email as string | null
+      if (!senderEmail) {
+        return NextResponse.json({ ok: true, respuesta, skipped: 'no sender email' }, { status: 201 })
+      }
+      const senderName = (mensaje.sender_name as string | null) ?? 'Inquilino'
       const address = prop.address ?? ''
 
       await fetch('https://api.resend.com/emails', {

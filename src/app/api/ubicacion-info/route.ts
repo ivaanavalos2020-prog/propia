@@ -17,7 +17,7 @@ function limpiarJSON(texto: string): string {
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY
-  console.log('[ubicacion-info] ANTHROPIC_API_KEY present:', !!apiKey, apiKey ? `(${apiKey.slice(0, 8)}...)` : '')
+  console.log('[ubicacion-info] API key configured:', !!apiKey)
 
   try {
     const body = await req.json()
