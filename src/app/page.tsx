@@ -310,7 +310,31 @@ export default async function LandingPage() {
           </AnimarAlEntrar>
 
           <AnimarAlEntrar delay={100}>
-            <div className="overflow-hidden rounded-2xl border border-slate-300 shadow-sm">
+            {/* Mobile: cards apilados */}
+            <div className="flex flex-col gap-3 md:hidden">
+              {COMPARATIVA.map(({ feature, propia, inmo }) => (
+                <div key={feature} className="rounded-xl border border-slate-200 bg-white p-4">
+                  <p className="mb-3 text-sm font-bold text-slate-700">{feature}</p>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-start gap-2 rounded-lg bg-green-50 px-3 py-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span className="text-sm font-semibold text-green-700">PROPIA: {propia}</span>
+                    </div>
+                    <div className="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                      <span className="text-sm text-slate-500">Inmobiliaria: {inmo}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: tabla */}
+            <div className="hidden overflow-hidden rounded-2xl border border-slate-300 shadow-sm md:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-300 bg-slate-50">

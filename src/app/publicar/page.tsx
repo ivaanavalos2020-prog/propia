@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase-client'
 import { PROVINCIAS } from '@/lib/provincias'
 import NavbarClient from '@/components/NavbarClient'
 import { parsearErrorSupabase } from '@/lib/utils'
+import { UBICACIONES } from '@/app/propiedades/ubicaciones'
 
 const TIPOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 const TAMANIO_MAX = 10 * 1024 * 1024 // 10 MB
@@ -83,21 +84,21 @@ const CATEGORIAS: Categoria[] = [
   {
     id: 'frente',
     label: 'Frente del edificio o casa',
-    instruccion: 'Sacá desde la vereda de enfrente, mostrando toda la fachada. Incluí la entrada principal. Mejor en hora dorada (temprano a la mañana o al atardecer).',
+    instruccion: 'Sacá desde la vereda de enfrente mostrando toda la fachada. Incluí la entrada principal. Mejor en hora dorada.',
     obligatoria: true,
     icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" /><path d="M9 21V12h6v9" /></svg>),
   },
   {
     id: 'living',
     label: 'Living o entrada principal',
-    instruccion: 'Desde la esquina más alejada de la entrada, mostrando toda la habitación. Asegurate de que haya buena luz y que esté ordenado.',
+    instruccion: 'Desde la esquina más alejada de la entrada, mostrando toda la habitación. Asegurate de que haya buena luz y esté ordenado.',
     obligatoria: true,
     icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" /><line x1="12" y1="12" x2="12" y2="16" /><line x1="10" y1="14" x2="14" y2="14" /></svg>),
   },
   {
     id: 'cocina',
     label: 'Cocina',
-    instruccion: 'Mostrá la mesada, los muebles y los electrodomésticos. Limpia y sin platos ni utensilios. Abrí las persianas para aprovechar la luz natural.',
+    instruccion: 'Mostrá la mesada, los muebles y los electrodomésticos. Limpia y sin platos. Abrí las persianas.',
     obligatoria: true,
     icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4" /><path d="M12 2v4" /><path d="M16 2v4" /><rect x="2" y="6" width="20" height="16" rx="2" /><path d="M6 14h.01" /><path d="M12 14h.01" /><path d="M18 14h.01" /><path d="M6 18h.01" /><path d="M12 18h.01" /><path d="M18 18h.01" /></svg>),
   },
@@ -118,7 +119,7 @@ const CATEGORIAS: Categoria[] = [
   {
     id: 'extras',
     label: 'Espacios extras',
-    instruccion: 'Mostrá el balcón, terraza, jardín, cochera o cualquier espacio adicional que sume valor. Omitir si no aplica.',
+    instruccion: 'Mostrá el balcón, terraza, jardín, cochera o cualquier espacio adicional que sume valor a la propiedad.',
     obligatoria: false,
     icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="1" /><path d="M3 11V8a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3" /><path d="M12 7V3" /><path d="M8 7l4-4 4 4" /></svg>),
   },
@@ -242,6 +243,107 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
       </span>
       {label}
     </button>
+  )
+}
+
+// ── Localidad autocomplete data ───────────────────────────────────────────
+
+function getLocalidades(provincia: string): string[] | null {
+  const config = UBICACIONES.find((u) => u.label === provincia)
+  if (!config) return null
+  if (config.localidades) return config.localidades
+  if (config.zonas) {
+    return config.zonas.flatMap((z) => z.localidades ?? [])
+  }
+  return null
+}
+
+function LocalidadInput({
+  value,
+  onChange,
+  provincia,
+  inputCls,
+}: {
+  value: string
+  onChange: (v: string) => void
+  provincia: string
+  inputCls: string
+}) {
+  const [query, setQuery] = useState(value)
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const localidades = useMemo(() => getLocalidades(provincia), [provincia])
+
+  const sugerencias = useMemo(() => {
+    if (!localidades || query.length < 2) return []
+    const q = query.toLowerCase()
+    return localidades.filter((l) => l.toLowerCase().includes(q)).slice(0, 8)
+  }, [localidades, query])
+
+  // Sync query when value changes externally
+  useEffect(() => { setQuery(value) }, [value])
+
+  // Close on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  if (!localidades) {
+    return (
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Ej: Temperley, Banfield, Palermo..."
+        className={inputCls}
+        style={{ fontSize: 16 }}
+      />
+    )
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value)
+          onChange(e.target.value)
+          setOpen(true)
+        }}
+        onFocus={() => setOpen(true)}
+        placeholder="Ej: Temperley, Banfield, Palermo..."
+        className={inputCls}
+        style={{ fontSize: 16 }}
+        autoComplete="off"
+      />
+      {open && sugerencias.length > 0 && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+          {sugerencias.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                setQuery(s)
+                onChange(s)
+                setOpen(false)
+              }}
+              className="flex w-full items-center px-4 py-3 text-left text-base text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -759,8 +861,8 @@ export default function PublicarPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-slate-700">Barrio</label>
-                        <input type="text" value={form.barrio} onChange={(e) => set('barrio', e.target.value)} placeholder="Ej: Palermo" className={inputCls} />
+                        <label className="text-sm font-medium text-slate-700">Localidad</label>
+                        <LocalidadInput value={form.barrio} onChange={(v) => set('barrio', v)} provincia={form.provincia} inputCls={inputCls} />
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-medium text-slate-700">Provincia <span className="font-normal text-slate-400">*</span></label>
@@ -1133,17 +1235,17 @@ export default function PublicarPage() {
                         </p>
                       </div>
 
-                      {/* Stats row */}
-                      <div className="grid grid-cols-3 gap-3 p-5 pb-0">
+                      {/* Stats */}
+                      <div className="flex flex-col gap-2 p-5 pb-0 sm:grid sm:grid-cols-3 sm:gap-3">
                         {[
-                          { stat: '3x', desc: 'más consultas con buenas fotos' },
-                          { stat: '87%', desc: 'decide por las fotos antes de contactar' },
-                          { stat: '3 sem', desc: 'antes se alquila con fotos de calidad' },
+                          { stat: '3x', desc: '3 veces más consultas con buenas fotos' },
+                          { stat: '87%', desc: '87% decide si contactar solo mirando las fotos' },
+                          { stat: '3 sem', desc: '3 semanas antes se alquila con fotos de calidad' },
                         ].map(({ stat, desc }) => (
-                          <div key={stat} className="flex flex-col items-center gap-1 rounded-xl p-3 text-center"
-                            style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
-                            <span style={{ fontSize: 32, fontWeight: 700, color: '#16A34A', lineHeight: 1 }}>{stat}</span>
-                            <span style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.3 }}>{desc}</span>
+                          <div key={stat} className="flex items-center gap-4 rounded-xl px-4 py-3 sm:flex-col sm:items-center sm:gap-1 sm:p-3 sm:text-center"
+                            style={{ background: '#DCFCE7', borderRadius: 12 }}>
+                            <span style={{ fontSize: 48, fontWeight: 700, color: '#16A34A', lineHeight: 1, minWidth: 72, textAlign: 'center' }} className="sm:text-4xl">{stat}</span>
+                            <span style={{ fontSize: 14, color: '#166534', lineHeight: 1.4 }}>{desc}</span>
                           </div>
                         ))}
                       </div>
@@ -1193,35 +1295,62 @@ export default function PublicarPage() {
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-4">
                       {CATEGORIAS.map((cat) => {
                         const preview = previews[cat.id]
                         return (
-                          <div key={cat.id} className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${preview ? 'border-green-200 bg-green-50' : 'border-slate-300 bg-white'}`}>
-                            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-300 bg-slate-50">
-                              {preview ? (
-                                <>
-                                  <Image src={preview} alt={cat.label} fill className="object-cover" />
-                                  <button type="button" onClick={() => eliminarFoto(cat.id)}
-                                    className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white/90 text-slate-500 shadow-sm hover:text-red-600">
-                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                                  </button>
-                                </>
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center text-slate-300">{cat.icono}</div>
-                              )}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-slate-900">
-                                {cat.label}{cat.obligatoria && <span className="ml-1 text-blue-500">*</span>}
-                              </p>
-                              <p className="truncate text-xs text-slate-400">{cat.instruccion}</p>
-                            </div>
+                          <div key={cat.id}>
                             <input ref={(el) => { inputRefs.current[cat.id] = el }} type="file" accept="image/*" className="hidden" onChange={(e) => handleFotoChange(cat.id, e)} />
-                            <button type="button" onClick={() => inputRefs.current[cat.id]?.click()}
-                              className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${preview ? 'border-green-200 bg-white text-green-700 hover:bg-green-50' : 'border-slate-300 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600'}`}>
-                              {preview ? '✓ Cambiar' : 'Subir'}
-                            </button>
+
+                            {preview ? (
+                              /* ── Estado con foto ── */
+                              <div className="rounded-2xl p-4" style={{ border: '2px solid #16A34A', background: '#F0FDF4' }}>
+                                <div className="relative mb-3 overflow-hidden rounded-xl" style={{ height: 200 }}>
+                                  <Image src={preview} alt={cat.label} fill className="object-cover" />
+                                  {/* Badge categoría */}
+                                  <div className="absolute bottom-2 left-2 rounded-full px-2.5 py-1 text-xs font-bold text-white" style={{ background: '#16A34A' }}>
+                                    {cat.label}
+                                  </div>
+                                  {/* Check verde */}
+                                  <div className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md" style={{ background: '#16A34A' }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button type="button" onClick={() => inputRefs.current[cat.id]?.click()}
+                                    className="flex h-11 flex-1 items-center justify-center rounded-xl border-2 border-blue-600 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50">
+                                    Cambiar
+                                  </button>
+                                  <button type="button" onClick={() => eliminarFoto(cat.id)}
+                                    className="flex h-11 flex-1 items-center justify-center rounded-xl border-2 border-red-300 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
+                                    Eliminar
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              /* ── Estado sin foto ── */
+                              <div className="rounded-2xl p-5" style={{ border: '2px dashed #CBD5E1' }}>
+                                {/* Zona de drop */}
+                                <div className="mb-4 flex flex-col items-center justify-center rounded-xl" style={{ background: '#F8FAFC', height: 120 }}>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                                  </svg>
+                                </div>
+                                {/* Nombre categoría */}
+                                <p className="mb-2 text-base font-bold text-slate-800">
+                                  {cat.label}
+                                  {cat.obligatoria && <span className="ml-1 text-red-500">*</span>}
+                                </p>
+                                {/* Instrucción completa */}
+                                <p className="mb-4 text-sm leading-relaxed text-slate-500">{cat.instruccion}</p>
+                                {/* Botón upload */}
+                                <button type="button" onClick={() => inputRefs.current[cat.id]?.click()}
+                                  className="flex h-12 w-full items-center justify-center rounded-xl bg-blue-600 text-base font-semibold text-white transition-colors hover:bg-blue-700"
+                                  style={{ fontSize: 16 }}>
+                                  Subir foto
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )
                       })}
@@ -1357,25 +1486,26 @@ export default function PublicarPage() {
       </main>
 
       {/* ── Mobile sticky footer ── */}
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-6 py-4 lg:hidden"
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-4 py-4 lg:hidden"
         style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
         <div className="flex gap-3">
           {paso > 0 && (
             <button type="button" onClick={() => irAlPaso(paso - 1)} disabled={publicando}
-              className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-600 transition-colors disabled:opacity-40">
+              className="rounded-xl border border-slate-300 bg-white px-5 text-base font-medium text-slate-600 transition-colors disabled:opacity-40"
+              style={{ height: 52, fontSize: 16 }}>
               Atrás
             </button>
           )}
           {paso < PASOS.length - 1 ? (
             <button type="button" onClick={() => irAlPaso(paso + 1)} disabled={!puedeAvanzar()}
-              className="flex-1 rounded-xl py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed"
-              style={{ background: puedeAvanzar() ? '#2563EB' : '#CBD5E1' }}>
+              className="flex-1 rounded-xl text-base font-semibold text-white transition-colors disabled:cursor-not-allowed"
+              style={{ background: puedeAvanzar() ? '#2563EB' : '#CBD5E1', height: 52, fontSize: 16 }}>
               Siguiente
             </button>
           ) : (
             <button type="button" onClick={handlePublicar} disabled={publicando || !puedeAvanzar()}
-              className="flex-1 rounded-xl py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed"
-              style={{ background: puedeAvanzar() && !publicando ? '#2563EB' : '#CBD5E1' }}>
+              className="flex-1 rounded-xl text-base font-semibold text-white transition-colors disabled:cursor-not-allowed"
+              style={{ background: puedeAvanzar() && !publicando ? '#2563EB' : '#CBD5E1', height: 52, fontSize: 16 }}>
               {publicando ? 'Publicando…' : 'Publicar propiedad'}
             </button>
           )}
