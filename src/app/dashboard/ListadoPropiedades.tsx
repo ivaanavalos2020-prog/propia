@@ -10,6 +10,7 @@ interface Propiedad {
   price_usd: number
   includes_expenses: boolean | null
   status: string
+  photo_urls: string[] | null
 }
 
 const PAGE_SIZE = 10

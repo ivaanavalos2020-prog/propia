@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   const [{ data: propiedades }, { data: perfil }] = await Promise.all([
     supabase
       .from('properties')
-      .select('id, type, address, price_usd, includes_expenses, status')
+      .select('id, type, address, price_usd, includes_expenses, status, photo_urls')
       .eq('owner_id', session.user.id)
       .order('created_at', { ascending: false }),
     supabase

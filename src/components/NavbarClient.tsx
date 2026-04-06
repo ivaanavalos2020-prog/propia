@@ -59,6 +59,7 @@ const NAV_LINKS = [
   { label: 'Alquilar',       href: '/propiedades',     matchPath: '/propiedades', exact: false, noActive: false },
   { label: 'Publicar',       href: '/publicar',        matchPath: '/publicar',    exact: false, noActive: false },
   { label: 'Cómo funciona',  href: '/#como-funciona',  matchPath: '',             exact: false, noActive: true  },
+  { label: 'Seguridad',      href: '/seguridad',       matchPath: '/seguridad',   exact: false, noActive: false },
 ]
 
 const DROPDOWN_LINKS_DUENO = [
