@@ -50,6 +50,7 @@ interface Propiedad {
   created_at: string | null
   contract_type: string | null
   views_count: number | null
+  owner_id?: string | null
 }
 
 interface InitialFilters {
@@ -213,9 +214,10 @@ function FotoPlaceholder() {
   )
 }
 
-function CardGrilla({ p }: { p: Propiedad }) {
+function CardGrilla({ p, isVerified }: { p: Propiedad; isVerified: boolean }) {
   const nueva = esNueva(p.created_at)
   const foto = getFirstPhoto(p.photo_urls)
+  const muchasFotos = Array.isArray(p.photo_urls) && p.photo_urls.length >= 6
   return (
     <Link
       href={`/propiedades/${p.id}`}
@@ -238,6 +240,12 @@ function CardGrilla({ p }: { p: Propiedad }) {
             Nuevo
           </span>
         )}
+        {muchasFotos && (
+          <span className="absolute right-3 bottom-3 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            {p.photo_urls!.length} fotos
+          </span>
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex flex-col gap-1">
@@ -248,6 +256,12 @@ function CardGrilla({ p }: { p: Propiedad }) {
             {p.contract_type && p.contract_type !== 'a_convenir' && (
               <span className="inline-flex w-fit rounded-full border border-blue-100 bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600">
                 {CONTRATO_LABEL[p.contract_type] ?? p.contract_type}
+              </span>
+            )}
+            {isVerified && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                Verificado
               </span>
             )}
           </div>
@@ -274,7 +288,7 @@ function CardGrilla({ p }: { p: Propiedad }) {
   )
 }
 
-function CardLista({ p }: { p: Propiedad }) {
+function CardLista({ p, isVerified }: { p: Propiedad; isVerified: boolean }) {
   const nueva = esNueva(p.created_at)
   const foto = getFirstPhoto(p.photo_urls)
   return (
@@ -304,6 +318,12 @@ function CardLista({ p }: { p: Propiedad }) {
               {nueva && (
                 <span className="inline-flex w-fit rounded-full bg-green-500 px-2 py-0.5 text-[11px] font-bold text-white">
                   Nuevo
+                </span>
+              )}
+              {isVerified && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                  Verificado
                 </span>
               )}
             </div>
@@ -361,11 +381,14 @@ function buildPageNumbers(current: number, total: number): (number | '…')[] {
 
 export default function ListadoConFiltros({
   propiedades,
+  verifiedOwnerIds = [],
   initialFilters = {},
 }: {
   propiedades: Propiedad[]
+  verifiedOwnerIds?: string[]
   initialFilters?: InitialFilters
 }) {
+  const verifiedSet = useMemo(() => new Set(verifiedOwnerIds), [verifiedOwnerIds])
   const [tipo, setTipo] = useState(initialFilters.tipo ?? '')
   const [provincia, setProvincia] = useState(initialFilters.provincia ?? '')
   const [zona, setZona] = useState(initialFilters.zona ?? '')
@@ -719,7 +742,7 @@ export default function ListadoConFiltros({
               <li key={p.id}
                 className="opacity-0 animate-[fadeSlideUp_0.4s_ease-out_forwards]"
                 style={{ animationDelay: `${Math.min(i * 50, 400)}ms` }}>
-                <CardGrilla p={p} />
+                <CardGrilla p={p} isVerified={!!(p.owner_id && verifiedSet.has(p.owner_id))} />
               </li>
             ))}
           </ul>
@@ -729,7 +752,7 @@ export default function ListadoConFiltros({
               <li key={p.id}
                 className="opacity-0 animate-[fadeSlideUp_0.4s_ease-out_forwards]"
                 style={{ animationDelay: `${Math.min(i * 40, 300)}ms` }}>
-                <CardLista p={p} />
+                <CardLista p={p} isVerified={!!(p.owner_id && verifiedSet.has(p.owner_id))} />
               </li>
             ))}
           </ul>

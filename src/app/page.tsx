@@ -129,6 +129,23 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* ── Trust signals ──────────────────────────────────── */}
+      <section className="border-b border-slate-100 bg-slate-50/80 px-6 py-6">
+        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
+          {[
+            { icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>), label: 'Identidades verificadas' },
+            { icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>), label: 'Comunicación segura' },
+            { icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>), label: 'Sin comisiones' },
+            { icono: (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>), label: 'Reseñas reales' },
+          ].map(({ icono, label }) => (
+            <div key={label} className="flex items-center gap-2.5 rounded-xl border border-blue-100 bg-white px-4 py-3 shadow-sm">
+              <span className="shrink-0">{icono}</span>
+              <span className="text-sm font-medium text-slate-700">{label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── Stats ────────────────────────────────────────────── */}
       <section className="border-y border-slate-100 bg-slate-50 px-6 py-14">
         <AnimarAlEntrar>
@@ -210,6 +227,24 @@ export default async function LandingPage() {
               ))}
             </div>
           </div>
+
+          {/* Nota de verificación */}
+          <AnimarAlEntrar delay={200}>
+            <div className="mt-8 flex items-center gap-4 rounded-2xl border border-blue-100 bg-blue-50 px-6 py-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 10h4m-4 4h8m-4-8v4"/>
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-blue-900">Verificá tu identidad y generá más confianza</p>
+                <p className="mt-0.5 text-sm text-blue-700">Los perfiles con DNI verificado reciben 3x más consultas. Es gratis y tarda 2 minutos.</p>
+              </div>
+              <Link href="/verificar-identidad" className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                Verificar →
+              </Link>
+            </div>
+          </AnimarAlEntrar>
         </div>
       </section>
 
@@ -522,6 +557,29 @@ export default async function LandingPage() {
 
       {/* ── Footer ───────────────────────────────────────────── */}
       <footer className="bg-slate-900 border-t border-slate-800 px-6 py-10 md:px-10">
+
+        {/* Bloque de confianza */}
+        <div className="mx-auto mb-10 max-w-5xl rounded-2xl border border-slate-700 bg-slate-800/60 px-6 py-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600/20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">Tu seguridad es nuestra prioridad</p>
+                <p className="mt-0.5 text-xs text-slate-400">Datos protegidos · Identidades verificadas · Sin intermediarios</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-3 text-xs">
+              <Link href="/seguridad" className="rounded-lg border border-slate-600 px-3 py-1.5 font-medium text-slate-300 transition-colors hover:border-blue-500 hover:text-blue-400">Seguridad</Link>
+              <Link href="/terminos" className="rounded-lg border border-slate-600 px-3 py-1.5 font-medium text-slate-300 transition-colors hover:border-blue-500 hover:text-blue-400">Términos</Link>
+              <Link href="/privacidad" className="rounded-lg border border-slate-600 px-3 py-1.5 font-medium text-slate-300 transition-colors hover:border-blue-500 hover:text-blue-400">Privacidad</Link>
+            </div>
+          </div>
+        </div>
+
         <div className="mx-auto flex max-w-5xl flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex flex-col gap-2">
             <span className="text-base font-bold tracking-widest text-white">PROPIA</span>
@@ -537,6 +595,7 @@ export default async function LandingPage() {
               <Link href="/propiedades" className="transition-colors hover:text-white">Buscar alquiler</Link>
               <Link href="/publicar" className="transition-colors hover:text-white">Publicar gratis</Link>
               <Link href="/#como-funciona" className="transition-colors hover:text-white">Cómo funciona</Link>
+              <Link href="/seguridad" className="transition-colors hover:text-white">Seguridad</Link>
             </div>
             <div className="flex flex-col gap-2">
               <span className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Cuenta</span>

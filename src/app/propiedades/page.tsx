@@ -24,11 +24,23 @@ export default async function PropiedadesPage({
   const { data: propiedades } = await supabase
     .from('properties')
     .select(
-      'id, type, address, neighborhood, city, price_usd, bedrooms, bathrooms, area_m2, photo_urls, created_at, contract_type, views_count, status'
+      'id, type, address, neighborhood, city, price_usd, bedrooms, bathrooms, area_m2, photo_urls, created_at, contract_type, views_count, status, owner_id'
     )
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(500)
+
+  // Fetch verified owner IDs for badges
+  const ownerIds = [...new Set((propiedades ?? []).map((p) => p.owner_id).filter(Boolean))]
+  let verifiedOwnerIds: Set<string> = new Set()
+  if (ownerIds.length > 0) {
+    const { data: verifiedProfiles } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('verification_status', 'verified')
+      .in('id', ownerIds as string[])
+    verifiedOwnerIds = new Set((verifiedProfiles ?? []).map((p) => p.id as string))
+  }
 
   const title = (() => {
     if (filters.barrio) return `Propiedades en ${filters.barrio}`
@@ -52,6 +64,7 @@ export default async function PropiedadesPage({
 
           <ListadoConFiltros
             propiedades={propiedades ?? []}
+            verifiedOwnerIds={[...verifiedOwnerIds]}
             initialFilters={{
               tipo: filters.tipo,
               provincia: filters.provincia,

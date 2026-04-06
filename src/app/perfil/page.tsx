@@ -470,6 +470,7 @@ export default function PerfilPage() {
   const [userEmail, setUserEmail] = useState('')
   const [emailVerificado, setEmailVerificado] = useState(false)
   const [createdAt, setCreatedAt] = useState<string | null>(null)
+  const [verificationStatus, setVerificationStatus] = useState<string>('unverified')
 
   // Navbar data
   const [isDueno, setIsDueno] = useState(false)
@@ -543,6 +544,7 @@ export default function PerfilPage() {
         setCuitInit(profile.cuit ?? '')
         setRazonSocialInit(profile.razon_social ?? '')
         setCondicionInit(profile.condicion_afip ?? '')
+        setVerificationStatus((profile.verification_status as string) ?? 'unverified')
       } else {
         // Create profile if it doesn't exist
         const { error: insertError } = await supabase.from('profiles').insert({
@@ -779,6 +781,39 @@ export default function PerfilPage() {
 
       <main className="flex flex-1 flex-col px-4 pt-24 pb-12 md:px-8">
         <div className="mx-auto w-full max-w-6xl">
+
+          {/* Banner / badge verificación */}
+          {verificationStatus === 'verified' ? (
+            <div className="mb-5 flex items-center gap-3 rounded-2xl border border-green-200 bg-green-50 px-5 py-3.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <div>
+                <p className="text-sm font-bold text-green-900">Identidad verificada</p>
+                <p className="text-xs text-green-700">Tu perfil está verificado con DNI. Los inquilinos confían más en perfiles verificados.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <p className="text-sm text-amber-800">
+                  <span className="font-bold">Verificá tu identidad para generar más confianza y recibir más consultas.</span>
+                  {' '}Es gratis y tarda 2 minutos.
+                  {verificationStatus === 'pending' && <span className="ml-1 italic">(Verificación en revisión)</span>}
+                </p>
+              </div>
+              {verificationStatus !== 'pending' && (
+                <a href="/verificar-identidad"
+                  className="shrink-0 rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700">
+                  Verificar ahora
+                </a>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
 
             {/* ── Sidebar ── */}

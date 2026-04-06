@@ -368,13 +368,15 @@ export default function PublicarPage() {
 
   const [draftDate, setDraftDate] = useState<string | null>(null)
   const [navInfo, setNavInfo] = useState<{ email: string | null; name: string | null; avatar: string | null }>({ email: null, name: null, avatar: null })
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
-      supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).single().then(({ data }) => {
+      supabase.from('profiles').select('full_name, avatar_url, verification_status').eq('id', user.id).single().then(({ data }) => {
         setNavInfo({ email: user.email ?? null, name: data?.full_name ?? null, avatar: data?.avatar_url ?? null })
+        setVerificationStatus((data?.verification_status as string) ?? 'unverified')
       })
     })
   }, [])
@@ -762,6 +764,26 @@ export default function PublicarPage() {
         {/* ── PASO 1: Tipo — full width ── */}
         {paso === 0 && (
           <div key={animKey} className={animDir === 'forward' ? 'anim-fwd' : 'anim-bwd'}>
+
+            {/* Banner verificación */}
+            {verificationStatus && verificationStatus !== 'verified' && (
+              <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
+                  </svg>
+                  <p className="text-sm text-blue-800">
+                    <span className="font-bold">Las publicaciones con identidad verificada reciben 3x más consultas.</span>
+                    {' '}Verificá tu DNI gratis antes de publicar.
+                  </p>
+                </div>
+                <Link href="/verificar-identidad"
+                  className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                  Verificar mi identidad
+                </Link>
+              </div>
+            )}
+
             <h2 className="mb-8 text-center text-[28px] font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
               ¿Qué tipo de propiedad vas a publicar?
             </h2>
@@ -1365,7 +1387,14 @@ export default function PublicarPage() {
               {error && (
                 <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-600">{error}</p>
               )}
-              <div className="mt-5 hidden items-center justify-between lg:flex">
+              {paso === PASOS.length - 1 && (
+                <p className="mt-4 text-center text-xs text-slate-400">
+                  Al publicar aceptás nuestros{' '}
+                  <Link href="/terminos" className="underline underline-offset-2 hover:text-slate-600" target="_blank" rel="noopener noreferrer">términos de uso</Link>.
+                  {' '}Tu publicación será visible para todos los usuarios.
+                </p>
+              )}
+              <div className="mt-4 hidden items-center justify-between lg:flex">
                 <button type="button" onClick={() => irAlPaso(paso - 1)} disabled={publicando}
                   className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40">
                   ← Atrás
