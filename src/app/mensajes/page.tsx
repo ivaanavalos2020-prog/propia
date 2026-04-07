@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
-import InboxInquilino, { type RespuestaType } from './InboxInquilino'
+import InboxInquilino, { type RespuestaType, type OwnerProfile } from './InboxInquilino'
 
 export const metadata: Metadata = {
   title: 'Mis mensajes — PROPIA',
@@ -59,6 +59,57 @@ export default async function MensajesInquilinoPage() {
     respuestasPorMensaje[r.mensaje_id].push(r as RespuestaType)
   }
 
+  // ── Perfiles de los dueños (keyed by property_id) ────────────
+  const propertyIds = [...new Set(mensajes.map((m) => m.property_id).filter(Boolean))]
+  const ownerProfilesByProperty: Record<string, OwnerProfile> = {}
+
+  if (propertyIds.length > 0) {
+    const { data: propRows } = await supabase
+      .from('properties')
+      .select('id, owner_id')
+      .in('id', propertyIds)
+
+    const ownerIds = [...new Set((propRows ?? []).map((p) => p.owner_id as string).filter(Boolean))]
+
+    if (ownerIds.length > 0) {
+      const [profilesResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, email, full_name, avatar_url, verification_status, created_at')
+          .in('id', ownerIds),
+      ])
+
+      const profiles = profilesResult.data ?? []
+      const profileIds = profiles.map((p) => p.id as string)
+
+      const { data: allReviews } = profileIds.length > 0
+        ? await supabase.from('reviews').select('reviewed_id, rating').in('reviewed_id', profileIds)
+        : { data: [] }
+
+      const profileMap: Record<string, OwnerProfile> = {}
+      for (const p of profiles) {
+        const reviews = (allReviews ?? []).filter((r) => r.reviewed_id === p.id)
+        const avgRating = reviews.length > 0
+          ? reviews.reduce((s, r) => s + (r.rating as number), 0) / reviews.length
+          : 0
+        profileMap[p.id as string] = {
+          id:                  p.id as string,
+          full_name:           (p.full_name as string) ?? null,
+          avatar_url:          (p.avatar_url as string) ?? null,
+          verification_status: (p.verification_status as string) ?? 'unverified',
+          created_at:          (p.created_at as string) ?? null,
+          avgRating,
+          reviewCount: reviews.length,
+        }
+      }
+
+      for (const prop of (propRows ?? [])) {
+        const profile = profileMap[prop.owner_id as string]
+        if (profile) ownerProfilesByProperty[prop.id as string] = profile
+      }
+    }
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-50">
       <Navbar />
@@ -68,6 +119,7 @@ export default async function MensajesInquilinoPage() {
           respuestasPorMensaje={respuestasPorMensaje}
           userEmail={userEmail}
           mensajeIds={mensajeIds}
+          ownerProfiles={ownerProfilesByProperty}
         />
       </div>
     </div>

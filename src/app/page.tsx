@@ -410,6 +410,61 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* ── Ahorro real ──────────────────────────────────────── */}
+      <section className="bg-slate-50 px-6 py-20 md:px-10">
+        <div className="mx-auto max-w-4xl">
+          <AnimarAlEntrar>
+            <div className="text-center">
+              <span className="inline-block rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-green-700">
+                Sin comisiones
+              </span>
+              <h2 className="mt-4 text-3xl font-extrabold text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+                Publicá gratis, ahorrá de verdad
+              </h2>
+              <p className="mt-3 text-base text-slate-500">
+                Una inmobiliaria cobra entre el 4 y el 5 % del contrato. En un alquiler de 2 años, eso es plata real.
+              </p>
+            </div>
+          </AnimarAlEntrar>
+
+          <AnimarAlEntrar delay={100}>
+            <div className="mt-10 grid gap-5 sm:grid-cols-3">
+              {[
+                { precio: 400_000,  label: '$400.000/mes' },
+                { precio: 600_000,  label: '$600.000/mes' },
+                { precio: 900_000,  label: '$900.000/mes' },
+              ].map(({ precio, label }) => {
+                const ahorro = Math.round(precio * 24 * 0.0415)
+                return (
+                  <div key={precio} className="rounded-2xl border border-green-100 bg-white p-6 text-center shadow-sm">
+                    <p className="text-sm font-medium text-slate-500">Alquiler</p>
+                    <p className="mt-1 text-xl font-extrabold text-slate-900">{label}</p>
+                    <div className="my-4 h-px bg-slate-100" />
+                    <p className="text-xs text-slate-400">Comisión inmobiliaria (4,15 % × 24 meses)</p>
+                    <p className="mt-2 text-3xl font-extrabold text-green-600">
+                      ${ahorro.toLocaleString('es-AR')}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-green-700">que te ahorrás con PROPIA</p>
+                  </div>
+                )
+              })}
+            </div>
+          </AnimarAlEntrar>
+
+          <AnimarAlEntrar delay={160}>
+            <div className="mt-10 text-center">
+              <Link
+                href="/publicar"
+                className="inline-block rounded-xl bg-green-600 px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-green-700"
+              >
+                Publicar mi propiedad gratis
+              </Link>
+              <p className="mt-3 text-xs text-slate-400">Sin intermediarios · Sin comisiones · Sin permanencia</p>
+            </div>
+          </AnimarAlEntrar>
+        </div>
+      </section>
+
       {/* ── CTA dueños ───────────────────────────────────────── */}
       <section className="px-6 py-20 md:px-10" style={{ background: '#1A1A2E' }}>
         <AnimarAlEntrar>

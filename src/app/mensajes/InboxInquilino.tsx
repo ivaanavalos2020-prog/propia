@@ -14,6 +14,16 @@ export type RespuestaType = {
   created_at: string
 }
 
+export type OwnerProfile = {
+  id: string
+  full_name: string | null
+  avatar_url: string | null
+  verification_status: string
+  created_at: string | null
+  avgRating: number
+  reviewCount: number
+}
+
 export type MensajeInquilinoType = {
   id: string
   sender_name: string
@@ -98,6 +108,111 @@ function IconReloj({ className }: { className?: string }) {
   )
 }
 
+// ── Helpers de perfil ─────────────────────────────────────────
+
+function avatarColor(name: string): string {
+  const palettes = [
+    'bg-blue-100 text-blue-700',
+    'bg-violet-100 text-violet-700',
+    'bg-amber-100 text-amber-700',
+    'bg-rose-100 text-rose-700',
+    'bg-teal-100 text-teal-700',
+    'bg-sky-100 text-sky-700',
+  ]
+  return palettes[name.charCodeAt(0) % palettes.length]
+}
+
+function miembroDesde(dateStr: string | null): string {
+  if (!dateStr) return 'desconocido'
+  return new Date(dateStr).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+}
+
+function StarRow({ value, size = 12 }: { value: number; size?: number }) {
+  return (
+    <span className="flex items-center gap-0.5">
+      {[1,2,3,4,5].map((i) => (
+        <svg key={i} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+          fill={i <= Math.round(value) ? '#FBBF24' : 'none'} stroke="#FBBF24" strokeWidth="1.5"
+          strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      ))}
+    </span>
+  )
+}
+
+function OwnerPerfilCard({ profile }: { profile: OwnerProfile | null }) {
+  if (!profile) {
+    return (
+      <div className="border-b border-slate-100 bg-white px-6 py-3">
+        <p className="text-xs font-medium text-slate-500">Conversación con el dueño</p>
+      </div>
+    )
+  }
+
+  const verified = profile.verification_status === 'verified'
+  const displayName = profile.full_name ?? 'Dueño'
+  const initial = displayName[0]?.toUpperCase() ?? 'D'
+
+  return (
+    <div className="border-b border-slate-100 bg-white px-6 py-4">
+      <div className="flex flex-wrap items-start gap-4">
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          {profile.avatar_url ? (
+            <img src={profile.avatar_url} alt={displayName} className="h-12 w-12 rounded-full object-cover border-2 border-slate-200" />
+          ) : (
+            <div className={['flex h-12 w-12 items-center justify-center rounded-full text-base font-bold', avatarColor(displayName)].join(' ')}>
+              {initial}
+            </div>
+          )}
+          {verified && (
+            <span className="absolute -right-1 -bottom-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-green-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-bold text-slate-900">{displayName}</span>
+            {verified ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                Identidad verificada
+              </span>
+            ) : (
+              <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-400">
+                Sin verificar
+              </span>
+            )}
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+            {profile.reviewCount > 0 ? (
+              <div className="flex items-center gap-1.5">
+                <StarRow value={profile.avgRating} />
+                <Link href={`/reviews/${profile.id}`} className="text-xs text-slate-500 hover:text-blue-600">
+                  {profile.reviewCount} reseña{profile.reviewCount !== 1 ? 's' : ''}
+                </Link>
+              </div>
+            ) : (
+              <span className="text-xs text-slate-400">Sin reseñas aún</span>
+            )}
+            {profile.created_at && (
+              <span className="text-xs text-slate-400">Miembro desde {miembroDesde(profile.created_at)}</span>
+            )}
+            <Link href={`/reviews/${profile.id}`} className="text-xs font-medium text-blue-600 hover:underline">
+              Ver reseñas →
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Helpers de último mensaje ─────────────────────────────────
 
 function ultimoMensaje(m: MensajeInquilinoType, hilo: RespuestaType[]): string {
@@ -117,6 +232,7 @@ interface Props {
   respuestasPorMensaje: Record<string, RespuestaType[]>
   userEmail: string
   mensajeIds: string[]
+  ownerProfiles: Record<string, OwnerProfile>
 }
 
 export default function InboxInquilino({
@@ -124,6 +240,7 @@ export default function InboxInquilino({
   respuestasPorMensaje: initialRespuestas,
   userEmail,
   mensajeIds: initialMensajeIds,
+  ownerProfiles,
 }: Props) {
   const [mensajes,   setMensajes]   = useState<MensajeInquilinoType[]>(initial)
   const [respuestas, setRespuestas] = useState<Record<string, RespuestaType[]>>(initialRespuestas)
@@ -399,10 +516,8 @@ export default function InboxInquilino({
                   </div>
                 </div>
 
-                {/* Subtítulo */}
-                <div className="bg-white px-6 py-3">
-                  <p className="text-xs font-medium text-slate-500">Conversación con el dueño</p>
-                </div>
+                {/* Perfil del dueño */}
+                <OwnerPerfilCard profile={ownerProfiles[selected.property_id] ?? null} />
               </div>
 
               {/* Hilo de mensajes */}

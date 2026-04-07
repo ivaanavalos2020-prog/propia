@@ -129,7 +129,7 @@ export default function SeguridadPage() {
               </svg>
             }
             titulo="Sin intermediarios"
-            descripcion="Conectamos dueños e inquilinos directamente. Sin comisiones inmobiliarias, sin honorarios ocultos, sin gestorías que inflan los costos."
+            descripcion="Conectamos dueños e inquilinos directamente. Sin comisiones inmobiliarias, sin honorarios ocultos, sin gestorías que inflan los costos. Un alquiler de $600.000/mes a 2 años le ahorra al dueño más de $598.000 en comisiones."
           />
           <ProteccionCard
             icono={

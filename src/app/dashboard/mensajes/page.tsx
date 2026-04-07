@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
-import InboxMensajes, { type RespuestaType } from './InboxMensajes'
+import InboxMensajes, { type RespuestaType, type SenderProfile } from './InboxMensajes'
 
 export default async function MensajesPage() {
   const supabase = await createServerSupabaseClient()
@@ -61,6 +61,46 @@ export default async function MensajesPage() {
     respuestasPorMensaje[r.mensaje_id].push(r as RespuestaType)
   }
 
+  // ── Perfiles de los senders ──────────────────────────────────
+  const senderEmails = [...new Set(mensajes.map((m) => m.sender_email).filter(Boolean))]
+  const senderProfiles: Record<string, SenderProfile> = {}
+
+  if (senderEmails.length > 0) {
+    const [profilesResult] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, email, full_name, avatar_url, verification_status, created_at')
+        .in('email', senderEmails),
+    ])
+
+    const profiles = profilesResult.data ?? []
+    const profileIds = profiles.map((p) => p.id as string)
+
+    // Reviews de los senders
+    const { data: allReviews } = profileIds.length > 0
+      ? await supabase
+          .from('reviews')
+          .select('reviewed_id, rating')
+          .in('reviewed_id', profileIds)
+      : { data: [] }
+
+    for (const p of profiles) {
+      const reviews = (allReviews ?? []).filter((r) => r.reviewed_id === p.id)
+      const avgRating = reviews.length > 0
+        ? reviews.reduce((s, r) => s + (r.rating as number), 0) / reviews.length
+        : 0
+      senderProfiles[p.email as string] = {
+        id:                  p.id as string,
+        full_name:           (p.full_name as string) ?? null,
+        avatar_url:          (p.avatar_url as string) ?? null,
+        verification_status: (p.verification_status as string) ?? 'unverified',
+        created_at:          (p.created_at as string) ?? null,
+        avgRating,
+        reviewCount:         reviews.length,
+      }
+    }
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-50">
       <Navbar />
@@ -71,6 +111,7 @@ export default async function MensajesPage() {
           respuestasPorMensaje={respuestasPorMensaje}
           ownerEmail={session.user.email ?? ''}
           propertyIds={propertyIds}
+          senderProfiles={senderProfiles}
         />
       </div>
     </div>

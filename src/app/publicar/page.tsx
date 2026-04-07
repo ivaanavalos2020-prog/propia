@@ -758,6 +758,19 @@ export default function PublicarPage() {
         </div>
       </div>
 
+      {/* ── Banner ahorro ── */}
+      <div className="border-b border-green-100 bg-green-50 px-6 py-3">
+        <div className="mx-auto flex max-w-[860px] items-center justify-between gap-4">
+          <p className="text-sm text-green-800">
+            <span className="font-bold">Con una inmobiliaria pagarías hasta $898.200 en comisiones</span>
+            {' '}por un alquiler de $900.000/mes a 2 años. Acá publicás gratis.
+          </p>
+          <span className="shrink-0 rounded-full border border-green-300 bg-white px-3 py-1 text-xs font-bold text-green-700">
+            $0 comisión
+          </span>
+        </div>
+      </div>
+
       {/* ── Main ── */}
       <main className="mx-auto max-w-[860px] px-6 pb-28 pt-8 lg:pb-12">
 
