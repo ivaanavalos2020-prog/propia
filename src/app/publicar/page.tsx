@@ -798,25 +798,42 @@ export default function PublicarPage() {
             )}
 
             {/* Mini-calculadora de ahorro */}
-            <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-4 py-4">
-              <p className="mb-3 text-center text-sm font-semibold text-slate-700">¿Cuánto te cobra una inmobiliaria?</p>
-              <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
-                {([400_000, 600_000, 900_000] as number[]).map((precio) => {
-                  const comision = Math.round(precio * 24 * 0.0415)
-                  return (
-                    <div key={precio} className="snap-start shrink-0 flex flex-col gap-1 rounded-xl border border-slate-100 bg-slate-50 p-3" style={{ minWidth: '160px', flex: '1 0 160px' }}>
-                      <span className="text-xs text-slate-400">
-                        Alquiler de ${precio.toLocaleString('es-AR')}/mes
-                      </span>
-                      <span className="text-sm font-semibold text-red-500 line-through decoration-red-400">
-                        Inmobiliaria: ${comision.toLocaleString('es-AR')}
-                      </span>
-                      <span className="text-base font-extrabold text-green-600">
-                        Con Propia: $0
-                      </span>
-                    </div>
-                  )
-                })}
+            <div className="mb-8">
+              <p className="mb-3 text-center text-sm font-semibold text-slate-700 md:mb-4 md:text-xl md:font-bold md:text-slate-900">
+                ¿Cuánto te cobra una inmobiliaria?
+              </p>
+              <div className="mx-auto max-w-sm rounded-2xl border border-slate-200 bg-white px-6 py-5 text-center shadow-sm md:max-w-xl md:px-8 md:py-8 md:shadow-md">
+                <p className="text-sm text-slate-400 md:text-base md:text-slate-600">
+                  Ejemplo: alquiler de $600.000/mes por 2 años
+                </p>
+
+                {/* Mobile: apilado — Desktop: dos columnas */}
+                <div className="mt-4 flex flex-col md:mt-6 md:flex-row md:items-center md:divide-x md:divide-slate-200">
+
+                  {/* Columna izquierda: inmobiliaria */}
+                  <div className="flex flex-col items-center md:flex-1 md:pr-8">
+                    <p className="text-sm text-slate-400 md:text-base md:text-slate-600">
+                      Con inmobiliaria <span className="whitespace-nowrap">(4,15% del contrato)</span>
+                    </p>
+                    <p className="mt-1 text-3xl font-extrabold text-red-500 line-through decoration-red-400 md:text-4xl">
+                      $597.600
+                    </p>
+                  </div>
+
+                  {/* Separador mobile */}
+                  <div className="my-3 flex items-center gap-3 md:hidden">
+                    <div className="h-px flex-1 bg-slate-100" />
+                    <span className="text-xs text-slate-300">vs</span>
+                    <div className="h-px flex-1 bg-slate-100" />
+                  </div>
+
+                  {/* Columna derecha: Propia */}
+                  <div className="flex flex-col items-center md:flex-1 md:pl-8">
+                    <p className="text-sm text-slate-400 md:text-base md:text-slate-600">Con Propia</p>
+                    <p className="mt-1 text-3xl font-extrabold text-green-600 md:text-4xl">$0</p>
+                  </div>
+
+                </div>
               </div>
             </div>
 
