@@ -797,6 +797,29 @@ export default function PublicarPage() {
               </div>
             )}
 
+            {/* Mini-calculadora de ahorro */}
+            <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-4 py-4">
+              <p className="mb-3 text-center text-sm font-semibold text-slate-700">¿Cuánto te cobra una inmobiliaria?</p>
+              <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+                {([400_000, 600_000, 900_000] as number[]).map((precio) => {
+                  const comision = Math.round(precio * 24 * 0.0415)
+                  return (
+                    <div key={precio} className="snap-start shrink-0 flex flex-col gap-1 rounded-xl border border-slate-100 bg-slate-50 p-3" style={{ minWidth: '160px', flex: '1 0 160px' }}>
+                      <span className="text-xs text-slate-400">
+                        Alquiler de ${precio.toLocaleString('es-AR')}/mes
+                      </span>
+                      <span className="text-sm font-semibold text-red-500 line-through decoration-red-400">
+                        Inmobiliaria: ${comision.toLocaleString('es-AR')}
+                      </span>
+                      <span className="text-base font-extrabold text-green-600">
+                        Con Propia: $0
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
             <h2 className="mb-8 text-center text-[28px] font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
               ¿Qué tipo de propiedad vas a publicar?
             </h2>
