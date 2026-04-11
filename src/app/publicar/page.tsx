@@ -1018,10 +1018,10 @@ export default function PublicarPage() {
 
                 {/* ── Paso 2: Ubicación, precio y contrato ── */}
                 {paso === 1 && (
-                <div className="flex flex-col gap-7">
+                <div className="flex flex-col gap-7 md:gap-5">
 
                   {/* Ubicación */}
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-4 md:rounded-2xl md:border md:border-slate-200 md:bg-white md:p-6 md:shadow-sm">
                     <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
                       <span className="text-sm font-bold text-slate-700">Ubicación</span>
@@ -1053,7 +1053,7 @@ export default function PublicarPage() {
                   </div>
 
                   {/* Precio */}
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-4 md:rounded-2xl md:border md:border-slate-200 md:bg-white md:p-6 md:shadow-sm">
                     <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                       <span className="text-sm font-bold text-slate-700">Precio</span>
@@ -1221,7 +1221,7 @@ export default function PublicarPage() {
                   </div>
 
                   {/* Tipo de contrato */}
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-4 md:rounded-2xl md:border md:border-slate-200 md:bg-white md:p-6 md:shadow-sm">
                     <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                       <span className="text-sm font-bold text-slate-700">Tipo de contrato</span>
@@ -1304,7 +1304,7 @@ export default function PublicarPage() {
                   </div>
 
                   {/* Garantías */}
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-3 md:rounded-2xl md:border md:border-slate-200 md:bg-white md:p-6 md:shadow-sm">
                     <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                       <span className="text-sm font-bold text-slate-700">Garantías aceptadas</span>
@@ -1326,7 +1326,7 @@ export default function PublicarPage() {
                   </div>
 
                   {/* Servicios */}
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-3 md:rounded-2xl md:border md:border-slate-200 md:bg-white md:p-6 md:shadow-sm">
                     <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                       <span className="text-sm font-bold text-slate-700">Servicios incluidos</span>
@@ -1732,8 +1732,60 @@ export default function PublicarPage() {
                   </div>
                 </div>
 
-                {/* Preview */}
-                {form.tipo ? (
+                {/* Resumen en vivo — solo paso 2 */}
+                {paso === 1 && (
+                  <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="mb-3 text-sm font-bold text-slate-900">Tu publicación</p>
+                    <div className="flex flex-col gap-2.5 text-sm">
+                      {form.tipo && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-slate-500">Tipo</span>
+                          <span className="font-medium text-slate-800">{TIPO_LABEL[form.tipo]}</span>
+                        </div>
+                      )}
+                      {(form.calle || form.barrio || form.provincia) && (
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="shrink-0 text-slate-500">Ubicación</span>
+                          <span className="text-right font-medium text-slate-800">
+                            {[form.calle, form.barrio, form.provincia].filter(Boolean).join(', ')}
+                          </span>
+                        </div>
+                      )}
+                      {form.precio && Number(form.precio) > 0 && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-slate-500">Precio</span>
+                          <span className="font-bold text-blue-600">USD {Number(form.precio).toLocaleString('es-AR')}/mes</span>
+                        </div>
+                      )}
+                      {form.hasExpenses && form.expensesAmount && Number(form.expensesAmount) > 0 && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-slate-500">Expensas</span>
+                          <span className="font-medium text-slate-800">$ {Number(form.expensesAmount).toLocaleString('es-AR')}/mes</span>
+                        </div>
+                      )}
+                      {form.contractType && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-slate-500">Contrato</span>
+                          <span className="font-medium text-slate-800">{CONTRACT_LABEL[form.contractType]}</span>
+                        </div>
+                      )}
+                      {form.guarantees.length > 0 && (
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="shrink-0 text-slate-500">Garantías</span>
+                          <span className="text-right font-medium text-slate-800">{form.guarantees.length} aceptada{form.guarantees.length !== 1 ? 's' : ''}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-4 rounded-lg bg-blue-50 px-3 py-2.5">
+                      <p className="text-xs leading-relaxed text-blue-700">
+                        💡 <strong>Tip:</strong> Cuanto más completa sea tu publicación, más consultas vas a recibir.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Preview — pasos 1 y 3 */}
+                {paso !== 1 && (form.tipo ? (
                   <div>
                     <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Así se verá tu publicación</p>
                     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -1786,7 +1838,7 @@ export default function PublicarPage() {
                   <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center">
                     <p className="text-xs text-slate-400">Completá los datos para ver el preview</p>
                   </div>
-                )}
+                ))}
 
               </div>
             </aside>
