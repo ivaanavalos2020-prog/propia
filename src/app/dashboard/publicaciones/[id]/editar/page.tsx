@@ -65,6 +65,9 @@ export default async function EditarPropiedadPage({
               <p className="text-xs font-semibold uppercase tracking-widest text-blue-600">
                 Editando publicación
               </p>
+              <p className="mt-2 text-sm text-gray-500 md:text-base md:text-gray-600">
+                ✏️ Actualizá precio, fotos o detalles en cualquier momento.
+              </p>
               <h1
                 className="mt-1 text-2xl font-extrabold text-slate-900"
                 style={{ letterSpacing: '-0.02em' }}

@@ -70,6 +70,19 @@ interface FormData {
   smokingPolicy: string
   allowsWFH: boolean
   descripcion: string
+  // Impuestos y seguros (property_costs)
+  showCostos: boolean
+  ablAmount: string
+  ablPaidBy: string
+  municipalTaxAmount: string
+  municipalTaxPaidBy: string
+  arbaAmount: string
+  arbaPaidBy: string
+  buildingInsuranceAmount: string
+  buildingInsurancePaidBy: string
+  tenantInsuranceRequired: boolean
+  caucionAccepted: boolean
+  caucionProvider: string
 }
 
 interface Categoria {
@@ -156,6 +169,12 @@ const INICIAL: FormData = {
   tipo: null,
   calle: '', barrio: '', provincia: '', referencias: '',
   precio: '', hasExpenses: false, expensesAmount: '', expensesIncluded: false,
+  showCostos: false,
+  ablAmount: '', ablPaidBy: 'dueno',
+  municipalTaxAmount: '', municipalTaxPaidBy: 'dueno',
+  arbaAmount: '', arbaPaidBy: 'dueno',
+  buildingInsuranceAmount: '', buildingInsurancePaidBy: 'dueno',
+  tenantInsuranceRequired: false, caucionAccepted: false, caucionProvider: 'cualquiera',
   depositMonths: 'a_negociar',
   contractType: 'tradicional', contractDurationMonths: '24', updateIndex: 'ipc_trimestral',
   pricePerNight: '', minNights: '', maxNights: '',
@@ -357,6 +376,8 @@ export default function PublicarPage() {
   const [fotos, setFotos] = useState<Record<string, File>>({})
   const [previews, setPreviews] = useState<Record<string, string>>({})
   const [publicando, setPublicando] = useState(false)
+  const [publicadoExito, setPublicadoExito] = useState(false)
+  const [propiedadId, setPropiedadId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [draftToast, setDraftToast] = useState<'guardado' | 'restaurado' | null>(null)
   const [mostrarRestaurar, setMostrarRestaurar] = useState(false)
@@ -580,7 +601,7 @@ export default function PublicarPage() {
       photoUrls.push(publicUrl)
     }
 
-    const { error: insertError } = await supabase.from('properties').insert({
+    const { data: insertedProp, error: insertError } = await supabase.from('properties').insert({
       owner_id: user.id,
       type: form.tipo,
       address: form.calle,
@@ -633,11 +654,41 @@ export default function PublicarPage() {
       allows_smoking_policy: form.smokingPolicy,
       allows_wfh: form.allowsWFH,
       photo_urls: photoUrls.length > 0 ? photoUrls : null,
-    })
+    }).select('id').single()
 
     if (insertError) { setError(parsearErrorSupabase(insertError)); setPublicando(false); return }
+
+    // Insertar costos si hay algún campo con valor — fallo silencioso para no bloquear la publicación
+    const propId = (insertedProp as { id: string } | null)?.id
+    if (propId && form.showCostos) {
+      const hayCostos =
+        form.ablAmount || form.municipalTaxAmount || form.arbaAmount || form.buildingInsuranceAmount
+      if (hayCostos) {
+        try {
+          await supabase.from('property_costs').insert({
+            property_id: propId,
+            abl_amount: form.ablAmount ? Number(form.ablAmount) : null,
+            abl_paid_by: form.ablAmount ? form.ablPaidBy : null,
+            municipal_tax_amount: form.municipalTaxAmount ? Number(form.municipalTaxAmount) : null,
+            municipal_tax_paid_by: form.municipalTaxAmount ? form.municipalTaxPaidBy : null,
+            arba_amount: form.arbaAmount ? Number(form.arbaAmount) : null,
+            arba_paid_by: form.arbaAmount ? form.arbaPaidBy : null,
+            building_insurance_amount: form.buildingInsuranceAmount ? Number(form.buildingInsuranceAmount) : null,
+            building_insurance_paid_by: form.buildingInsuranceAmount ? form.buildingInsurancePaidBy : null,
+            tenant_insurance_required: form.tenantInsuranceRequired,
+            caucion_accepted: form.caucionAccepted,
+            caucion_provider_suggestion: form.caucionAccepted ? form.caucionProvider : null,
+          })
+        } catch (costsErr) {
+          // No bloqueamos la publicación por un error en los costos
+          console.error('Error al guardar costos:', costsErr)
+        }
+      }
+    }
+
     try { localStorage.removeItem(DRAFT_KEY) } catch { /* noop */ }
-    router.push('/dashboard')
+    setPropiedadId(propId ?? null)
+    setPublicadoExito(true)
   }
 
   const checklist = [
@@ -663,6 +714,48 @@ export default function PublicarPage() {
     form.hasAC && 'A/C',
     form.isFurnished && 'Amoblado',
   ].filter(Boolean) as string[]
+
+  // ── Pantalla de éxito ──────────────────────────────────────
+  if (publicadoExito) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#F8F9FA] px-6">
+        <div className="w-full max-w-md rounded-2xl border border-green-200 bg-white px-8 py-10 text-center shadow-lg">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900">🎉 ¡Listo!</h1>
+          <p className="mt-2 text-lg font-semibold text-slate-700">Tu propiedad ya está online.</p>
+          <p className="mt-3 text-sm text-slate-500">
+            Las consultas llegan directo a tu panel. Compartí el link para llegar a más gente.
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            {propiedadId && (
+              <button
+                type="button"
+                onClick={() => {
+                  const url = `${window.location.origin}/propiedades/${propiedadId}`
+                  navigator.clipboard.writeText(url).catch(() => {})
+                }}
+                className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copiar link
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard')}
+              className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              Ir a mi panel →
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -837,9 +930,12 @@ export default function PublicarPage() {
               </div>
             </div>
 
-            <h2 className="mb-8 text-center text-[28px] font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+            <h2 className="mb-2 text-center text-[28px] font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
               ¿Qué tipo de propiedad vas a publicar?
             </h2>
+            <p className="mb-8 text-center text-sm text-gray-500 md:text-base md:text-gray-600">
+              💡 Publicá en minutos, sin esperar a nadie
+            </p>
 
             <div className="flex flex-col gap-5">
               <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -918,7 +1014,7 @@ export default function PublicarPage() {
 
             {/* Form column */}
             <div>
-              <div key={animKey} className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${animDir === 'forward' ? 'anim-fwd' : 'anim-bwd'}`}>
+              <div key={animKey} className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${paso === 1 ? 'md:rounded-none md:border-0 md:bg-transparent md:shadow-none md:p-0' : ''} ${animDir === 'forward' ? 'anim-fwd' : 'anim-bwd'}`}>
 
                 {/* ── Paso 2: Ubicación, precio y contrato ── */}
                 {paso === 1 && (
@@ -951,6 +1047,9 @@ export default function PublicarPage() {
                       <label className="text-sm font-medium text-slate-700">Referencias <span className="font-normal text-slate-400">(opcional)</span></label>
                       <input type="text" value={form.referencias} onChange={(e) => set('referencias', e.target.value)} placeholder="Ej: cerca del subte B, frente al parque" className={inputCls} />
                     </div>
+                    <p className="text-sm text-gray-500 md:text-base md:text-gray-600">
+                      📍 Los interesados ven la ubicación exacta. Menos preguntas, más visitas concretas.
+                    </p>
                   </div>
 
                   {/* Precio */}
@@ -965,6 +1064,9 @@ export default function PublicarPage() {
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">USD</span>
                         <input type="number" value={form.precio} onChange={(e) => set('precio', e.target.value)} placeholder="0" min={0} className={`${inputCls} pl-14`} />
                       </div>
+                      <p className="text-sm text-gray-500 md:text-base md:text-gray-600">
+                        💡 Vos ponés el precio, sin intermediarios
+                      </p>
                       <p className="mt-0.5 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-700">
                         💡 <strong>Tip:</strong> Las propiedades con precio actualizado reciben 40% más consultas. Revisá precios similares en tu zona antes de publicar.
                       </p>
@@ -986,6 +1088,122 @@ export default function PublicarPage() {
                         </div>
                       )}
                       <HelpText>Las expensas son los gastos comunes del edificio. Es importante aclararlo para evitar malentendidos.</HelpText>
+                    </div>
+
+                    {/* Impuestos y seguros (opcional) */}
+                    <div className="rounded-xl border border-slate-300 bg-slate-50 p-4">
+                      <button
+                        type="button"
+                        onClick={() => set('showCostos', !form.showCostos)}
+                        className="flex w-full items-center justify-between gap-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                          <span className="text-sm font-semibold text-slate-700">Impuestos y seguros</span>
+                          <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs text-slate-400">Opcional</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-slate-400 transition-transform ${form.showCostos ? 'rotate-180' : ''}`} aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                      </button>
+                      <p className="mt-1 text-xs text-slate-500">Ayudá al inquilino a conocer el costo real mensual de la propiedad.</p>
+
+                      {form.showCostos && (
+                        <div className="mt-4 flex flex-col gap-5">
+
+                          {/* Bloque A — ABL / Tasa municipal */}
+                          <div className="rounded-lg border border-slate-200 bg-white p-4">
+                            <p className="text-sm font-semibold text-slate-800">ABL / Tasa municipal</p>
+                            <p className="mt-0.5 text-xs text-slate-500">Para CABA es ABL (bimestral), para GBA e interior es tasa municipal (anual).</p>
+                            <div className="mt-3 grid grid-cols-2 gap-3">
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-medium text-slate-600">Monto ABL</label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">$</span>
+                                  <input type="number" value={form.ablAmount} onChange={(e) => set('ablAmount', e.target.value)} placeholder="ej: 12000 bimestral" min={0} className={`${inputCls} pl-7 text-sm`} />
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-medium text-slate-600">¿Quién lo paga?</label>
+                                <select value={form.ablPaidBy} onChange={(e) => set('ablPaidBy', e.target.value)} className={`${inputCls} text-sm`}>
+                                  <option value="dueno">Dueño</option>
+                                  <option value="inquilino">Inquilino</option>
+                                </select>
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-medium text-slate-600">Monto tasa municipal</label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">$</span>
+                                  <input type="number" value={form.municipalTaxAmount} onChange={(e) => set('municipalTaxAmount', e.target.value)} placeholder="0" min={0} className={`${inputCls} pl-7 text-sm`} />
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-medium text-slate-600">¿Quién lo paga?</label>
+                                <select value={form.municipalTaxPaidBy} onChange={(e) => set('municipalTaxPaidBy', e.target.value)} className={`${inputCls} text-sm`}>
+                                  <option value="dueno">Dueño</option>
+                                  <option value="inquilino">Inquilino</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Bloque B — ARBA */}
+                          <div className="rounded-lg border border-slate-200 bg-white p-4">
+                            <p className="text-sm font-semibold text-slate-800">Impuesto provincial (ARBA)</p>
+                            <p className="mt-0.5 text-xs text-slate-500">Solo para propiedades en Provincia de Buenos Aires.</p>
+                            <div className="mt-3 grid grid-cols-2 gap-3">
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-medium text-slate-600">Monto anual ARBA</label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">$</span>
+                                  <input type="number" value={form.arbaAmount} onChange={(e) => set('arbaAmount', e.target.value)} placeholder="ej: 80000 anual" min={0} className={`${inputCls} pl-7 text-sm`} />
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-medium text-slate-600">¿Quién lo paga?</label>
+                                <select value={form.arbaPaidBy} onChange={(e) => set('arbaPaidBy', e.target.value)} className={`${inputCls} text-sm`}>
+                                  <option value="dueno">Dueño</option>
+                                  <option value="inquilino">Inquilino</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Bloque C — Seguros */}
+                          <div className="rounded-lg border border-slate-200 bg-white p-4">
+                            <p className="text-sm font-semibold text-slate-800">Seguros</p>
+                            <div className="mt-3 flex flex-col gap-3">
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="flex flex-col gap-1.5">
+                                  <label className="text-xs font-medium text-slate-600">Seguro del edificio ($/mes)</label>
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">$</span>
+                                    <input type="number" value={form.buildingInsuranceAmount} onChange={(e) => set('buildingInsuranceAmount', e.target.value)} placeholder="$/mes" min={0} className={`${inputCls} pl-7 text-sm`} />
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                  <label className="text-xs font-medium text-slate-600">¿Quién lo paga?</label>
+                                  <select value={form.buildingInsurancePaidBy} onChange={(e) => set('buildingInsurancePaidBy', e.target.value)} className={`${inputCls} text-sm`}>
+                                    <option value="dueno">Dueño</option>
+                                    <option value="inquilino">Inquilino</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <Toggle checked={form.tenantInsuranceRequired} onChange={(v) => set('tenantInsuranceRequired', v)} label="¿Requerís que el inquilino tenga seguro de contenidos?" />
+                              <Toggle checked={form.caucionAccepted} onChange={(v) => set('caucionAccepted', v)} label="¿Aceptás seguro de caución como garantía?" />
+                              {form.caucionAccepted && (
+                                <div className="flex flex-col gap-1.5">
+                                  <label className="text-xs font-medium text-slate-600">Proveedor sugerido</label>
+                                  <select value={form.caucionProvider} onChange={(e) => set('caucionProvider', e.target.value)} className={`${inputCls} text-sm`}>
+                                    <option value="cualquiera">Cualquiera</option>
+                                    <option value="fianzas_online">Fianzas Online</option>
+                                    <option value="mercadopago">Mercado Pago</option>
+                                  </select>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                        </div>
+                      )}
                     </div>
 
                     {/* Depósito */}
@@ -1224,6 +1442,9 @@ export default function PublicarPage() {
 
                   {/* Mascotas y convivencia */}
                   <div className="flex flex-col gap-4">
+                    <p className="text-sm text-gray-500 md:text-base md:text-gray-600">
+                      🎯 Vos definís las reglas. Cada detalle atrae al inquilino correcto.
+                    </p>
                     <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                       <span className="text-base">🐾</span>
                       <span className="text-sm font-bold text-slate-700">Política de convivencia</span>
@@ -1267,6 +1488,9 @@ export default function PublicarPage() {
 
                   {/* Descripción */}
                   <div className="flex flex-col gap-2">
+                    <p className="text-sm text-gray-500 md:text-base md:text-gray-600">
+                      ✍️ Nadie conoce tu propiedad mejor que vos. Describila con tus palabras.
+                    </p>
                     <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                       <span className="text-sm font-bold text-slate-700">Descripción</span>
@@ -1298,6 +1522,9 @@ export default function PublicarPage() {
 
                   {/* Fotos */}
                   <div className="flex flex-col gap-3">
+                    <p className="text-sm text-gray-500 md:text-base md:text-gray-600">
+                      📸 Tus fotos, tu control. Mostrá tu propiedad como realmente es.
+                    </p>
                     {/* Photo importance banner */}
                     <div style={{ border: '2px solid #16A34A', borderRadius: 16, background: '#fff' }}>
                       {/* Header */}
@@ -1478,7 +1705,7 @@ export default function PublicarPage() {
 
             {/* ── Sidebar ── */}
             <aside className="hidden lg:block">
-              <div className="sticky top-6 flex flex-col gap-4">
+              <div className="sticky top-24 flex flex-col gap-4">
 
                 {/* Checklist */}
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

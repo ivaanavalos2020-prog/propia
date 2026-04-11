@@ -329,6 +329,20 @@ export default function FormularioEditar({
   const [videos, setVideos] = useState<string[]>(videosInicial)
   const [estado, setEstado] = useState(estadoInicial)
 
+  // ── property_costs state ──────────────────────────────────────────
+  const [showCostos, setShowCostos] = useState(false)
+  const [ablAmount, setAblAmount] = useState('')
+  const [ablPaidBy, setAblPaidBy] = useState('dueno')
+  const [municipalTaxAmount, setMunicipalTaxAmount] = useState('')
+  const [municipalTaxPaidBy, setMunicipalTaxPaidBy] = useState('dueno')
+  const [arbaAmount, setArbaAmount] = useState('')
+  const [arbaPaidBy, setArbaPaidBy] = useState('dueno')
+  const [buildingInsuranceAmount, setBuildingInsuranceAmount] = useState('')
+  const [buildingInsurancePaidBy, setBuildingInsurancePaidBy] = useState('dueno')
+  const [tenantInsuranceRequired, setTenantInsuranceRequired] = useState(false)
+  const [caucionAccepted, setCaucionAccepted] = useState(false)
+  const [caucionProvider, setCaucionProvider] = useState('cualquiera')
+
   // ── UI state ──────────────────────────────────────────────────────
   const [guardando, setGuardando] = useState(false)
   const [toast, setToast] = useState<{ msg: string; isError?: boolean } | null>(null)
@@ -349,6 +363,31 @@ export default function FormularioEditar({
   const [modalIA, setModalIA] = useState(false)
   const [descripcionMejorada, setDescripcionMejorada] = useState('')
   const [errorIA, setErrorIA] = useState('')
+
+  // ── Load property_costs on mount ─────────────────────────────────
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('property_costs')
+      .select('*')
+      .eq('property_id', propiedadId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return
+        setShowCostos(true)
+        setAblAmount(data.abl_amount ? String(data.abl_amount) : '')
+        setAblPaidBy((data.abl_paid_by as string | null) ?? 'dueno')
+        setMunicipalTaxAmount(data.municipal_tax_amount ? String(data.municipal_tax_amount) : '')
+        setMunicipalTaxPaidBy((data.municipal_tax_paid_by as string | null) ?? 'dueno')
+        setArbaAmount(data.arba_amount ? String(data.arba_amount) : '')
+        setArbaPaidBy((data.arba_paid_by as string | null) ?? 'dueno')
+        setBuildingInsuranceAmount(data.building_insurance_amount ? String(data.building_insurance_amount) : '')
+        setBuildingInsurancePaidBy((data.building_insurance_paid_by as string | null) ?? 'dueno')
+        setTenantInsuranceRequired((data.tenant_insurance_required as boolean | null) ?? false)
+        setCaucionAccepted((data.caucion_accepted as boolean | null) ?? false)
+        setCaucionProvider((data.caucion_provider_suggestion as string | null) ?? 'cualquiera')
+      })
+  }, [propiedadId])
 
   // ── Photo drag reorder ────────────────────────────────────────────
   const onDragStart = useCallback((idx: number) => {
@@ -543,6 +582,33 @@ export default function FormularioEditar({
       })
       .eq('id', id)
 
+    // Upsert property_costs si la sección está abierta
+    if (showCostos) {
+      try {
+        await supabase
+          .from('property_costs')
+          .upsert(
+            {
+              property_id: id,
+              abl_amount: ablAmount ? Number(ablAmount) : null,
+              abl_paid_by: ablAmount ? ablPaidBy : null,
+              municipal_tax_amount: municipalTaxAmount ? Number(municipalTaxAmount) : null,
+              municipal_tax_paid_by: municipalTaxAmount ? municipalTaxPaidBy : null,
+              arba_amount: arbaAmount ? Number(arbaAmount) : null,
+              arba_paid_by: arbaAmount ? arbaPaidBy : null,
+              building_insurance_amount: buildingInsuranceAmount ? Number(buildingInsuranceAmount) : null,
+              building_insurance_paid_by: buildingInsuranceAmount ? buildingInsurancePaidBy : null,
+              tenant_insurance_required: tenantInsuranceRequired,
+              caucion_accepted: caucionAccepted,
+              caucion_provider_suggestion: caucionAccepted ? caucionProvider : null,
+            },
+            { onConflict: 'property_id' }
+          )
+      } catch (costsErr) {
+        console.error('Error al guardar costos:', costsErr)
+      }
+    }
+
     setGuardando(false)
 
     if (error) {
@@ -563,6 +629,9 @@ export default function FormularioEditar({
     hasSecurity, hasElevator, hasHeating, hasAC, isFurnished, hasAppliances,
     petsPolicy, allowsKids, smokingPolicy, allowsWFH,
     fotos, videos, estado, router,
+    showCostos, ablAmount, ablPaidBy, municipalTaxAmount, municipalTaxPaidBy,
+    arbaAmount, arbaPaidBy, buildingInsuranceAmount, buildingInsurancePaidBy,
+    tenantInsuranceRequired, caucionAccepted, caucionProvider,
   ])
 
   const precioNum = Number(precio) || 0
@@ -749,6 +818,122 @@ export default function FormularioEditar({
                   </div>
                 )}
                 <HelpText>Las expensas son los gastos comunes del edificio. Es importante aclararlo para evitar malentendidos.</HelpText>
+              </div>
+
+              {/* Impuestos y seguros (property_costs) */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCostos(!showCostos)}
+                  className="flex w-full items-center justify-between gap-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                    <span className="text-sm font-semibold text-slate-700">Impuestos y seguros</span>
+                    <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs text-slate-400">Opcional</span>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-slate-400 transition-transform ${showCostos ? 'rotate-180' : ''}`} aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <p className="mt-1 text-xs text-slate-500">Ayudá al inquilino a conocer el costo real mensual de la propiedad.</p>
+
+                {showCostos && (
+                  <div className="mt-4 flex flex-col gap-5">
+
+                    {/* Bloque A — ABL / Tasa municipal */}
+                    <div className="rounded-lg border border-slate-200 bg-white p-4">
+                      <p className="text-sm font-semibold text-slate-800">ABL / Tasa municipal</p>
+                      <p className="mt-0.5 text-xs text-slate-500">Para CABA es ABL (bimestral), para GBA e interior es tasa municipal (anual).</p>
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-1.5">
+                          <Label>Monto ABL</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">$</span>
+                            <input type="number" value={ablAmount} onChange={(e) => setAblAmount(e.target.value)} placeholder="ej: 12000 bimestral" min={0} className={`${inputCls} pl-7 text-sm`} />
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <Label>¿Quién lo paga?</Label>
+                          <select value={ablPaidBy} onChange={(e) => setAblPaidBy(e.target.value)} className={`${inputCls} text-sm`}>
+                            <option value="dueno">Dueño</option>
+                            <option value="inquilino">Inquilino</option>
+                          </select>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <Label>Monto tasa municipal</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">$</span>
+                            <input type="number" value={municipalTaxAmount} onChange={(e) => setMunicipalTaxAmount(e.target.value)} placeholder="0" min={0} className={`${inputCls} pl-7 text-sm`} />
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <Label>¿Quién lo paga?</Label>
+                          <select value={municipalTaxPaidBy} onChange={(e) => setMunicipalTaxPaidBy(e.target.value)} className={`${inputCls} text-sm`}>
+                            <option value="dueno">Dueño</option>
+                            <option value="inquilino">Inquilino</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bloque B — ARBA */}
+                    <div className="rounded-lg border border-slate-200 bg-white p-4">
+                      <p className="text-sm font-semibold text-slate-800">Impuesto provincial (ARBA)</p>
+                      <p className="mt-0.5 text-xs text-slate-500">Solo para propiedades en Provincia de Buenos Aires.</p>
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-1.5">
+                          <Label>Monto anual ARBA</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">$</span>
+                            <input type="number" value={arbaAmount} onChange={(e) => setArbaAmount(e.target.value)} placeholder="ej: 80000 anual" min={0} className={`${inputCls} pl-7 text-sm`} />
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <Label>¿Quién lo paga?</Label>
+                          <select value={arbaPaidBy} onChange={(e) => setArbaPaidBy(e.target.value)} className={`${inputCls} text-sm`}>
+                            <option value="dueno">Dueño</option>
+                            <option value="inquilino">Inquilino</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bloque C — Seguros */}
+                    <div className="rounded-lg border border-slate-200 bg-white p-4">
+                      <p className="text-sm font-semibold text-slate-800">Seguros</p>
+                      <div className="mt-3 flex flex-col gap-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex flex-col gap-1.5">
+                            <Label>Seguro del edificio ($/mes)</Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">$</span>
+                              <input type="number" value={buildingInsuranceAmount} onChange={(e) => setBuildingInsuranceAmount(e.target.value)} placeholder="$/mes" min={0} className={`${inputCls} pl-7 text-sm`} />
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-1.5">
+                            <Label>¿Quién lo paga?</Label>
+                            <select value={buildingInsurancePaidBy} onChange={(e) => setBuildingInsurancePaidBy(e.target.value)} className={`${inputCls} text-sm`}>
+                              <option value="dueno">Dueño</option>
+                              <option value="inquilino">Inquilino</option>
+                            </select>
+                          </div>
+                        </div>
+                        <Toggle checked={tenantInsuranceRequired} onChange={setTenantInsuranceRequired} label="¿Requerís que el inquilino tenga seguro de contenidos?" />
+                        <Toggle checked={caucionAccepted} onChange={setCaucionAccepted} label="¿Aceptás seguro de caución como garantía?" />
+                        {caucionAccepted && (
+                          <div className="flex flex-col gap-1.5">
+                            <Label>Proveedor sugerido</Label>
+                            <select value={caucionProvider} onChange={(e) => setCaucionProvider(e.target.value)} className={`${inputCls} text-sm`}>
+                              <option value="cualquiera">Cualquiera</option>
+                              <option value="fianzas_online">Fianzas Online</option>
+                              <option value="mercadopago">Mercado Pago</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                )}
               </div>
 
               {/* Depósito */}

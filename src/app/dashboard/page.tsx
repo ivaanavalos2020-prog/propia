@@ -282,10 +282,15 @@ export default async function DashboardPage() {
 
           {/* Sección título */}
           {total > 0 && (
-            <h2 className="mt-8 text-lg font-bold text-slate-900">
-              Mis propiedades
-              <span className="ml-2 text-sm font-normal text-slate-400">{total}</span>
-            </h2>
+            <div className="mt-8">
+              <h2 className="text-lg font-bold text-slate-900">
+                Mis propiedades
+                <span className="ml-2 text-sm font-normal text-slate-400">{total}</span>
+              </h2>
+              <p className="mt-0.5 text-sm text-gray-500 md:text-base md:text-gray-600">
+                📊 Todo tu alquiler en un solo lugar. Vistas, consultas y mensajes en tiempo real.
+              </p>
+            </div>
           )}
 
           {/* Lista de propiedades con búsqueda */}

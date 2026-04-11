@@ -12,6 +12,7 @@ import StarRating from '@/components/StarRating'
 import BadgeVerificado from '@/components/BadgeVerificado'
 import TrustScoreCircle from '@/components/TrustScoreCircle'
 import { calcularTrustScore } from '@/lib/trustScore'
+import { calcularCostoMensual, formatARS, type PropertyCosts } from '@/lib/utils'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://propia-kappa.vercel.app'
 
@@ -292,6 +293,17 @@ export default async function PropiedadPage({
     )
   }
 
+  // Costos de la propiedad
+  let propiedad_costs: PropertyCosts | null = null
+  {
+    const { data } = await supabase
+      .from('property_costs')
+      .select('*')
+      .eq('property_id', propiedad.id)
+      .maybeSingle()
+    propiedad_costs = data as PropertyCosts | null
+  }
+
   // Propiedades similares
   const { data: similares } = await (await createServerSupabaseClient())
     .from('properties')
@@ -304,6 +316,24 @@ export default async function PropiedadPage({
 
   const tipo = TIPO_LABEL[propiedad.type] ?? propiedad.type
   const fotos: string[] = propiedad.photo_urls ?? []
+
+  // Calcular costo mensual (alquilerPesos = null ya que el precio está en USD)
+  const costoMensual = calcularCostoMensual(
+    propiedad.price_usd != null ? Number(propiedad.price_usd) : null,
+    null,
+    propiedad_costs
+  )
+  // Hay desglose si existe algún costo registrado más allá del alquiler
+  const hayCostos =
+    propiedad_costs !== null &&
+    (
+      costoMensual.expensas_inquilino > 0 ||
+      costoMensual.abl_inquilino > 0 ||
+      costoMensual.municipal_inquilino > 0 ||
+      costoMensual.arba_inquilino > 0 ||
+      costoMensual.seguro_inquilino > 0 ||
+      costoMensual.items_dueno.length > 0
+    )
 
   // Badge "Nueva" si fue publicada hace menos de 7 días
   const esNueva =
@@ -435,6 +465,59 @@ export default async function PropiedadPage({
                 </span>
                 <span className="text-base text-slate-400">/ mes</span>
               </div>
+
+              {/* Card costo mensual (mobile) */}
+              {hayCostos && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 lg:hidden">
+                  <p className="mb-3 flex items-center gap-2 text-sm font-bold text-amber-900">
+                    <span aria-hidden="true">💰</span> Costo mensual estimado
+                  </p>
+                  <div className="flex flex-col gap-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Alquiler</span>
+                      <span className="font-semibold text-slate-900">USD {Number(propiedad.price_usd).toLocaleString('es-AR')}</span>
+                    </div>
+                    {costoMensual.expensas_inquilino > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Expensas</span>
+                        <span className="font-medium text-slate-800">${formatARS(costoMensual.expensas_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
+                      </div>
+                    )}
+                    {costoMensual.abl_inquilino > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">ABL (prorrateado)</span>
+                        <span className="font-medium text-slate-800">${formatARS(costoMensual.abl_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
+                      </div>
+                    )}
+                    {costoMensual.municipal_inquilino > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Tasa municipal</span>
+                        <span className="font-medium text-slate-800">${formatARS(costoMensual.municipal_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
+                      </div>
+                    )}
+                    {costoMensual.arba_inquilino > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">ARBA (prorrateado)</span>
+                        <span className="font-medium text-slate-800">${formatARS(costoMensual.arba_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
+                      </div>
+                    )}
+                    {costoMensual.seguro_inquilino > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Seguro edificio</span>
+                        <span className="font-medium text-slate-800">${formatARS(costoMensual.seguro_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
+                      </div>
+                    )}
+                    <div className="mt-1 border-t border-amber-200 pt-2 flex justify-between font-bold">
+                      <span className="text-amber-900">Total aprox.</span>
+                      <span className="text-amber-900">USD {Number(propiedad.price_usd).toLocaleString('es-AR')} + ${formatARS(costoMensual.total_inquilino - costoMensual.alquiler)}/mes</span>
+                    </div>
+                    {costoMensual.items_dueno.length > 0 && (
+                      <p className="mt-1 text-xs text-slate-500">El dueño se hace cargo de: {costoMensual.items_dueno.join(' · ')}</p>
+                    )}
+                  </div>
+                  <p className="mt-3 text-xs text-amber-700">Valores estimados declarados por el dueño. Verificar antes de firmar.</p>
+                </div>
+              )}
 
               {/* Descripción */}
               {propiedad.description && (
@@ -899,6 +982,61 @@ export default async function PropiedadPage({
                     )}
                   </div>
                 </div>
+
+                <div className="h-px bg-slate-100" />
+
+                {/* Card costo mensual (desktop) */}
+                {hayCostos && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <p className="mb-3 flex items-center gap-2 text-sm font-bold text-amber-900">
+                      <span aria-hidden="true">💰</span> Costo mensual estimado
+                    </p>
+                    <div className="flex flex-col gap-1.5 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Alquiler</span>
+                        <span className="font-semibold text-slate-900">USD {Number(propiedad.price_usd).toLocaleString('es-AR')}</span>
+                      </div>
+                      {costoMensual.expensas_inquilino > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Expensas</span>
+                          <span className="font-medium text-slate-800">${formatARS(costoMensual.expensas_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
+                        </div>
+                      )}
+                      {costoMensual.abl_inquilino > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">ABL (prorrateado)</span>
+                          <span className="font-medium text-slate-800">${formatARS(costoMensual.abl_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
+                        </div>
+                      )}
+                      {costoMensual.municipal_inquilino > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Tasa municipal</span>
+                          <span className="font-medium text-slate-800">${formatARS(costoMensual.municipal_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
+                        </div>
+                      )}
+                      {costoMensual.arba_inquilino > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">ARBA (prorrateado)</span>
+                          <span className="font-medium text-slate-800">${formatARS(costoMensual.arba_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
+                        </div>
+                      )}
+                      {costoMensual.seguro_inquilino > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Seguro edificio</span>
+                          <span className="font-medium text-slate-800">${formatARS(costoMensual.seguro_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
+                        </div>
+                      )}
+                      <div className="mt-1 border-t border-amber-200 pt-2 flex justify-between font-bold">
+                        <span className="text-amber-900">Total aprox.</span>
+                        <span className="text-amber-900">+ ${formatARS(costoMensual.total_inquilino - costoMensual.alquiler)}/mes</span>
+                      </div>
+                      {costoMensual.items_dueno.length > 0 && (
+                        <p className="mt-1 text-xs text-slate-500">Dueño cubre: {costoMensual.items_dueno.join(' · ')}</p>
+                      )}
+                    </div>
+                    <p className="mt-3 text-xs text-amber-700">Valores estimados declarados por el dueño. Verificar antes de firmar.</p>
+                  </div>
+                )}
 
                 <div className="h-px bg-slate-100" />
 

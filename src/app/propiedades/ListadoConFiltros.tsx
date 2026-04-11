@@ -214,7 +214,7 @@ function FotoPlaceholder() {
   )
 }
 
-function CardGrilla({ p, isVerified }: { p: Propiedad; isVerified: boolean }) {
+function CardGrilla({ p, isVerified, isCaucion }: { p: Propiedad; isVerified: boolean; isCaucion: boolean }) {
   const nueva = esNueva(p.created_at)
   const foto = getFirstPhoto(p.photo_urls)
   const muchasFotos = Array.isArray(p.photo_urls) && p.photo_urls.length >= 6
@@ -264,6 +264,11 @@ function CardGrilla({ p, isVerified }: { p: Propiedad; isVerified: boolean }) {
                 Verificado
               </span>
             )}
+            {isCaucion && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                ✓ Acepta caución
+              </span>
+            )}
           </div>
           <span className="line-clamp-2 text-base font-semibold text-slate-900">{p.address}</span>
           {(p.neighborhood || p.city) && (
@@ -288,7 +293,7 @@ function CardGrilla({ p, isVerified }: { p: Propiedad; isVerified: boolean }) {
   )
 }
 
-function CardLista({ p, isVerified }: { p: Propiedad; isVerified: boolean }) {
+function CardLista({ p, isVerified, isCaucion }: { p: Propiedad; isVerified: boolean; isCaucion: boolean }) {
   const nueva = esNueva(p.created_at)
   const foto = getFirstPhoto(p.photo_urls)
   return (
@@ -324,6 +329,11 @@ function CardLista({ p, isVerified }: { p: Propiedad; isVerified: boolean }) {
                 <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">
                   <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                   Verificado
+                </span>
+              )}
+              {isCaucion && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                  ✓ Acepta caución
                 </span>
               )}
             </div>
@@ -382,13 +392,16 @@ function buildPageNumbers(current: number, total: number): (number | '…')[] {
 export default function ListadoConFiltros({
   propiedades,
   verifiedOwnerIds = [],
+  caucionPropertyIds = [],
   initialFilters = {},
 }: {
   propiedades: Propiedad[]
   verifiedOwnerIds?: string[]
+  caucionPropertyIds?: string[]
   initialFilters?: InitialFilters
 }) {
   const verifiedSet = useMemo(() => new Set(verifiedOwnerIds), [verifiedOwnerIds])
+  const caucionSet = useMemo(() => new Set(caucionPropertyIds), [caucionPropertyIds])
   const [tipo, setTipo] = useState(initialFilters.tipo ?? '')
   const [provincia, setProvincia] = useState(initialFilters.provincia ?? '')
   const [zona, setZona] = useState(initialFilters.zona ?? '')
@@ -742,7 +755,7 @@ export default function ListadoConFiltros({
               <li key={p.id}
                 className="opacity-0 animate-[fadeSlideUp_0.4s_ease-out_forwards]"
                 style={{ animationDelay: `${Math.min(i * 50, 400)}ms` }}>
-                <CardGrilla p={p} isVerified={!!(p.owner_id && verifiedSet.has(p.owner_id))} />
+                <CardGrilla p={p} isVerified={!!(p.owner_id && verifiedSet.has(p.owner_id))} isCaucion={caucionSet.has(p.id)} />
               </li>
             ))}
           </ul>
@@ -752,7 +765,7 @@ export default function ListadoConFiltros({
               <li key={p.id}
                 className="opacity-0 animate-[fadeSlideUp_0.4s_ease-out_forwards]"
                 style={{ animationDelay: `${Math.min(i * 40, 300)}ms` }}>
-                <CardLista p={p} isVerified={!!(p.owner_id && verifiedSet.has(p.owner_id))} />
+                <CardLista p={p} isVerified={!!(p.owner_id && verifiedSet.has(p.owner_id))} isCaucion={caucionSet.has(p.id)} />
               </li>
             ))}
           </ul>

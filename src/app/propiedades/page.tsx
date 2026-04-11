@@ -42,6 +42,18 @@ export default async function PropiedadesPage({
     verifiedOwnerIds = new Set((verifiedProfiles ?? []).map((p) => p.id as string))
   }
 
+  // Fetch property_costs en un solo SELECT para mostrar badge de caución (sin N+1)
+  const propiedadIds = (propiedades ?? []).map((p) => p.id)
+  let caucionPropertyIds: Set<string> = new Set()
+  if (propiedadIds.length > 0) {
+    const { data: costsData } = await supabase
+      .from('property_costs')
+      .select('property_id')
+      .eq('caucion_accepted', true)
+      .in('property_id', propiedadIds)
+    caucionPropertyIds = new Set((costsData ?? []).map((c) => c.property_id as string))
+  }
+
   const title = (() => {
     if (filters.barrio) return `Propiedades en ${filters.barrio}`
     if (filters.zona) return `Propiedades · ${filters.zona}`
@@ -65,6 +77,7 @@ export default async function PropiedadesPage({
           <ListadoConFiltros
             propiedades={propiedades ?? []}
             verifiedOwnerIds={[...verifiedOwnerIds]}
+            caucionPropertyIds={[...caucionPropertyIds]}
             initialFilters={{
               tipo: filters.tipo,
               provincia: filters.provincia,

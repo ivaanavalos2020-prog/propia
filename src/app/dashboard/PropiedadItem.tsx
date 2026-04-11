@@ -163,18 +163,25 @@ export default function PropiedadItem({ id, type, address, price_usd, includes_e
 
           {/* Botones fila 2: Pausar / Eliminar */}
           <div className="mt-2 flex gap-2">
-            <button
-              type="button"
-              onClick={toggleStatus}
-              disabled={cambiando}
-              className={`flex flex-1 items-center justify-center rounded-lg border py-2 text-sm font-medium transition-colors disabled:opacity-40 ${
-                activa
-                  ? 'border-amber-300 text-amber-600 hover:bg-amber-50'
-                  : 'border-green-300 text-green-600 hover:bg-green-50'
-              }`}
-            >
-              {cambiando ? '...' : activa ? 'Pausar' : 'Activar'}
-            </button>
+            <div className="flex flex-1 flex-col gap-0.5">
+              <button
+                type="button"
+                onClick={toggleStatus}
+                disabled={cambiando}
+                className={`flex w-full items-center justify-center rounded-lg border py-2 text-sm font-medium transition-colors disabled:opacity-40 ${
+                  activa
+                    ? 'border-amber-300 text-amber-600 hover:bg-amber-50'
+                    : 'border-green-300 text-green-600 hover:bg-green-50'
+                }`}
+              >
+                {cambiando ? '...' : activa ? 'Pausar' : 'Activar'}
+              </button>
+              {activa && (
+                <p className="text-center text-[10px] text-gray-400">
+                  ¿Ya alquilaste? Pausá con un clic. Reactivá cuando necesites.
+                </p>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => setModalEliminar(true)}

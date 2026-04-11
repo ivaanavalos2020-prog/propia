@@ -405,6 +405,9 @@ export default function InboxMensajes({
                 <p className="mt-0.5 text-xs text-slate-400">
                   {mensajesFiltrados.length}/{mensajes.length} conversación{mensajes.length !== 1 ? 'es' : ''}
                 </p>
+                <p className="mt-1 text-xs text-gray-500 md:text-sm md:text-gray-600">
+                  💬 Las consultas llegan directo. Respondé cuando quieras, desde cualquier lado.
+                </p>
               </div>
               <Link href="/dashboard" className="text-xs text-slate-400 transition-colors hover:text-slate-700">
                 ← Volver
