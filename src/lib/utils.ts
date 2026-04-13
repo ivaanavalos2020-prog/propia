@@ -254,3 +254,29 @@ export function formatFechaAR(isoDate: string): string {
     year: 'numeric',
   })
 }
+
+const MESES_ES = [
+  'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre',
+]
+
+/**
+ * Formatea una fecha ISO (YYYY-MM-DD) al estilo: '15 de Abril de 2026'
+ * Capitalizado, en español sin depender del locale del sistema.
+ */
+export function formatFechaES(isoDate: string): string {
+  const d = new Date(isoDate + 'T00:00:00')
+  return `${d.getDate()} de ${MESES_ES[d.getMonth()]} de ${d.getFullYear()}`
+}
+
+/**
+ * Formatea YYYY-MM o los primeros 7 chars de una fecha ISO al estilo: 'Abril 2026'
+ * Ej: '2026-04' → 'Abril 2026'
+ *     '2026-04-15' → 'Abril 2026'
+ */
+export function formatMesAnioES(yearMonth: string): string {
+  const parts = yearMonth.slice(0, 7).split('-')
+  const year = parseInt(parts[0], 10)
+  const month = parseInt(parts[1], 10)
+  return `${MESES_ES[month - 1]} ${year}`
+}

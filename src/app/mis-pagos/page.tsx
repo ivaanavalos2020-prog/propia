@@ -5,7 +5,7 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import type { PaymentPeriod, PaymentConcept, PaymentStatus } from '@/lib/types'
 import {
-  PAYMENT_STATUS_CONFIG, formatMonto, formatFechaAR, labelVencimiento,
+  PAYMENT_STATUS_CONFIG, formatMonto, formatMesAnioES, labelVencimiento,
 } from '@/lib/utils'
 import MisPagosAcciones from './MisPagosAcciones'
 
@@ -123,7 +123,7 @@ export default async function MisPagosPage() {
                         <div>
                           <p className="text-sm font-bold text-slate-900">{propDir}</p>
                           <p className="mt-0.5 text-xs text-slate-400">
-                            {formatFechaAR(contrato.start_date)} → {formatFechaAR(contrato.end_date)}
+                            {formatMesAnioES(contrato.start_date)} → {formatMesAnioES(contrato.end_date)}
                           </p>
                         </div>
                         <span className="shrink-0 text-sm font-bold text-blue-600">

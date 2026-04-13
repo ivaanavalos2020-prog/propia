@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import type { Contract, PaymentConcept, PaymentPeriod, ContractStatus, PaymentStatus } from '@/lib/types'
 import {
   PAYMENT_STATUS_CONFIG, CONCEPT_TYPE_LABELS, FREQUENCY_LABELS,
-  formatMonto, formatFechaAR, labelVencimiento,
+  formatMonto, formatFechaAR, formatMesAnioES, labelVencimiento,
 } from '@/lib/utils'
 
 const CONTRACT_STATUS_CONFIG: Record<ContractStatus, { label: string; color: string; bg: string }> = {
@@ -168,7 +168,7 @@ export default function ContratoDetalle({ contract, concepts, todosLosPeriodos, 
           </div>
           <div>
             <p className="text-xs text-slate-400">Período</p>
-            <p className="text-sm font-semibold text-slate-900">{formatFechaAR(contract.start_date).split(' de ')[2] !== undefined ? `${contract.start_date.slice(0,7)} → ${contract.end_date.slice(0,7)}` : '—'}</p>
+            <p className="text-sm font-semibold text-slate-900">{formatMesAnioES(contract.start_date)} → {formatMesAnioES(contract.end_date)}</p>
           </div>
           <div>
             <p className="text-xs text-slate-400">Email inquilino</p>

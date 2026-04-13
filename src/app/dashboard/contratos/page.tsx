@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import type { Contract, ContractStatus } from '@/lib/types'
-import { formatFechaAR } from '@/lib/utils'
+import { formatMesAnioES } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'Mis contratos — PROPIA',
@@ -111,7 +111,7 @@ export default async function ContratosPage() {
                           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${cfg.bg} ${cfg.color}`}>
                             {cfg.label}
                           </span>
-                          <span className="text-xs text-slate-400">{formatFechaAR(c.start_date)} → {formatFechaAR(c.end_date)}</span>
+                          <span className="text-xs text-slate-400">{formatMesAnioES(c.start_date)} → {formatMesAnioES(c.end_date)}</span>
                         </div>
                         <p className="text-sm font-semibold text-slate-900">{c.tenant_name}</p>
                         <p className="text-xs text-slate-500">{propDir}</p>
