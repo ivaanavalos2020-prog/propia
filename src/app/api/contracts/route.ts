@@ -85,13 +85,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Propiedad no encontrada o sin permiso.' }, { status: 403 })
   }
 
-  // Buscar si el inquilino tiene perfil (puede no tenerlo — es OK)
+  // Buscar si el inquilino tiene perfil por email (puede no tenerlo — es OK)
   const { data: tenantProfile } = await supabase
     .from('profiles')
     .select('id')
-    .eq('id', (await supabase.auth.admin?.listUsers?.())?.data?.users?.find(
-      (u) => u.email === body.tenant_email
-    )?.id ?? '')
+    .eq('email', body.tenant_email.toLowerCase().trim())
     .maybeSingle()
 
   // Obtener datos del dueño para el email
@@ -122,8 +120,11 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (contractError || !contract) {
-    console.error('[POST /api/contracts] contract insert:', contractError)
-    return NextResponse.json({ error: 'No se pudo crear el contrato.' }, { status: 500 })
+    console.error('[POST /api/contracts] contract insert:', JSON.stringify(contractError, null, 2))
+    return NextResponse.json(
+      { error: 'No se pudo crear el contrato.', detail: contractError?.message, code: contractError?.code },
+      { status: 500 }
+    )
   }
 
   const contractId = (contract as { id: string }).id

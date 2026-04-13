@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { PaymentConceptDraft, ConceptType, PaymentFrequency, PaidBy, Currency } from '@/lib/types'
 import { CONCEPT_TYPE_LABELS, FREQUENCY_LABELS } from '@/lib/utils'
+import { createClient } from '@/lib/supabase-client'
 
 interface Propiedad {
   id: string
@@ -57,6 +58,25 @@ export default function NuevoContratoForm({ propiedades }: { propiedades: Propie
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fetchingPrice, setFetchingPrice] = useState(false)
+
+  // Bug 2: pre-cargar precio al cambiar la propiedad seleccionada
+  useEffect(() => {
+    if (!propertyId) return
+    const supabase = createClient()
+    setFetchingPrice(true)
+    supabase
+      .from('properties')
+      .select('price_usd')
+      .eq('id', propertyId)
+      .single()
+      .then(({ data }) => {
+        if (data?.price_usd) {
+          setRentAmount(String(Math.round(Number(data.price_usd))))
+        }
+        setFetchingPrice(false)
+      })
+  }, [propertyId])
 
   function addConcepto() {
     setConcepts((prev) => [...prev, { ...CONCEPTO_VACIO, concept_type: 'otro', label: '' }])
@@ -102,11 +122,17 @@ export default function NuevoContratoForm({ propiedades }: { propiedades: Propie
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Ocurrió un error.')
+        console.error('[NuevoContratoForm] Error del servidor:', data)
+        setError(
+          data.detail
+            ? `${data.error} (${data.code ?? ''}: ${data.detail})`
+            : (data.error ?? 'Ocurrió un error.')
+        )
         return
       }
       router.push(`/dashboard/contratos/${data.contractId}`)
-    } catch {
+    } catch (err) {
+      console.error('[NuevoContratoForm] Error de red:', err)
       setError('Error de red. Intentá de nuevo.')
     } finally {
       setLoading(false)
@@ -246,9 +272,10 @@ export default function NuevoContratoForm({ propiedades }: { propiedades: Propie
                     type="number"
                     value={rentAmount}
                     onChange={(e) => setRentAmount(e.target.value)}
-                    placeholder="650000"
+                    placeholder={fetchingPrice ? 'Cargando...' : '650000'}
                     min="0"
-                    className="flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    disabled={fetchingPrice}
+                    className="flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400"
                   />
                 </div>
               </div>
@@ -266,7 +293,17 @@ export default function NuevoContratoForm({ propiedades }: { propiedades: Propie
           </div>
 
           <button
-            onClick={() => setStep(2)}
+            onClick={() => {
+              // Bug 1: pre-cargar el monto del concepto "Alquiler" con el valor del paso 1
+              setConcepts((prev) =>
+                prev.map((c) =>
+                  c.concept_type === 'alquiler'
+                    ? { ...c, amount: rentAmount, currency }
+                    : c
+                )
+              )
+              setStep(2)
+            }}
             disabled={!paso1Valido}
             className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -291,7 +328,8 @@ export default function NuevoContratoForm({ propiedades }: { propiedades: Propie
             <div className="flex flex-col gap-4">
               {concepts.map((c, i) => (
                 <div key={i} className="relative rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  {concepts.length > 1 && (
+                  {/* Bug 3: el concepto "Alquiler" es obligatorio y no puede eliminarse */}
+                  {c.concept_type !== 'alquiler' && (
                     <button
                       onClick={() => removeConcepto(i)}
                       className="absolute right-3 top-3 text-slate-300 hover:text-red-500"

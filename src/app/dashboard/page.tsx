@@ -36,8 +36,13 @@ export default async function DashboardPage() {
 
   const propertyIds = propiedades?.map((p) => p.id) ?? []
 
-  const [{ count: mensajesSinLeer }, { count: totalMensajes }, { count: totalFavoritos }] =
-    await Promise.all([
+  const [
+    { count: mensajesSinLeer },
+    { count: totalMensajes },
+    { count: totalFavoritos },
+    { count: contratosActivos },
+    { count: periodosPendientes },
+  ] = await Promise.all([
       propertyIds.length > 0
         ? supabase
             .from('mensajes')
@@ -56,6 +61,25 @@ export default async function DashboardPage() {
             .from('favoritos')
             .select('*', { count: 'exact', head: true })
             .in('property_id', propertyIds)
+        : Promise.resolve({ count: 0 }),
+      supabase
+        .from('contracts')
+        .select('*', { count: 'exact', head: true })
+        .eq('owner_id', session.user.id)
+        .eq('status', 'active'),
+      propertyIds.length > 0
+        ? supabase
+            .from('payment_periods')
+            .select('*', { count: 'exact', head: true })
+            .in('contract_id',
+              (await supabase
+                .from('contracts')
+                .select('id')
+                .eq('owner_id', session.user.id)
+                .eq('status', 'active')
+              ).data?.map((c: { id: string }) => c.id) ?? []
+            )
+            .in('status', ['pending', 'overdue'])
         : Promise.resolve({ count: 0 }),
     ])
 
@@ -219,6 +243,36 @@ export default async function DashboardPage() {
                 </p>
               </div>
               <span className="shrink-0 text-sm font-semibold text-red-600">Ver mensajes →</span>
+            </Link>
+          )}
+
+          {/* Widget contratos activos */}
+          {(contratosActivos ?? 0) > 0 && (
+            <Link
+              href="/dashboard/contratos"
+              className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4 transition-colors hover:border-blue-300 hover:bg-blue-100"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-800">
+                    {contratosActivos} contrato{(contratosActivos ?? 0) !== 1 ? 's' : ''} activo{(contratosActivos ?? 0) !== 1 ? 's' : ''}
+                  </p>
+                  {(periodosPendientes ?? 0) > 0 && (
+                    <p className="text-xs text-blue-600">
+                      {periodosPendientes} pago{(periodosPendientes ?? 0) !== 1 ? 's' : ''} pendiente{(periodosPendientes ?? 0) !== 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <span className="shrink-0 text-sm font-semibold text-blue-700">Ver contratos →</span>
             </Link>
           )}
 

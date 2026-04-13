@@ -63,16 +63,18 @@ const NAV_LINKS = [
 ]
 
 const DROPDOWN_LINKS_DUENO = [
-  { label: 'Mi dashboard', href: '/dashboard'          },
-  { label: 'Mis mensajes', href: '/dashboard/mensajes' },
-  { label: 'Favoritos',    href: '/favoritos'          },
-  { label: 'Mi perfil',    href: '/perfil'             },
+  { label: 'Mi dashboard', href: '/dashboard'           },
+  { label: 'Mis contratos', href: '/dashboard/contratos' },
+  { label: 'Mis mensajes', href: '/dashboard/mensajes'  },
+  { label: 'Favoritos',    href: '/favoritos'           },
+  { label: 'Mi perfil',    href: '/perfil'              },
 ]
 
 const DROPDOWN_LINKS_INQUILINO = [
-  { label: 'Mis mensajes', href: '/mensajes'  },
-  { label: 'Favoritos',    href: '/favoritos' },
-  { label: 'Mi perfil',    href: '/perfil'    },
+  { label: 'Mis pagos',    href: '/mis-pagos'  },
+  { label: 'Mis mensajes', href: '/mensajes'   },
+  { label: 'Favoritos',    href: '/favoritos'  },
+  { label: 'Mi perfil',    href: '/perfil'     },
 ]
 
 // ── Component ───────────────────────────────────────────────────────────────

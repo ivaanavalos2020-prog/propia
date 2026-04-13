@@ -15,7 +15,11 @@
       "Bash(git commit:*)",
       "Bash(wc:*)",
       "Bash(grep -E '\\\\.\\(ts|js\\)$')",
-      "mcp__claude_ai_Supabase__list_migrations"
+      "mcp__claude_ai_Supabase__list_migrations",
+      "Bash(node:*)",
+      "mcp__claude_ai_Vercel__list_teams",
+      "mcp__claude_ai_Vercel__list_projects",
+      "mcp__claude_ai_Vercel__get_project"
     ]
   }
 }
