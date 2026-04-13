@@ -139,3 +139,118 @@ export function parsearErrorSupabase(error: { code?: string; message?: string } 
     default: return error.message ?? 'Ocurrió un error inesperado.'
   }
 }
+
+// ── Payment system helpers ────────────────────────────────────────────────────
+
+import type { PaymentStatus, ConceptType, PaymentFrequency, Currency } from './types'
+
+export const PAYMENT_STATUS_CONFIG: Record<PaymentStatus, {
+  label: string
+  color: string
+  bgColor: string
+  borderColor: string
+  icon: string
+}> = {
+  upcoming: {
+    label: 'Próximo',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
+    icon: '🔵',
+  },
+  pending: {
+    label: 'Pendiente',
+    color: 'text-yellow-700',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-200',
+    icon: '🟡',
+  },
+  paid: {
+    label: 'Pagado',
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-200',
+    icon: '✅',
+  },
+  overdue: {
+    label: 'Vencido',
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
+    icon: '🔴',
+  },
+}
+
+export const CONCEPT_TYPE_LABELS: Record<ConceptType, string> = {
+  alquiler: 'Alquiler',
+  expensas_ordinarias: 'Expensas ordinarias',
+  expensas_extraordinarias: 'Expensas extraordinarias',
+  abl: 'ABL',
+  arba: 'ARBA',
+  municipal: 'Tasa municipal',
+  seguro_edificio: 'Seguro del edificio',
+  seguro_caucion: 'Seguro de caución',
+  otro: 'Otro',
+}
+
+export const FREQUENCY_LABELS: Record<PaymentFrequency, string> = {
+  mensual: 'Mensual',
+  bimestral: 'Bimestral',
+  trimestral: 'Trimestral',
+  anual: 'Anual',
+  unico: 'Pago único',
+}
+
+/**
+ * Formatea un monto con moneda en formato argentino.
+ * Ej: formatMonto(600000, 'ARS') → '$\u00a0600.000'
+ *     formatMonto(500, 'USD')   → 'USD\u00a0500'
+ */
+export function formatMonto(amount: number, currency: Currency = 'ARS'): string {
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+/**
+ * Días entre hoy y la fecha de vencimiento.
+ * Negativo si ya venció.
+ */
+export function diasHastaVencimiento(due_date: string): number {
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
+  const vencimiento = new Date(due_date + 'T00:00:00')
+  vencimiento.setHours(0, 0, 0, 0)
+  return Math.ceil((vencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+/**
+ * Texto descriptivo del vencimiento en español.
+ */
+export function labelVencimiento(due_date: string, status: PaymentStatus): string {
+  if (status === 'paid') return 'Pagado'
+  const dias = diasHastaVencimiento(due_date)
+  if (dias < 0) return `Venció hace ${Math.abs(dias)} día${Math.abs(dias) !== 1 ? 's' : ''}`
+  if (dias === 0) return 'Vence hoy'
+  if (dias === 1) return 'Vence mañana'
+  if (dias <= 7) return `Vence en ${dias} días`
+  return `Vence el ${new Date(due_date + 'T00:00:00').toLocaleDateString('es-AR', {
+    day: 'numeric',
+    month: 'long',
+  })}`
+}
+
+/**
+ * Formatea una fecha ISO (YYYY-MM-DD) al estilo argentino.
+ * Ej: '2026-04-15' → '15 de abril de 2026'
+ */
+export function formatFechaAR(isoDate: string): string {
+  return new Date(isoDate + 'T00:00:00').toLocaleDateString('es-AR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
