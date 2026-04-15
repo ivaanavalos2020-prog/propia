@@ -485,19 +485,19 @@ export default async function PropiedadPage({
                     )}
                     {costoMensual.abl_inquilino > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-slate-600">ABL (prorrateado)</span>
+                        <span className="text-slate-600">ABL (por mes)</span>
                         <span className="font-medium text-slate-800">${formatARS(costoMensual.abl_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
                       </div>
                     )}
                     {costoMensual.municipal_inquilino > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-slate-600">Tasa municipal</span>
+                        <span className="text-slate-600">Tasa municipal (por mes)</span>
                         <span className="font-medium text-slate-800">${formatARS(costoMensual.municipal_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
                       </div>
                     )}
                     {costoMensual.arba_inquilino > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-slate-600">ARBA (prorrateado)</span>
+                        <span className="text-slate-600">ARBA (por mes)</span>
                         <span className="font-medium text-slate-800">${formatARS(costoMensual.arba_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
                       </div>
                     )}
@@ -1004,19 +1004,19 @@ export default async function PropiedadPage({
                       )}
                       {costoMensual.abl_inquilino > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-slate-600">ABL (prorrateado)</span>
+                          <span className="text-slate-600">ABL (por mes)</span>
                           <span className="font-medium text-slate-800">${formatARS(costoMensual.abl_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
                         </div>
                       )}
                       {costoMensual.municipal_inquilino > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-slate-600">Tasa municipal</span>
+                          <span className="text-slate-600">Tasa municipal (por mes)</span>
                           <span className="font-medium text-slate-800">${formatARS(costoMensual.municipal_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
                         </div>
                       )}
                       {costoMensual.arba_inquilino > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-slate-600">ARBA (prorrateado)</span>
+                          <span className="text-slate-600">ARBA (por mes)</span>
                           <span className="font-medium text-slate-800">${formatARS(costoMensual.arba_inquilino)} <span className="text-xs text-slate-400">(vos)</span></span>
                         </div>
                       )}
