@@ -15,10 +15,28 @@ export async function GET(request: NextRequest) {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (user?.id && user?.email) {
-          await supabase.from('profiles').upsert(
-            { id: user.id, email: user.email },
-            { onConflict: 'id' }
-          )
+          const { data: existing } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('id', user.id)
+            .maybeSingle()
+
+          const upsertData: {
+            id: string
+            email: string
+            full_name?: string
+            avatar_url?: string
+          } = { id: user.id, email: user.email }
+
+          const meta = user.user_metadata as Record<string, string> | undefined
+          if (!existing?.full_name && meta?.full_name) {
+            upsertData.full_name = meta.full_name
+          }
+          if (!existing?.avatar_url && meta?.avatar_url) {
+            upsertData.avatar_url = meta.avatar_url
+          }
+
+          await supabase.from('profiles').upsert(upsertData, { onConflict: 'id' })
         }
       } catch { /* no bloquear el login si falla */ }
 
