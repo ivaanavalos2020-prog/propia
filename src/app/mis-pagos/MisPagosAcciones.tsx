@@ -2,13 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import type { ConceptType } from '@/lib/types'
+import PaymentPortalButton from '@/components/PaymentPortalButton'
 
 interface Props {
   contractId: string
   periodId: string
+  conceptType: ConceptType | string
 }
 
-export default function MisPagosAcciones({ contractId, periodId }: Props) {
+export default function MisPagosAcciones({ contractId, periodId, conceptType }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -39,12 +42,15 @@ export default function MisPagosAcciones({ contractId, periodId }: Props) {
   }
 
   return (
-    <button
-      onClick={marcarPagado}
-      disabled={loading}
-      className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50"
-    >
-      {loading ? '...' : 'Marcar pagado'}
-    </button>
+    <div className="flex flex-wrap items-center justify-end gap-1.5">
+      <PaymentPortalButton concept_type={conceptType} size="sm" />
+      <button
+        onClick={marcarPagado}
+        disabled={loading}
+        className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+      >
+        {loading ? '...' : 'Marcar pagado'}
+      </button>
+    </div>
   )
 }

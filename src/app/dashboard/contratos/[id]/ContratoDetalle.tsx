@@ -6,6 +6,7 @@ import {
   PAYMENT_STATUS_CONFIG, CONCEPT_TYPE_LABELS, FREQUENCY_LABELS,
   formatMonto, formatFechaAR, formatMesAnioES, labelVencimiento,
 } from '@/lib/utils'
+import { hasPaymentPortals, getPortalesForConcept } from '@/lib/payment-portals'
 
 const CONTRACT_STATUS_CONFIG: Record<ContractStatus, { label: string; color: string; bg: string }> = {
   active:  { label: 'Activo',      color: 'text-green-700',  bg: 'bg-green-50 border-green-200' },
@@ -250,7 +251,17 @@ export default function ContratoDetalle({ contract, concepts, todosLosPeriodos, 
                         <div className="flex flex-wrap items-start justify-between gap-2">
                           <div className="flex flex-col gap-0.5">
                             <span className="text-sm font-semibold text-slate-900">
-                              {p.concept?.label ?? '—'} · {p.period_label}
+                              {p.concept?.label ?? '—'}
+                              {isOwner && !esPagado && p.concept?.concept_type && hasPaymentPortals(p.concept.concept_type) && (
+                                <span
+                                  className="ml-1 cursor-help text-xs"
+                                  title={`El inquilino puede pagar en: ${getPortalesForConcept(p.concept.concept_type).map((portal) => portal.name).join(', ')}`}
+                                >
+                                  ℹ️
+                                </span>
+                              )}
+                              {' · '}
+                              {p.period_label}
                             </span>
                             <span className={`text-xs ${scfg.color}`}>
                               {labelVencimiento(p.due_date, p.status as PaymentStatus)}

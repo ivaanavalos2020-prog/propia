@@ -3,11 +3,12 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
-import type { PaymentPeriod, PaymentConcept, PaymentStatus } from '@/lib/types'
+import type { PaymentPeriod, PaymentConcept, PaymentStatus, ConceptType } from '@/lib/types'
 import {
   PAYMENT_STATUS_CONFIG, formatMonto, formatMesAnioES, labelVencimiento,
 } from '@/lib/utils'
 import MisPagosAcciones from './MisPagosAcciones'
+import MisPagosGuia from './MisPagosGuia'
 
 export const metadata: Metadata = {
   title: 'Mis pagos — PROPIA',
@@ -28,7 +29,7 @@ export default async function MisPagosPage() {
       start_date, end_date,
       property:properties(address, neighborhood, city),
       payment_concepts(
-        id, label, amount, currency, frequency, paid_by,
+        id, label, amount, currency, frequency, paid_by, concept_type,
         payment_periods(*)
       )
     `)
@@ -52,6 +53,18 @@ export default async function MisPagosPage() {
   const vencidos  = todosLosPeriodos.filter((p) => p.status === 'overdue').length
   const pendientes = todosLosPeriodos.filter((p) => p.status === 'pending').length
   const pagados   = todosLosPeriodos.filter((p) => p.status === 'paid').length
+
+  // Tipos de concepto únicos del inquilino (para la guía de pago)
+  // Supabase infiere concept_type como 'any'; se estrecha a ConceptType de forma segura
+  const uniqueConceptTypes: ConceptType[] = Array.from(
+    new Set(
+      lista.flatMap((c) =>
+        (c.payment_concepts ?? []).map(
+          (concept) => concept.concept_type as ConceptType
+        )
+      )
+    )
+  )
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-slate-50">
@@ -84,6 +97,9 @@ export default async function MisPagosPage() {
               ))}
             </div>
           )}
+
+          {/* Guía de cómo pagar (colapsable, persiste en localStorage) */}
+          <MisPagosGuia conceptTypes={uniqueConceptTypes} />
 
           {lista.length === 0 ? (
             <div className="rounded-2xl border border-slate-300 bg-white p-10 text-center shadow-sm">
@@ -140,8 +156,8 @@ export default async function MisPagosPage() {
                       ) : (
                         <div className="flex flex-col gap-3">
                           {(['overdue', 'pending', 'upcoming', 'paid'] as PaymentStatus[]).map((estado) => {
-                            const lista = periodosPorEstado[estado]
-                            if (lista.length === 0) return null
+                            const periodosEstado = periodosPorEstado[estado]
+                            if (periodosEstado.length === 0) return null
                             const scfg = PAYMENT_STATUS_CONFIG[estado]
                             return (
                               <div key={estado}>
@@ -149,13 +165,13 @@ export default async function MisPagosPage() {
                                   {scfg.icon} {scfg.label}
                                 </h3>
                                 <div className="flex flex-col gap-2">
-                                  {lista.map((p) => (
+                                  {periodosEstado.map((p) => (
                                     <div
                                       key={p.id}
                                       className={`rounded-lg border p-3 ${scfg.borderColor} ${scfg.bgColor}`}
                                     >
                                       <div className="flex items-start justify-between gap-2">
-                                        <div>
+                                        <div className="min-w-0 flex-1">
                                           <p className="text-sm font-semibold text-slate-900">
                                             {p.concept?.label ?? '—'} · {p.period_label}
                                           </p>
@@ -168,7 +184,7 @@ export default async function MisPagosPage() {
                                             </p>
                                           )}
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex shrink-0 flex-col items-end gap-1.5">
                                           <span className={`text-sm font-bold ${scfg.color}`}>
                                             {formatMonto(p.amount, (p.currency ?? 'ARS') as 'ARS' | 'USD')}
                                           </span>
@@ -176,6 +192,7 @@ export default async function MisPagosPage() {
                                             <MisPagosAcciones
                                               contractId={contrato.id}
                                               periodId={p.id}
+                                              conceptType={p.concept.concept_type}
                                             />
                                           )}
                                         </div>
@@ -194,6 +211,27 @@ export default async function MisPagosPage() {
               })}
             </div>
           )}
+
+          {/* Disclaimer al pie */}
+          {lista.length > 0 && (
+            <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex gap-3">
+                <span className="mt-0.5 shrink-0 text-base" aria-hidden="true">ℹ️</span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-700">
+                    Información importante sobre los pagos
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                    Los links a portales de pago son externos a PROPIA. Verificá siempre el monto
+                    y el período antes de confirmar cualquier pago. PROPIA no procesa ni almacena
+                    información de pagos. Ante cualquier duda sobre un pago, consultá con tu dueño
+                    o la administración del edificio.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
     </div>
