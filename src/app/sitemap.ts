@@ -9,6 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('properties')
     .select('id, created_at')
     .order('created_at', { ascending: false })
+    .limit(50000)
 
   const rutas_estaticas: MetadataRoute.Sitemap = [
     {
@@ -25,6 +26,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${BASE_URL}/login`,
       changeFrequency: 'yearly',
       priority: 0.3,
+    },
+    {
+      url: `${BASE_URL}/terminos`,
+      changeFrequency: 'yearly',
+      priority: 0.2,
+    },
+    {
+      url: `${BASE_URL}/privacidad`,
+      changeFrequency: 'yearly',
+      priority: 0.2,
+    },
+    {
+      url: `${BASE_URL}/seguridad`,
+      changeFrequency: 'yearly',
+      priority: 0.2,
     },
   ]
 

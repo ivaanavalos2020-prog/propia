@@ -69,7 +69,7 @@ export default async function PropiedadesPage({
         <div className="mx-auto w-full max-w-5xl flex flex-col gap-6">
 
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-propia">
               {title}
             </h1>
           </div>

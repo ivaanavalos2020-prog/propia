@@ -200,6 +200,25 @@ export default function VerificarIdentidadClient({ userId, currentStatus, isVeri
       setError('Necesitás subir las tres fotos antes de enviar.')
       return
     }
+
+    const TIPOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp']
+    const TAMANIO_MAX = 5 * 1024 * 1024 // 5 MB
+    const validaciones: [string, File][] = [
+      ['DNI frente', archivos.dniFront],
+      ['DNI dorso', archivos.dniBack],
+      ['Selfie', archivos.selfie],
+    ]
+    for (const [nombre, archivo] of validaciones) {
+      if (archivo.size > TAMANIO_MAX) {
+        setError(`${nombre}: el archivo no puede superar 5 MB`)
+        return
+      }
+      if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
+        setError(`${nombre}: solo se permiten imágenes JPG, PNG o WebP`)
+        return
+      }
+    }
+
     setEnviando(true)
     setError(null)
 
@@ -309,7 +328,7 @@ export default function VerificarIdentidadClient({ userId, currentStatus, isVeri
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
           <IconEscudo className="h-7 w-7 text-blue-600" />
         </div>
-        <h1 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-propia">
           Verificá tu identidad
         </h1>
         <p className="mt-2 text-sm text-slate-500">Proceso simple y seguro · Solo lo revisa el equipo de PROPIA</p>

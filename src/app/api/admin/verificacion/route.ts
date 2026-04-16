@@ -4,6 +4,11 @@ import { createAdminSupabaseClient } from '@/lib/supabase-admin'
 import { ADMIN_EMAIL } from '@/config'
 
 export async function POST(req: NextRequest) {
+  if (!process.env.ADMIN_EMAIL) {
+    console.error('ADMIN_EMAIL no está configurado en las variables de entorno')
+    return NextResponse.json({ error: 'Configuración del servidor incompleta' }, { status: 500 })
+  }
+
   // ── Auth: verificar que el caller es el admin ─────────────────
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()

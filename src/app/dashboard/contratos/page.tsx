@@ -48,7 +48,7 @@ export default async function ContratosPage() {
           {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-propia">
                 Mis contratos
               </h1>
               <p className="mt-1 text-sm text-slate-500">

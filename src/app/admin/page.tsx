@@ -265,8 +265,10 @@ export default function AdminPage() {
       `${userId}/selfie.jpg`,
     ]
 
-    console.log('[admin] Generando signed URLs para userId:', userId)
-    console.log('[admin] Paths a firmar:', PATHS)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[admin] Generando signed URLs para userId:', userId)
+      console.log('[admin] Paths a firmar:', PATHS)
+    }
 
     // Generar las 3 URLs firmadas individualmente con try/catch por foto
     const fotosResueltas: FotoState[] = await Promise.all(
@@ -276,7 +278,9 @@ export default function AdminPage() {
             .from('verificaciones')
             .createSignedUrl(path, 3600)
 
-          console.log(`[admin] ${LABELS[i]} →`, result.error ? `ERROR: ${result.error.message}` : result.data?.signedUrl)
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[admin] ${LABELS[i]} →`, result.error ? `ERROR: ${result.error.message}` : result.data?.signedUrl)
+          }
 
           const url = result.error ? null : (result.data?.signedUrl ?? null)
           return { label: LABELS[i], url, loading: false, error: !url }
@@ -313,7 +317,9 @@ export default function AdminPage() {
       return
     }
 
-    console.log('[admin] Verificación aprobada para userId:', userId)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[admin] Verificación aprobada para userId:', userId)
+    }
     setVerifs((prev) => prev.filter((v) => v.id !== userId))
     setResumen((prev) => ({ ...prev, verificacionesPendientes: Math.max(0, prev.verificacionesPendientes - 1) }))
     setModalVerif(null)
@@ -341,7 +347,9 @@ export default function AdminPage() {
       return
     }
 
-    console.log('[admin] Verificación rechazada para userId:', userId)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[admin] Verificación rechazada para userId:', userId)
+    }
     setVerifs((prev) => prev.filter((v) => v.id !== userId))
     setResumen((prev) => ({ ...prev, verificacionesPendientes: Math.max(0, prev.verificacionesPendientes - 1) }))
     setModalVerif(null)

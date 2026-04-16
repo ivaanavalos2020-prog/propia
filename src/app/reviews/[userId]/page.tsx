@@ -116,7 +116,7 @@ export default async function ReviewsPage({ params }: { params: Promise<{ userId
                 {/* Rating resumen */}
                 {totalReviews > 0 && (
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="text-3xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+                    <span className="text-3xl font-extrabold text-slate-900 tracking-propia">
                       {avgRating.toFixed(1)}
                     </span>
                     <div className="flex flex-col gap-0.5">

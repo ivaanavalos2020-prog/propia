@@ -41,13 +41,24 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // ── Auth: verificar sesión ────────────────────────────────────────────────
+  const supabaseAuth = await createServerSupabaseClient()
+  const { data: { session } } = await supabaseAuth.auth.getSession()
+  if (!session) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY
-  console.log('[ubicacion-info] API key configured:', !!apiKey)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[ubicacion-info] API key configured:', !!apiKey)
+  }
 
   try {
     const body = await req.json()
     const { property_id, address, neighborhood, city } = body
-    console.log('[ubicacion-info] request:', { property_id, address, neighborhood, city })
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[ubicacion-info] request:', { property_id, address, neighborhood, city })
+    }
 
     if (!property_id) {
       return NextResponse.json({ error: 'property_id requerido' }, { status: 400 })
@@ -68,7 +79,9 @@ export async function POST(req: NextRequest) {
       } else if (cached) {
         const edad = Date.now() - new Date(cached.created_at).getTime()
         if (edad < TREINTA_DIAS_MS) {
-          console.log('[ubicacion-info] cache hit')
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[ubicacion-info] cache hit')
+          }
           cacheHit = true
           return NextResponse.json(cached.info_json)
         }
@@ -85,7 +98,9 @@ export async function POST(req: NextRequest) {
       })
     }
     const ubicacion = partes.join(', ')
-    console.log('[ubicacion-info] querying Claude for:', ubicacion)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[ubicacion-info] querying Claude for:', ubicacion)
+    }
 
     // ── Call Claude with 15s timeout ───────────────────────────────
     const client = new Anthropic({ apiKey })
@@ -133,7 +148,9 @@ export async function POST(req: NextRequest) {
         { signal: controller.signal }
       )
       texto = message.content[0].type === 'text' ? message.content[0].text.trim() : ''
-      console.log('[ubicacion-info] Claude raw response (first 200 chars):', texto.slice(0, 200))
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ubicacion-info] Claude raw response (first 200 chars):', texto.slice(0, 200))
+      }
     } finally {
       clearTimeout(timeoutId)
     }
@@ -142,7 +159,9 @@ export async function POST(req: NextRequest) {
     let info: Record<string, unknown>
     try {
       const limpio = limpiarJSON(texto)
-      console.log('[ubicacion-info] cleaned JSON (first 200 chars):', limpio.slice(0, 200))
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ubicacion-info] cleaned JSON (first 200 chars):', limpio.slice(0, 200))
+      }
       info = JSON.parse(limpio)
     } catch (parseErr) {
       console.error('[ubicacion-info] JSON parse failed:', parseErr, '\nraw text:', texto)

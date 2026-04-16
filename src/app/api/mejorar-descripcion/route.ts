@@ -1,9 +1,41 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
+import { createServerSupabaseClient } from '@/lib/supabase'
 
 const client = new Anthropic()
 
+// ── Rate limiting: max 10 requests per user per hour ─────────────────────────
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT = 10
+const RATE_WINDOW_MS = 60 * 60 * 1000 // 1 hour
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(userId)
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return true
+  }
+  if (entry.count >= RATE_LIMIT) return false
+  entry.count++
+  return true
+}
+
 export async function POST(req: NextRequest) {
+  // ── Auth: verificar sesión ────────────────────────────────────────────────
+  const supabase = await createServerSupabaseClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
+  if (!checkRateLimit(session.user.id)) {
+    return NextResponse.json(
+      { error: 'Demasiadas solicitudes. Intentá de nuevo en una hora.' },
+      { status: 429 }
+    )
+  }
+
   try {
     const body = await req.json()
     const { descripcion, tipo, direccion, ambientes, banos, superficie, caracteristicas } = body

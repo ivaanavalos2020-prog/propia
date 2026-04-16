@@ -125,7 +125,7 @@ export default function ContratoDetalle({ contract, concepts, todosLosPeriodos, 
                 {statusCfg.label}
               </span>
             </div>
-            <h1 className="mt-2 text-xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+            <h1 className="mt-2 text-xl font-extrabold text-slate-900 tracking-propia">
               {contract.tenant_name}
             </h1>
             <p className="mt-0.5 text-sm text-slate-500">{propDir}</p>

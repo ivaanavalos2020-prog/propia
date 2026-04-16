@@ -12,6 +12,7 @@ import MisPagosAcciones from './MisPagosAcciones'
 export const metadata: Metadata = {
   title: 'Mis pagos — PROPIA',
   description: 'Revisá tus obligaciones y estado de pago de tu alquiler.',
+  robots: { index: false, follow: false },
 }
 
 export default async function MisPagosPage() {
@@ -60,7 +61,7 @@ export default async function MisPagosPage() {
 
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-propia">
               Mis pagos
             </h1>
             <p className="mt-1 text-sm text-slate-500">

@@ -522,7 +522,7 @@ export default function PerfilPage() {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('full_name, phone, dni, fecha_nacimiento, whatsapp, show_phone, show_whatsapp, notify_messages, avatar_url, created_at, cuit, razon_social, condicion_afip, verification_status')
         .eq('id', user.id)
         .single()
 

@@ -431,7 +431,7 @@ export default async function PropiedadPage({
                       </span>
                     )}
                   </div>
-                  <h1 className="text-3xl font-extrabold leading-tight text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+                  <h1 className="text-3xl font-extrabold leading-tight text-slate-900 md:text-4xl tracking-propia">
                     {propiedad.address}
                   </h1>
                   {(propiedad.neighborhood || propiedad.city) && (
@@ -460,7 +460,7 @@ export default async function PropiedadPage({
 
               {/* Precio mobile */}
               <div className="flex items-baseline gap-2 rounded-xl border border-slate-300 bg-white p-4 shadow-sm lg:hidden">
-                <span className="text-4xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+                <span className="text-4xl font-extrabold text-slate-900 tracking-propia">
                   USD {Number(propiedad.price_usd).toLocaleString('es-AR')}
                 </span>
                 <span className="text-base text-slate-400">/ mes</span>
@@ -964,7 +964,7 @@ export default async function PropiedadPage({
               <div className="sticky top-24 flex flex-col gap-6 rounded-2xl border border-slate-300 bg-white p-6 shadow-md">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+                    <span className="text-4xl font-extrabold text-slate-900 tracking-propia">
                       USD {Number(propiedad.price_usd).toLocaleString('es-AR')}
                     </span>
                   </div>

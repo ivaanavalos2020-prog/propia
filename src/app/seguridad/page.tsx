@@ -54,7 +54,7 @@ function SectionTitle({ tag, titulo, subtitulo }: { tag: string; titulo: string;
       <span className="inline-block rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-widest text-blue-600">
         {tag}
       </span>
-      <h2 className="mt-3 text-2xl font-extrabold text-slate-900 md:text-3xl" style={{ letterSpacing: '-0.02em' }}>
+      <h2 className="mt-3 text-2xl font-extrabold text-slate-900 md:text-3xl tracking-propia">
         {titulo}
       </h2>
       {subtitulo && <p className="mt-2 text-sm leading-relaxed text-slate-500">{subtitulo}</p>}
@@ -74,7 +74,7 @@ export default function SeguridadPage() {
           <span className="inline-block rounded-full border border-blue-200 bg-blue-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-600">
             Confianza y seguridad
           </span>
-          <h1 className="mt-5 text-3xl font-extrabold leading-tight text-slate-900 md:text-5xl" style={{ letterSpacing: '-0.02em' }}>
+          <h1 className="mt-5 text-3xl font-extrabold leading-tight text-slate-900 md:text-5xl tracking-propia">
             Alquilá con confianza,<br className="hidden sm:block" /> sin sorpresas
           </h1>
           <p className="mt-4 text-base leading-relaxed text-slate-500 md:text-lg">
@@ -276,7 +276,7 @@ export default function SeguridadPage() {
       {/* ── CTA footer banner ── */}
       <section className="px-4 py-14 md:px-10 md:py-20" style={{ background: '#16A34A' }}>
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-extrabold text-white md:text-3xl" style={{ letterSpacing: '-0.02em' }}>
+          <h2 className="text-2xl font-extrabold text-white md:text-3xl tracking-propia">
             ¿Listo para alquilar sin intermediarios?
           </h2>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">

@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 export const metadata: Metadata = {
   title: 'Mis favoritos — PROPIA',
   description: 'Propiedades que guardaste para consultar más tarde.',
+  robots: { index: false, follow: false },
 }
 
 const TIPO_LABEL: Record<string, string> = {
@@ -51,7 +52,7 @@ export default async function FavoritosPage() {
       <main className="flex flex-1 flex-col px-6 pt-24 pb-12 md:px-10">
         <div className="mx-auto w-full max-w-4xl">
           <div className="mb-8">
-            <h1 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-propia">
               Mis favoritos
             </h1>
             <p className="mt-1 text-sm text-slate-500">

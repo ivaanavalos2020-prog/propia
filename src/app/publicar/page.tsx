@@ -317,7 +317,7 @@ function LocalidadInput({ value, onChange, provincia }: { value: string; onChang
   if (!localidades) {
     return (
       <input type="text" value={value} onChange={(e) => onChange(e.target.value)}
-        placeholder="Ej: Temperley, Banfield, Palermo..." className={inputCls} style={{ fontSize: 16 }} />
+        placeholder="Ej: Temperley, Banfield, Palermo..." className={inputCls} />
     )
   }
 
@@ -326,7 +326,7 @@ function LocalidadInput({ value, onChange, provincia }: { value: string; onChang
       <input type="text" value={query}
         onChange={(e) => { setQuery(e.target.value); onChange(e.target.value); setOpen(true) }}
         onFocus={() => setOpen(true)}
-        placeholder="Ej: Temperley, Banfield, Palermo..." className={inputCls} style={{ fontSize: 16 }} autoComplete="off" />
+        placeholder="Ej: Temperley, Banfield, Palermo..." className={inputCls} autoComplete="off" />
       {open && sugerencias.length > 0 && (
         <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
           {sugerencias.map((s) => (
@@ -963,7 +963,7 @@ export default function PublicarPage() {
             )}
 
             <div className="flex min-h-[60vh] flex-col items-center justify-center py-8">
-              <h2 className="mb-2 text-center text-3xl font-extrabold text-slate-900 lg:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+              <h2 className="mb-2 text-center text-3xl font-extrabold text-slate-900 lg:text-4xl tracking-propia">
                 ¿Qué tipo de propiedad vas a publicar?
               </h2>
               <p className="mb-10 text-center text-base text-slate-500">
@@ -1036,7 +1036,7 @@ export default function PublicarPage() {
                 {paso === 1 && (
                   <div className="flex flex-col gap-6">
                     <div>
-                      <h2 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>¿Dónde está ubicada?</h2>
+                      <h2 className="text-2xl font-extrabold text-slate-900 tracking-propia">¿Dónde está ubicada?</h2>
                       <p className="mt-1 text-sm text-slate-500">📍 Los interesados ven la ubicación exacta. Menos preguntas, más visitas.</p>
                     </div>
 
@@ -1078,7 +1078,7 @@ export default function PublicarPage() {
                 {paso === 2 && (
                   <div className="flex flex-col gap-6">
                     <div>
-                      <h2 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>Precio y contrato</h2>
+                      <h2 className="text-2xl font-extrabold text-slate-900 tracking-propia">Precio y contrato</h2>
                       <p className="mt-1 text-sm text-slate-500">💡 Vos ponés el precio, sin intermediarios.</p>
                     </div>
 
@@ -1218,7 +1218,7 @@ export default function PublicarPage() {
                 {paso === 3 && (
                   <div className="flex flex-col gap-6">
                     <div>
-                      <h2 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>Impuestos, seguros y garantías</h2>
+                      <h2 className="text-2xl font-extrabold text-slate-900 tracking-propia">Impuestos, seguros y garantías</h2>
                       <p className="mt-1 text-sm text-slate-500">Todo opcional — podés avanzar sin completar nada.</p>
                     </div>
 
@@ -1368,7 +1368,7 @@ export default function PublicarPage() {
                 {paso === 4 && (
                   <div className="flex flex-col gap-6">
                     <div>
-                      <h2 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>Características</h2>
+                      <h2 className="text-2xl font-extrabold text-slate-900 tracking-propia">Características</h2>
                       <p className="mt-1 text-sm text-slate-500">🎯 Vos definís las reglas. Cada detalle atrae al inquilino correcto.</p>
                     </div>
 
@@ -1501,7 +1501,7 @@ export default function PublicarPage() {
                 {paso === 5 && (
                   <div className="flex flex-col gap-6">
                     <div>
-                      <h2 className="text-2xl font-extrabold text-slate-900" style={{ letterSpacing: '-0.02em' }}>Fotos y descripción</h2>
+                      <h2 className="text-2xl font-extrabold text-slate-900 tracking-propia">Fotos y descripción</h2>
                       <p className="mt-1 text-sm text-slate-500">📸 Tus fotos, tu control. Mostrá tu propiedad como realmente es.</p>
                     </div>
 

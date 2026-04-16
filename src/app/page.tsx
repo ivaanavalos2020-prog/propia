@@ -83,7 +83,7 @@ export default async function LandingPage() {
         </AnimarAlEntrar>
 
         <AnimarAlEntrar delay={80}>
-          <h1 className="mt-6 max-w-3xl text-5xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-7xl" style={{ letterSpacing: '-0.02em' }}>
+          <h1 className="mt-6 max-w-3xl text-5xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-7xl tracking-propia">
             Encontrá tu próximo hogar<br />
             <span className="text-blue-600">sin pagar comisión</span>
           </h1>
@@ -157,7 +157,7 @@ export default async function LandingPage() {
               { valor: '100%',     label: 'Legal · Con validez jurídica'            },
             ].map(({ valor, label }) => (
               <div key={label} className="flex flex-col gap-1.5">
-                <span className="text-[40px] font-extrabold leading-none text-blue-600 md:text-[48px]" style={{ letterSpacing: '-0.02em' }}>
+                <span className="text-[40px] font-extrabold leading-none text-blue-600 md:text-[48px] tracking-propia">
                   {valor}
                 </span>
                 <span className="text-[15px] font-medium leading-snug text-slate-500">{label}</span>
@@ -255,7 +255,7 @@ export default async function LandingPage() {
             <AnimarAlEntrar>
               <div className="mb-8 flex items-end justify-between gap-4">
                 <div>
-                  <h2 className="text-3xl font-extrabold text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+                  <h2 className="text-3xl font-extrabold text-slate-900 md:text-4xl tracking-propia">
                     Propiedades disponibles en tu zona
                   </h2>
                   <p className="mt-1 text-slate-500">Publicadas directamente por sus dueños · Sin comisiones</p>
@@ -337,7 +337,7 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-3xl">
           <AnimarAlEntrar>
             <div className="mb-10 text-center">
-              <h2 className="text-3xl font-extrabold text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+              <h2 className="text-3xl font-extrabold text-slate-900 md:text-4xl tracking-propia">
                 PROPIA vs. Inmobiliaria
               </h2>
               <p className="mt-3 text-slate-500">La diferencia es clara</p>
@@ -418,7 +418,7 @@ export default async function LandingPage() {
               <span className="inline-block rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-green-700">
                 Sin comisiones
               </span>
-              <h2 className="mt-4 text-3xl font-extrabold text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+              <h2 className="mt-4 text-3xl font-extrabold text-slate-900 md:text-4xl tracking-propia">
                 Publicá gratis, ahorrá de verdad
               </h2>
               <p className="mt-3 text-base text-slate-500">
@@ -472,7 +472,7 @@ export default async function LandingPage() {
             <span className="inline-block rounded-full border border-blue-700 bg-blue-900/50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-400">
               Para dueños
             </span>
-            <h2 className="mt-5 text-3xl font-extrabold text-white md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+            <h2 className="mt-5 text-3xl font-extrabold text-white md:text-4xl tracking-propia">
               ¿Tenés una propiedad para alquilar?
             </h2>
             <p className="mt-4 text-base leading-relaxed text-slate-400">
@@ -514,7 +514,7 @@ export default async function LandingPage() {
               <span className="inline-block rounded-full border border-blue-200 bg-blue-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-600">
                 Confianza y seguridad
               </span>
-              <h2 className="mt-4 text-3xl font-extrabold text-slate-900 md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+              <h2 className="mt-4 text-3xl font-extrabold text-slate-900 md:text-4xl tracking-propia">
                 Tu seguridad es lo primero
               </h2>
               <p className="mt-3 text-slate-500">Herramientas para que dueños e inquilinos confíen entre sí</p>
@@ -586,7 +586,7 @@ export default async function LandingPage() {
       <section className="bg-slate-900 px-6 py-20 md:px-10">
         <AnimarAlEntrar>
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-extrabold text-white md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+            <h2 className="text-3xl font-extrabold text-white md:text-4xl tracking-propia">
               ¿Tenés una propiedad para alquilar?
             </h2>
             <p className="mt-4 text-slate-400">

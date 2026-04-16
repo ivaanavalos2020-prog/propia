@@ -26,21 +26,7 @@ export default async function EditarPropiedadPage({
 
   const { data: propiedad } = await supabase
     .from('properties')
-    .select(
-      'id, type, address, neighborhood, city, property_references, ' +
-      'price_usd, has_expenses, expenses_amount, expenses_included, deposit_months, ' +
-      'contract_type, contract_duration_months, update_index, ' +
-      'price_per_night, min_nights, max_nights, ' +
-      'guarantees_accepted, services_included, ' +
-      'description, bedrooms, bathrooms, rooms, toilettes, ' +
-      'area_m2, total_area_m2, floor_number, property_age, property_condition, ' +
-      'has_garage, has_storage, has_garden, has_terrace, has_pool, has_bbq, ' +
-      'has_gym, has_laundry, has_security, has_elevator, has_heating, has_ac, ' +
-      'has_balcony, is_furnished, has_appliances, ' +
-      'allows_pets, pets_policy, allows_kids, ' +
-      'allows_smoking, allows_smoking_policy, allows_wfh, ' +
-      'photo_urls, video_urls, status, owner_id'
-    )
+    .select('id, type, address, neighborhood, city, property_references, price_usd, has_expenses, expenses_amount, expenses_included, deposit_months, contract_type, contract_duration_months, update_index, price_per_night, min_nights, max_nights, guarantees_accepted, services_included, description, bedrooms, bathrooms, rooms, toilettes, area_m2, total_area_m2, floor_number, property_age, property_condition, has_garage, has_storage, has_garden, has_terrace, has_pool, has_bbq, has_gym, has_laundry, has_security, has_elevator, has_heating, has_ac, has_balcony, is_furnished, has_appliances, allows_pets, pets_policy, allows_kids, allows_smoking, allows_smoking_policy, allows_wfh, photo_urls, video_urls, status, owner_id')
     .eq('id', id)
     .single()
 
@@ -69,8 +55,7 @@ export default async function EditarPropiedadPage({
                 ✏️ Actualizá precio, fotos o detalles en cualquier momento.
               </p>
               <h1
-                className="mt-1 text-2xl font-extrabold text-slate-900"
-                style={{ letterSpacing: '-0.02em' }}
+                className="mt-1 text-2xl font-extrabold text-slate-900 tracking-propia"
               >
                 {tipo}
               </h1>

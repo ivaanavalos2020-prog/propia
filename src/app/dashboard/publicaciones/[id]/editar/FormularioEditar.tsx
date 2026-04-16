@@ -369,7 +369,7 @@ export default function FormularioEditar({
     const supabase = createClient()
     supabase
       .from('property_costs')
-      .select('*')
+      .select('abl_amount, abl_paid_by, municipal_tax_amount, municipal_tax_paid_by, arba_amount, arba_paid_by, building_insurance_amount, building_insurance_paid_by, tenant_insurance_required, caucion_accepted, caucion_provider_suggestion')
       .eq('property_id', propiedadId)
       .maybeSingle()
       .then(({ data }) => {

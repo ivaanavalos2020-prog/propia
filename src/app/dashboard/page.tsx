@@ -9,6 +9,7 @@ import VerificationBanner from '@/components/VerificationBanner'
 export const metadata: Metadata = {
   title: 'Mi dashboard — PROPIA',
   description: 'Gestioná tus publicaciones de alquiler.',
+  robots: { index: false, follow: false },
 }
 
 export default async function DashboardPage() {
@@ -35,6 +36,14 @@ export default async function DashboardPage() {
   ])
 
   const propertyIds = propiedades?.map((p) => p.id) ?? []
+
+  // Obtener IDs de contratos activos antes del Promise.all para no bloquear el paralelismo
+  const { data: contratosActuales } = await supabase
+    .from('contracts')
+    .select('id')
+    .eq('owner_id', session.user.id)
+    .eq('status', 'active')
+  const contratosActualesIds = contratosActuales?.map((c: { id: string }) => c.id) ?? []
 
   const [
     { count: mensajesSinLeer },
@@ -67,18 +76,11 @@ export default async function DashboardPage() {
         .select('*', { count: 'exact', head: true })
         .eq('owner_id', session.user.id)
         .eq('status', 'active'),
-      propertyIds.length > 0
+      contratosActualesIds.length > 0
         ? supabase
             .from('payment_periods')
             .select('*', { count: 'exact', head: true })
-            .in('contract_id',
-              (await supabase
-                .from('contracts')
-                .select('id')
-                .eq('owner_id', session.user.id)
-                .eq('status', 'active')
-              ).data?.map((c: { id: string }) => c.id) ?? []
-            )
+            .in('contract_id', contratosActualesIds)
             .in('status', ['pending', 'overdue'])
         : Promise.resolve({ count: 0 }),
     ])
@@ -98,8 +100,7 @@ export default async function DashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1
-                className="text-2xl font-extrabold text-slate-900"
-                style={{ letterSpacing: '-0.02em' }}
+                className="text-2xl font-extrabold text-slate-900 tracking-propia"
               >
                 Mi dashboard
               </h1>
@@ -199,7 +200,7 @@ export default async function DashboardPage() {
                     {stat.icon}
                   </div>
                   <div>
-                    <p className={`text-2xl font-extrabold ${stat.color}`} style={{ letterSpacing: '-0.02em' }}>
+                    <p className={`text-2xl font-extrabold tracking-propia ${stat.color}`}>
                       {stat.value}
                       {stat.total !== null && (
                         <span className="text-base font-medium text-slate-400">/{stat.total}</span>
